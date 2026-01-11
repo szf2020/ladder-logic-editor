@@ -40,6 +40,7 @@ interface ProjectState {
   newProject: (name: string) => void;
   newTrafficControllerProject: (name: string) => void;
   loadProject: (project: LadderProject, filePath?: string) => void;
+  loadFromSTCode: (programName: string, stCode: string, fileName?: string) => void;
   saveProject: () => LadderProject | null;
   markDirty: () => void;
   markClean: () => void;
@@ -124,6 +125,45 @@ export const useProjectStore = create<ProjectState>()(
         currentProgramId: project.programs[0]?.id || null,
         isDirty: false,
         filePath: filePath || null,
+      });
+    },
+
+    // Load from ST code directly (ST is source of truth)
+    loadFromSTCode: (programName: string, stCode: string, fileName?: string) => {
+      const now = new Date().toISOString();
+      const programId = `program_${Date.now()}`;
+
+      // Determine program type from ST code
+      const typeMatch = stCode.match(/^(PROGRAM|FUNCTION_BLOCK|FUNCTION)\s+/im);
+      const programType = (typeMatch?.[1]?.toUpperCase() || 'PROGRAM') as 'PROGRAM' | 'FUNCTION_BLOCK' | 'FUNCTION';
+
+      const project: LadderProject = {
+        meta: {
+          version: '1.0',
+          name: programName,
+          created: now,
+          modified: now,
+          editorVersion: '1.0.0',
+        },
+        programs: [
+          {
+            id: programId,
+            name: programName,
+            type: programType,
+            structuredText: stCode,
+            lastSyncSource: 'st',
+            syncValid: true,
+            variables: [],
+          },
+        ],
+        globalVariables: [],
+      };
+
+      set({
+        project,
+        currentProgramId: programId,
+        isDirty: false,
+        filePath: fileName || null,
       });
     },
 

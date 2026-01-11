@@ -200,3 +200,57 @@ export function downloadSTFile(programName: string, stCode: string): void {
 
   URL.revokeObjectURL(url);
 }
+
+// ============================================================================
+// Import ST File
+// ============================================================================
+
+export interface STFileResult {
+  fileName: string;
+  programName: string;
+  stCode: string;
+}
+
+/**
+ * Open file picker and load ST code from selected file.
+ * This is the primary way to load programs - ST is the source of truth.
+ */
+export function openSTFile(): Promise<STFileResult> {
+  return new Promise((resolve, reject) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.st,.txt';
+
+    input.onchange = async (event) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+
+      if (!file) {
+        reject(new Error('No file selected'));
+        return;
+      }
+
+      try {
+        const stCode = await file.text();
+
+        // Extract program name from the ST code if present
+        const programMatch = stCode.match(/^(PROGRAM|FUNCTION_BLOCK|FUNCTION)\s+(\w+)/im);
+        const programName = programMatch?.[2] || file.name.replace(/\.st$|\.txt$/i, '');
+
+        resolve({
+          fileName: file.name,
+          programName,
+          stCode,
+        });
+      } catch (error) {
+        reject(new Error(`Failed to read ST file: ${error}`));
+      }
+    };
+
+    input.oncancel = () => {
+      reject(new Error('File selection cancelled'));
+    };
+
+    input.click();
+  });
+}

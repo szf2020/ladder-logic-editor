@@ -17,8 +17,8 @@ import { useProjectStore, useSimulationStore } from '../../store';
 import {
   saveToLocalStorage,
   loadFromLocalStorage,
-  downloadProject,
-  openProjectFile,
+  downloadSTFile,
+  openSTFile,
   scheduleAutoSave,
 } from '../../services/file-service';
 import {
@@ -150,6 +150,7 @@ export function MainLayout() {
   const isDirty = useProjectStore((state) => state.isDirty);
   const newProject = useProjectStore((state) => state.newProject);
   const loadProject = useProjectStore((state) => state.loadProject);
+  const loadFromSTCode = useProjectStore((state) => state.loadFromSTCode);
   const saveProject = useProjectStore((state) => state.saveProject);
 
   // Load saved project from localStorage on mount
@@ -184,28 +185,34 @@ export function MainLayout() {
   const handleOpen = useCallback(async () => {
     if (isDirty) {
       const confirmed = window.confirm(
-        'You have unsaved changes. Are you sure you want to open a different project?'
+        'You have unsaved changes. Are you sure you want to open a different file?'
       );
       if (!confirmed) return;
     }
 
     try {
-      const loadedProject = await openProjectFile();
-      loadProject(loadedProject);
+      // Open ST file directly - ST is the source of truth
+      const { programName, stCode, fileName } = await openSTFile();
+      loadFromSTCode(programName, stCode, fileName);
     } catch (error) {
       // User cancelled or error opening file
       if ((error as Error).message !== 'File selection cancelled') {
-        console.error('Error opening project:', error);
-        alert(`Failed to open project: ${(error as Error).message}`);
+        console.error('Error opening ST file:', error);
+        alert(`Failed to open ST file: ${(error as Error).message}`);
       }
     }
-  }, [isDirty, loadProject]);
+  }, [isDirty, loadFromSTCode]);
 
   const handleSave = useCallback(() => {
     const projectToSave = saveProject();
     if (projectToSave) {
+      // Save to localStorage for auto-recovery
       saveToLocalStorage(projectToSave);
-      downloadProject(projectToSave);
+      // Download ST file (source of truth)
+      const program = projectToSave.programs[0];
+      if (program) {
+        downloadSTFile(program.name, program.structuredText);
+      }
     }
   }, [saveProject]);
 
