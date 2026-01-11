@@ -1,0 +1,152 @@
+/**
+ * Ladder Canvas Component
+ *
+ * React Flow based ladder diagram editor.
+ * Renders the visual representation of the ladder logic.
+ */
+
+import { useCallback, useEffect } from 'react';
+import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
+  addEdge,
+  useNodesState,
+  useEdgesState,
+  BackgroundVariant,
+} from 'reactflow';
+import type { Node, Connection } from 'reactflow';
+import 'reactflow/dist/style.css';
+
+import { ladderNodeTypes } from './nodes';
+import type { LadderNode, LadderEdge } from '../../models/ladder-elements';
+
+import './LadderCanvas.css';
+
+interface LadderCanvasProps {
+  initialNodes?: LadderNode[];
+  initialEdges?: LadderEdge[];
+  onNodesChange?: (nodes: LadderNode[]) => void;
+  onEdgesChange?: (edges: LadderEdge[]) => void;
+  className?: string;
+}
+
+export function LadderCanvas({
+  initialNodes = [],
+  initialEdges = [],
+  onNodesChange,
+  onEdgesChange,
+  className = '',
+}: LadderCanvasProps) {
+  const [nodes, setNodes, onNodesChangeInternal] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChangeInternal] = useEdgesState(initialEdges);
+
+  // Update nodes when initialNodes prop changes
+  useEffect(() => {
+    setNodes(initialNodes);
+  }, [initialNodes, setNodes]);
+
+  // Update edges when initialEdges prop changes
+  useEffect(() => {
+    setEdges(initialEdges);
+  }, [initialEdges, setEdges]);
+
+  // Handle new connections
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      setEdges((eds) => {
+        const newEdges = addEdge(
+          {
+            ...connection,
+            data: { powerFlow: false },
+          },
+          eds
+        );
+        onEdgesChange?.(newEdges as LadderEdge[]);
+        return newEdges;
+      });
+    },
+    [setEdges, onEdgesChange]
+  );
+
+  // Handle node changes
+  const handleNodesChange = useCallback(
+    (changes: any) => {
+      onNodesChangeInternal(changes);
+      // Notify parent after state update
+      setTimeout(() => {
+        onNodesChange?.(nodes as LadderNode[]);
+      }, 0);
+    },
+    [onNodesChangeInternal, onNodesChange, nodes]
+  );
+
+  // Handle edge changes
+  const handleEdgesChange = useCallback(
+    (changes: any) => {
+      onEdgesChangeInternal(changes);
+      // Notify parent after state update
+      setTimeout(() => {
+        onEdgesChange?.(edges as LadderEdge[]);
+      }, 0);
+    },
+    [onEdgesChangeInternal, onEdgesChange, edges]
+  );
+
+  // MiniMap node color
+  const nodeColor = useCallback((node: Node) => {
+    switch (node.type) {
+      case 'contact':
+        return '#569cd6';
+      case 'coil':
+        return '#4ec9b0';
+      case 'timer':
+        return '#dcdcaa';
+      case 'comparator':
+        return '#ce9178';
+      case 'powerRail':
+        return node.data?.railType === 'left' ? '#e74c3c' : '#3498db';
+      default:
+        return '#808080';
+    }
+  }, []);
+
+  return (
+    <div className={`ladder-canvas ${className}`}>
+      <div className="ladder-canvas-header">
+        <span className="ladder-canvas-title">Ladder Diagram</span>
+      </div>
+      <div className="ladder-canvas-content">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={handleEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={ladderNodeTypes}
+          fitView
+          snapToGrid
+          snapGrid={[15, 15]}
+          defaultEdgeOptions={{
+            type: 'smoothstep',
+            style: { stroke: '#d4d4d4', strokeWidth: 2 },
+          }}
+        >
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={15}
+            size={1}
+            color="#404040"
+          />
+          <Controls />
+          <MiniMap
+            nodeColor={nodeColor}
+            nodeStrokeWidth={3}
+            zoomable
+            pannable
+          />
+        </ReactFlow>
+      </div>
+    </div>
+  );
+}

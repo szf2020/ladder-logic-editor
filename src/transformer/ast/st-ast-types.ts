@@ -1,0 +1,292 @@
+/**
+ * Structured Text AST Type Definitions
+ *
+ * These types represent the Abstract Syntax Tree for IEC 61131-3 Structured Text.
+ * The AST is built from the Lezer CST (Concrete Syntax Tree) and provides a typed,
+ * easier-to-work-with representation for transformation to ladder diagrams.
+ */
+
+// ============================================================================
+// Source Location (for error reporting and roundtrip fidelity)
+// ============================================================================
+
+export interface SourceLocation {
+  start: number;
+  end: number;
+}
+
+// ============================================================================
+// Base AST Node
+// ============================================================================
+
+export interface ASTNode {
+  type: string;
+  loc: SourceLocation;
+}
+
+// ============================================================================
+// Variable Declarations
+// ============================================================================
+
+export type VariableScopeKind =
+  | 'VAR'
+  | 'VAR_INPUT'
+  | 'VAR_OUTPUT'
+  | 'VAR_IN_OUT'
+  | 'VAR_TEMP'
+  | 'VAR_GLOBAL';
+
+export interface STTypeSpec extends ASTNode {
+  type: 'TypeSpec';
+  typeName: string;
+  isArray: boolean;
+  arrayRange?: { start: number; end: number };
+}
+
+export interface STVariableDecl extends ASTNode {
+  type: 'VariableDecl';
+  names: string[];
+  dataType: STTypeSpec;
+  initialValue?: STExpression;
+}
+
+export interface STVarBlock extends ASTNode {
+  type: 'VarBlock';
+  scope: VariableScopeKind;
+  declarations: STVariableDecl[];
+}
+
+// ============================================================================
+// Expressions
+// ============================================================================
+
+export type STExpression =
+  | STBinaryExpr
+  | STUnaryExpr
+  | STVariable
+  | STLiteral
+  | STFunctionCall
+  | STParenExpr;
+
+export type BinaryOperator =
+  | 'AND'
+  | 'OR'
+  | 'XOR'
+  | '='
+  | '<>'
+  | '<'
+  | '>'
+  | '<='
+  | '>='
+  | '+'
+  | '-'
+  | '*'
+  | '/'
+  | 'MOD';
+
+export interface STBinaryExpr extends ASTNode {
+  type: 'BinaryExpr';
+  operator: BinaryOperator;
+  left: STExpression;
+  right: STExpression;
+}
+
+export type UnaryOperator = 'NOT' | '-';
+
+export interface STUnaryExpr extends ASTNode {
+  type: 'UnaryExpr';
+  operator: UnaryOperator;
+  operand: STExpression;
+}
+
+export interface STVariable extends ASTNode {
+  type: 'Variable';
+  name: string;
+  accessPath: string[]; // For nested access like Timer1.Q -> ['Timer1', 'Q']
+}
+
+export type LiteralType = 'BOOL' | 'INT' | 'REAL' | 'TIME' | 'STRING';
+
+export interface STLiteral extends ASTNode {
+  type: 'Literal';
+  value: boolean | number | string;
+  literalType: LiteralType;
+  rawValue: string; // Original text (e.g., "T#5s", "TRUE")
+}
+
+export interface STFunctionCall extends ASTNode {
+  type: 'FunctionCall';
+  name: string;
+  arguments: STExpression[];
+}
+
+export interface STParenExpr extends ASTNode {
+  type: 'ParenExpr';
+  expression: STExpression;
+}
+
+// ============================================================================
+// Statements
+// ============================================================================
+
+export type STStatement =
+  | STAssignment
+  | STFunctionBlockCall
+  | STIfStatement
+  | STCaseStatement
+  | STForStatement
+  | STWhileStatement
+  | STRepeatStatement
+  | STReturnStatement
+  | STExitStatement;
+
+export interface STAssignment extends ASTNode {
+  type: 'Assignment';
+  target: STVariable;
+  expression: STExpression;
+}
+
+export interface STNamedArgument {
+  name: string;
+  expression: STExpression;
+}
+
+export interface STFunctionBlockCall extends ASTNode {
+  type: 'FunctionBlockCall';
+  instanceName: string;
+  arguments: STNamedArgument[];
+}
+
+export interface STElsifClause {
+  condition: STExpression;
+  statements: STStatement[];
+}
+
+export interface STIfStatement extends ASTNode {
+  type: 'IfStatement';
+  condition: STExpression;
+  thenBranch: STStatement[];
+  elsifClauses: STElsifClause[];
+  elseBranch?: STStatement[];
+}
+
+export interface STCaseLabel {
+  type: 'single' | 'range';
+  value?: number;
+  start?: number;
+  end?: number;
+}
+
+export interface STCaseClause {
+  labels: STCaseLabel[];
+  statements: STStatement[];
+}
+
+export interface STCaseStatement extends ASTNode {
+  type: 'CaseStatement';
+  expression: STExpression;
+  cases: STCaseClause[];
+  elseBranch?: STStatement[];
+}
+
+export interface STForStatement extends ASTNode {
+  type: 'ForStatement';
+  variable: string;
+  startValue: STExpression;
+  endValue: STExpression;
+  step?: STExpression;
+  body: STStatement[];
+}
+
+export interface STWhileStatement extends ASTNode {
+  type: 'WhileStatement';
+  condition: STExpression;
+  body: STStatement[];
+}
+
+export interface STRepeatStatement extends ASTNode {
+  type: 'RepeatStatement';
+  body: STStatement[];
+  condition: STExpression;
+}
+
+export interface STReturnStatement extends ASTNode {
+  type: 'ReturnStatement';
+}
+
+export interface STExitStatement extends ASTNode {
+  type: 'ExitStatement';
+}
+
+// ============================================================================
+// Program Structure
+// ============================================================================
+
+export type ProgramType = 'PROGRAM' | 'FUNCTION_BLOCK';
+
+export interface STProgram extends ASTNode {
+  type: 'Program';
+  name: string;
+  programType: ProgramType;
+  varBlocks: STVarBlock[];
+  statements: STStatement[];
+}
+
+// ============================================================================
+// Root AST
+// ============================================================================
+
+export interface ParseError {
+  message: string;
+  loc: SourceLocation;
+  severity: 'error' | 'warning';
+}
+
+export interface STAST {
+  programs: STProgram[];
+  /** Top-level statements outside any program block */
+  topLevelStatements: STStatement[];
+  /** Top-level variable blocks outside any program block */
+  topLevelVarBlocks: STVarBlock[];
+  errors: ParseError[];
+}
+
+// ============================================================================
+// Type Guards
+// ============================================================================
+
+export function isSTBinaryExpr(node: STExpression): node is STBinaryExpr {
+  return node.type === 'BinaryExpr';
+}
+
+export function isSTUnaryExpr(node: STExpression): node is STUnaryExpr {
+  return node.type === 'UnaryExpr';
+}
+
+export function isSTVariable(node: STExpression): node is STVariable {
+  return node.type === 'Variable';
+}
+
+export function isSTLiteral(node: STExpression): node is STLiteral {
+  return node.type === 'Literal';
+}
+
+export function isSTFunctionCall(node: STExpression): node is STFunctionCall {
+  return node.type === 'FunctionCall';
+}
+
+export function isSTParenExpr(node: STExpression): node is STParenExpr {
+  return node.type === 'ParenExpr';
+}
+
+export function isBooleanOperator(op: BinaryOperator): boolean {
+  return op === 'AND' || op === 'OR' || op === 'XOR';
+}
+
+export function isComparisonOperator(op: BinaryOperator): boolean {
+  return op === '=' || op === '<>' || op === '<' || op === '>' || op === '<=' || op === '>=';
+}
+
+export function isArithmeticOperator(op: BinaryOperator): boolean {
+  return op === '+' || op === '-' || op === '*' || op === '/' || op === 'MOD';
+}

@@ -1,0 +1,326 @@
+/**
+ * Ladder Logic Node Styles
+ */
+
+/* Base node styles */
+.ladder-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px;
+  background: #2d2d2d;
+  border: 2px solid #404040;
+  border-radius: 4px;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 12px;
+  color: #d4d4d4;
+  min-width: 60px;
+  position: relative;
+}
+
+.ladder-node.selected {
+  border-color: #007acc;
+  box-shadow: 0 0 8px rgba(0, 122, 204, 0.5);
+}
+
+.ladder-node .node-label {
+  margin-top: 4px;
+  font-size: 10px;
+  color: #9cdcfe;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Handles */
+.ladder-handle {
+  width: 10px;
+  height: 10px;
+  background: #007acc;
+  border: 2px solid #005a9e;
+}
+
+.ladder-handle:hover {
+  background: #0098ff;
+}
+
+/* ============================================================================
+   Contact Node
+   ============================================================================ */
+
+.contact-node {
+  min-width: 70px;
+}
+
+.contact-body {
+  display: flex;
+  align-items: center;
+  height: 32px;
+}
+
+.contact-rail {
+  width: 8px;
+  height: 24px;
+  border: 2px solid #d4d4d4;
+}
+
+.contact-rail.left {
+  border-right: none;
+}
+
+.contact-rail.right {
+  border-left: none;
+}
+
+.contact-center {
+  width: 20px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-symbol {
+  font-weight: bold;
+  font-size: 14px;
+  color: #f44747;
+}
+
+/* NO contact - empty center */
+.contact-node.no .contact-symbol {
+  color: transparent;
+}
+
+/* NC contact - diagonal line */
+.contact-node.nc .contact-center {
+  position: relative;
+}
+
+.contact-node.nc .contact-center::before {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 28px;
+  background: #d4d4d4;
+  transform: rotate(-30deg);
+}
+
+/* Edge detection contacts */
+.contact-node.p .contact-symbol,
+.contact-node.n .contact-symbol {
+  color: #dcdcaa;
+}
+
+/* ============================================================================
+   Coil Node
+   ============================================================================ */
+
+.coil-node {
+  min-width: 60px;
+}
+
+.coil-body {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  font-size: 20px;
+  font-weight: 300;
+}
+
+.coil-left,
+.coil-right {
+  color: #d4d4d4;
+}
+
+.coil-center {
+  width: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coil-symbol {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Set coil */
+.coil-node.set .coil-symbol {
+  color: #4ec9b0;
+}
+
+/* Reset coil */
+.coil-node.reset .coil-symbol {
+  color: #f44747;
+}
+
+/* Transition coils */
+.coil-node.positive .coil-symbol,
+.coil-node.negative .coil-symbol {
+  color: #dcdcaa;
+}
+
+/* ============================================================================
+   Timer Node
+   ============================================================================ */
+
+.timer-node {
+  min-width: 100px;
+  padding: 0;
+}
+
+.timer-body {
+  width: 100%;
+  background: #1e1e1e;
+  border-radius: 2px;
+}
+
+.timer-header {
+  background: #0e639c;
+  color: white;
+  padding: 4px 8px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 2px 2px 0 0;
+}
+
+.timer-node.ton .timer-header {
+  background: #0e639c;
+}
+
+.timer-node.tof .timer-header {
+  background: #6c5ce7;
+}
+
+.timer-node.tp .timer-header {
+  background: #00b894;
+}
+
+.timer-instance {
+  padding: 4px 8px;
+  font-size: 11px;
+  color: #9cdcfe;
+  text-align: center;
+  border-bottom: 1px solid #404040;
+}
+
+.timer-params {
+  padding: 4px 8px;
+}
+
+.timer-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #808080;
+  line-height: 1.6;
+}
+
+.timer-pin-label.right {
+  text-align: right;
+}
+
+.timer-preset {
+  padding: 4px 8px;
+  font-size: 10px;
+  color: #b5cea8;
+  text-align: center;
+  background: #252526;
+  border-radius: 0 0 2px 2px;
+}
+
+.timer-handle {
+  width: 8px;
+  height: 8px;
+}
+
+/* ============================================================================
+   Power Rail Node
+   ============================================================================ */
+
+.power-rail-node {
+  width: 12px;
+  min-width: 12px;
+  height: 80px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.rail-line {
+  width: 4px;
+  height: 100%;
+  background: #d4d4d4;
+}
+
+.power-rail-node.left .rail-line {
+  background: #e74c3c;
+}
+
+.power-rail-node.right .rail-line {
+  background: #3498db;
+}
+
+.rail-handle {
+  width: 8px;
+  height: 8px;
+}
+
+/* ============================================================================
+   Comparator Node
+   ============================================================================ */
+
+.comparator-node {
+  min-width: 120px;
+  padding: 6px 8px;
+}
+
+.comparator-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 4px 8px;
+  background: #1e1e1e;
+  border: 1px solid #569cd6;
+  border-radius: 4px;
+}
+
+.comparator-operand {
+  font-size: 11px;
+  color: #9cdcfe;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comparator-operator {
+  font-size: 12px;
+  font-weight: bold;
+  color: #dcdcaa;
+  padding: 0 2px;
+}
+
+/* ============================================================================
+   Power Flow Animation
+   ============================================================================ */
+
+.ladder-node.powered {
+  border-color: #27ae60;
+}
+
+.ladder-node.powered .contact-rail,
+.ladder-node.powered .coil-left,
+.ladder-node.powered .coil-right {
+  color: #27ae60;
+  border-color: #27ae60;
+}
+
+.power-rail-node.left.powered .rail-line {
+  background: #27ae60;
+  box-shadow: 0 0 8px rgba(39, 174, 96, 0.5);
+}

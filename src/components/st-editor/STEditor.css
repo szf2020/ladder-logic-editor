@@ -1,0 +1,160 @@
+/**
+ * Structured Text Editor Styles
+ */
+
+.st-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.st-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #252526;
+  border-bottom: 1px solid #3c3c3c;
+  font-size: 12px;
+}
+
+.st-editor-title {
+  font-weight: 600;
+  color: #cccccc;
+}
+
+.st-editor-program-name {
+  color: #808080;
+  font-style: italic;
+}
+
+.st-editor-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.st-editor-content .cm-editor {
+  height: 100%;
+}
+
+/* CodeMirror Theme Overrides */
+.st-editor .cm-gutters {
+  background: #1e1e1e;
+  border-right: 1px solid #3c3c3c;
+  color: #858585;
+}
+
+.st-editor .cm-activeLineGutter {
+  background: #2a2d2e;
+}
+
+.st-editor .cm-activeLine {
+  background: #2a2d2e;
+}
+
+.st-editor .cm-cursor {
+  border-left-color: #aeafad;
+}
+
+.st-editor .cm-selectionBackground {
+  background: #264f78 !important;
+}
+
+/* Syntax Highlighting */
+.st-editor .tok-keyword {
+  color: #569cd6;
+  font-weight: bold;
+}
+
+.st-editor .tok-controlKeyword {
+  color: #c586c0;
+}
+
+.st-editor .tok-definitionKeyword {
+  color: #569cd6;
+}
+
+.st-editor .tok-typeName {
+  color: #4ec9b0;
+}
+
+.st-editor .tok-variableName {
+  color: #9cdcfe;
+}
+
+.st-editor .tok-number {
+  color: #b5cea8;
+}
+
+.st-editor .tok-string {
+  color: #ce9178;
+}
+
+.st-editor .tok-bool {
+  color: #569cd6;
+}
+
+.st-editor .tok-literal {
+  color: #dcdcaa;
+}
+
+.st-editor .tok-comment {
+  color: #6a9955;
+  font-style: italic;
+}
+
+.st-editor .tok-operator {
+  color: #d4d4d4;
+}
+
+.st-editor .tok-logicOperator {
+  color: #569cd6;
+}
+
+.st-editor .tok-compareOperator {
+  color: #d4d4d4;
+}
+
+/* Autocomplete */
+.st-editor .cm-tooltip-autocomplete {
+  background: #252526;
+  border: 1px solid #454545;
+  border-radius: 4px;
+}
+
+.st-editor .cm-tooltip-autocomplete ul li {
+  padding: 4px 8px;
+}
+
+.st-editor .cm-tooltip-autocomplete ul li[aria-selected] {
+  background: #094771;
+}
+
+.st-editor .cm-completionLabel {
+  color: #d4d4d4;
+}
+
+.st-editor .cm-completionDetail {
+  color: #808080;
+  font-style: italic;
+  margin-left: 8px;
+}
+
+.st-editor .cm-completionIcon-keyword::after {
+  content: 'K';
+  color: #c586c0;
+}
+
+.st-editor .cm-completionIcon-type::after {
+  content: 'T';
+  color: #4ec9b0;
+}
+
+.st-editor .cm-completionIcon-snippet::after {
+  content: 'S';
+  color: #dcdcaa;
+}

@@ -1,0 +1,297 @@
+/**
+ * Project Store
+ *
+ * Manages the overall project state including programs, variables, and configuration.
+ * Source of Truth: Structured Text (ST)
+ */
+
+import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
+import type {
+  LadderProject,
+  ProgramUnit,
+  ProjectConfiguration,
+} from '../models/project';
+import type { VariableDeclaration } from '../models/plc-types';
+import type { LadderNode, LadderEdge } from '../models/ladder-elements';
+import { createNewProject, createTrafficControllerProgram } from '../models/project';
+import { createDefaultIntersection } from '../models/traffic-controller';
+import { transformSTToLadder, type TransformResult } from '../transformer';
+
+// ============================================================================
+// State Interface
+// ============================================================================
+
+interface ProjectState {
+  // Project data
+  project: LadderProject | null;
+  currentProgramId: string | null;
+  isDirty: boolean;
+
+  // File state
+  filePath: string | null;
+
+  // Transformer state
+  lastTransformResult: TransformResult | null;
+  transformedNodes: LadderNode[];
+  transformedEdges: LadderEdge[];
+
+  // Actions
+  newProject: (name: string) => void;
+  newTrafficControllerProject: (name: string) => void;
+  loadProject: (project: LadderProject, filePath?: string) => void;
+  saveProject: () => LadderProject | null;
+  markDirty: () => void;
+  markClean: () => void;
+
+  // Program actions
+  setCurrentProgram: (programId: string) => void;
+  getCurrentProgram: () => ProgramUnit | null;
+  updateProgramST: (programId: string, st: string) => void;
+  addProgram: (program: ProgramUnit) => void;
+  removeProgram: (programId: string) => void;
+
+  // Transformer actions
+  transformCurrentProgram: () => TransformResult | null;
+  getTransformedDiagram: () => { nodes: LadderNode[]; edges: LadderEdge[] };
+
+  // Variable actions
+  addGlobalVariable: (variable: VariableDeclaration) => void;
+  updateGlobalVariable: (name: string, variable: Partial<VariableDeclaration>) => void;
+  removeGlobalVariable: (name: string) => void;
+
+  // Configuration actions
+  setConfiguration: (config: ProjectConfiguration) => void;
+}
+
+// ============================================================================
+// Store Implementation
+// ============================================================================
+
+export const useProjectStore = create<ProjectState>()(
+  subscribeWithSelector((set, get) => ({
+    // Initial state
+    project: null,
+    currentProgramId: null,
+    isDirty: false,
+    filePath: null,
+    lastTransformResult: null,
+    transformedNodes: [],
+    transformedEdges: [],
+
+    // Create new empty project
+    newProject: (name: string) => {
+      const project = createNewProject(name);
+      set({
+        project,
+        currentProgramId: project.programs[0]?.id || null,
+        isDirty: false,
+        filePath: null,
+      });
+    },
+
+    // Create new traffic controller project
+    newTrafficControllerProject: (name: string) => {
+      const project = createNewProject(name);
+
+      // Replace default program with traffic controller
+      project.programs = [createTrafficControllerProgram()];
+
+      // Add traffic controller configuration
+      project.configuration = {
+        type: 'traffic-controller',
+        network: {
+          id: 'main_network',
+          name: 'Main Intersection Network',
+          intersections: [createDefaultIntersection('INT_1', 'Main Intersection')],
+          coordination: [],
+          masterCycleTime: 130000,
+        },
+      };
+
+      set({
+        project,
+        currentProgramId: project.programs[0]?.id || null,
+        isDirty: false,
+        filePath: null,
+      });
+    },
+
+    // Load existing project
+    loadProject: (project: LadderProject, filePath?: string) => {
+      set({
+        project,
+        currentProgramId: project.programs[0]?.id || null,
+        isDirty: false,
+        filePath: filePath || null,
+      });
+    },
+
+    // Save project (returns project for serialization)
+    saveProject: () => {
+      const { project } = get();
+      if (!project) return null;
+
+      // Update modified timestamp
+      project.meta.modified = new Date().toISOString();
+
+      set({ isDirty: false });
+      return project;
+    },
+
+    markDirty: () => set({ isDirty: true }),
+    markClean: () => set({ isDirty: false }),
+
+    // Program management
+    setCurrentProgram: (programId: string) => {
+      set({ currentProgramId: programId });
+    },
+
+    getCurrentProgram: () => {
+      const { project, currentProgramId } = get();
+      if (!project || !currentProgramId) return null;
+      return project.programs.find((p) => p.id === currentProgramId) || null;
+    },
+
+    updateProgramST: (programId: string, st: string) => {
+      const { project } = get();
+      if (!project) return;
+
+      const programIndex = project.programs.findIndex((p) => p.id === programId);
+      if (programIndex === -1) return;
+
+      const updatedPrograms = [...project.programs];
+      updatedPrograms[programIndex] = {
+        ...updatedPrograms[programIndex],
+        structuredText: st,
+        lastSyncSource: 'st',
+        syncValid: true, // Will be validated by transformer
+      };
+
+      set({
+        project: { ...project, programs: updatedPrograms },
+        isDirty: true,
+      });
+    },
+
+    addProgram: (program: ProgramUnit) => {
+      const { project } = get();
+      if (!project) return;
+
+      set({
+        project: {
+          ...project,
+          programs: [...project.programs, program],
+        },
+        isDirty: true,
+      });
+    },
+
+    removeProgram: (programId: string) => {
+      const { project, currentProgramId } = get();
+      if (!project) return;
+
+      const updatedPrograms = project.programs.filter((p) => p.id !== programId);
+
+      // Update current program if necessary
+      let newCurrentId = currentProgramId;
+      if (currentProgramId === programId) {
+        newCurrentId = updatedPrograms[0]?.id || null;
+      }
+
+      set({
+        project: { ...project, programs: updatedPrograms },
+        currentProgramId: newCurrentId,
+        isDirty: true,
+      });
+    },
+
+    // Transformer actions
+    transformCurrentProgram: () => {
+      const program = get().getCurrentProgram();
+      if (!program) return null;
+
+      const result = transformSTToLadder(program.structuredText, {
+        warnOnUnsupported: true,
+      });
+
+      set({
+        lastTransformResult: result,
+        transformedNodes: result.nodes,
+        transformedEdges: result.edges,
+      });
+
+      // Update the program's ladder if successful
+      if (result.success && result.diagram) {
+        const { project } = get();
+        if (project) {
+          const updatedPrograms = project.programs.map((p) =>
+            p.id === program.id
+              ? { ...p, ladder: result.diagram, syncValid: true }
+              : p
+          );
+          set({ project: { ...project, programs: updatedPrograms } });
+        }
+      }
+
+      return result;
+    },
+
+    getTransformedDiagram: () => {
+      const { transformedNodes, transformedEdges } = get();
+      return { nodes: transformedNodes, edges: transformedEdges };
+    },
+
+    // Global variables
+    addGlobalVariable: (variable: VariableDeclaration) => {
+      const { project } = get();
+      if (!project) return;
+
+      set({
+        project: {
+          ...project,
+          globalVariables: [...project.globalVariables, variable],
+        },
+        isDirty: true,
+      });
+    },
+
+    updateGlobalVariable: (name: string, updates: Partial<VariableDeclaration>) => {
+      const { project } = get();
+      if (!project) return;
+
+      const updatedVars = project.globalVariables.map((v) =>
+        v.name === name ? { ...v, ...updates } : v
+      );
+
+      set({
+        project: { ...project, globalVariables: updatedVars },
+        isDirty: true,
+      });
+    },
+
+    removeGlobalVariable: (name: string) => {
+      const { project } = get();
+      if (!project) return;
+
+      set({
+        project: {
+          ...project,
+          globalVariables: project.globalVariables.filter((v) => v.name !== name),
+        },
+        isDirty: true,
+      });
+    },
+
+    // Configuration
+    setConfiguration: (config: ProjectConfiguration) => {
+      const { project } = get();
+      if (!project) return;
+
+      set({
+        project: { ...project, configuration: config },
+        isDirty: true,
+      });
+    },
+  }))
+);

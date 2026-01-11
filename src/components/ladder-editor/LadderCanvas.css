@@ -1,0 +1,113 @@
+/**
+ * Ladder Canvas Styles
+ */
+
+.ladder-canvas {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1e1e1e;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ladder-canvas-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #252526;
+  border-bottom: 1px solid #3c3c3c;
+  font-size: 12px;
+}
+
+.ladder-canvas-title {
+  font-weight: 600;
+  color: #cccccc;
+}
+
+.ladder-canvas-content {
+  flex: 1;
+  position: relative;
+}
+
+/* React Flow Overrides */
+.ladder-canvas .react-flow {
+  background: #1e1e1e;
+}
+
+.ladder-canvas .react-flow__background {
+  background: #1e1e1e;
+}
+
+.ladder-canvas .react-flow__controls {
+  background: #252526;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+}
+
+.ladder-canvas .react-flow__controls-button {
+  background: #252526;
+  border-bottom: 1px solid #3c3c3c;
+  fill: #d4d4d4;
+}
+
+.ladder-canvas .react-flow__controls-button:hover {
+  background: #37373d;
+}
+
+.ladder-canvas .react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+
+.ladder-canvas .react-flow__minimap {
+  background: #252526;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+}
+
+.ladder-canvas .react-flow__minimap-mask {
+  fill: rgba(30, 30, 30, 0.8);
+}
+
+/* Edge styles */
+.ladder-canvas .react-flow__edge-path {
+  stroke: #d4d4d4;
+  stroke-width: 2;
+}
+
+.ladder-canvas .react-flow__edge.selected .react-flow__edge-path {
+  stroke: #007acc;
+  stroke-width: 3;
+}
+
+.ladder-canvas .react-flow__edge.animated .react-flow__edge-path {
+  stroke: #27ae60;
+  animation: flowAnimation 1s linear infinite;
+}
+
+@keyframes flowAnimation {
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Connection line */
+.ladder-canvas .react-flow__connection-path {
+  stroke: #007acc;
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+}
+
+/* Selection box */
+.ladder-canvas .react-flow__selection {
+  background: rgba(0, 122, 204, 0.1);
+  border: 1px dashed #007acc;
+}
+
+/* Attribution */
+.ladder-canvas .react-flow__attribution {
+  display: none;
+}
