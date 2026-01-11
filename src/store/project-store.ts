@@ -213,6 +213,7 @@ export const useProjectStore = create<ProjectState>()(
 
       const result = transformSTToLadder(program.structuredText, {
         warnOnUnsupported: true,
+        includeIntermediates: true, // Include AST for interpreter execution
       });
 
       set({

@@ -1,0 +1,117 @@
+.error-panel {
+  background: var(--bg-error, #2d1f1f);
+  border-top: 1px solid var(--border-error, #5c3333);
+  font-size: 13px;
+}
+
+.error-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: var(--text-error, #ff6b6b);
+  cursor: pointer;
+  text-align: left;
+}
+
+.error-panel-header:hover {
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.error-panel-icon {
+  font-size: 10px;
+  color: var(--text-secondary, #888);
+}
+
+.error-panel-summary {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.error-count {
+  color: var(--text-error, #ff6b6b);
+  font-weight: 500;
+}
+
+.warning-count {
+  color: var(--text-warning, #ffc107);
+  font-weight: 500;
+}
+
+.separator {
+  color: var(--text-secondary, #888);
+}
+
+.error-panel-content {
+  padding: 0 12px 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.section-header {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary, #888);
+  margin: 8px 0 4px;
+}
+
+.error-section .section-header {
+  color: var(--text-error, #ff6b6b);
+}
+
+.warning-section .section-header {
+  color: var(--text-warning, #ffc107);
+}
+
+.error-item,
+.warning-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.error-item:hover {
+  background: rgba(255, 107, 107, 0.15);
+}
+
+.warning-item:hover {
+  background: rgba(255, 193, 7, 0.15);
+}
+
+.error-icon {
+  color: var(--text-error, #ff6b6b);
+  font-size: 12px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.warning-icon {
+  color: var(--text-warning, #ffc107);
+  font-size: 12px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.error-message,
+.warning-message {
+  flex: 1;
+  color: var(--text-primary, #e0e0e0);
+  word-break: break-word;
+}
+
+.error-location,
+.warning-location {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-secondary, #888);
+  font-family: monospace;
+}

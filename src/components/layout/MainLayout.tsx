@@ -10,6 +10,9 @@ import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'reac
 import { LadderCanvas } from '../ladder-editor/LadderCanvas';
 import { STEditor } from '../st-editor/STEditor';
 import { VariableWatch } from '../variable-watch/VariableWatch';
+import { ProgramSelector } from '../program-selector';
+import { ErrorPanel } from '../error-panel';
+import { PropertiesPanel } from '../properties-panel';
 import { useProjectStore, useSimulationStore } from '../../store';
 import {
   saveToLocalStorage,
@@ -18,6 +21,15 @@ import {
   openProjectFile,
   scheduleAutoSave,
 } from '../../services/file-service';
+import {
+  runScanCycle,
+  initializeVariables,
+  createRuntimeState,
+  type RuntimeState,
+  type SimulationStoreInterface,
+} from '../../interpreter';
+import type { STAST } from '../../transformer/ast';
+import type { LadderNode } from '../../models/ladder-elements';
 
 import './MainLayout.css';
 
@@ -25,6 +37,7 @@ export function MainLayout() {
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error'>('synced');
   const [errorCount, setErrorCount] = useState(0);
   const [watchPanelCollapsed, setWatchPanelCollapsed] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<LadderNode | null>(null);
 
   // Simulation state and actions
   const simulationStatus = useSimulationStore((state) => state.status);
@@ -42,6 +55,10 @@ export function MainLayout() {
   // Ref to track animation frame
   const animationFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
+
+  // Interpreter state refs
+  const currentASTRef = useRef<STAST | null>(null);
+  const runtimeStateRef = useRef<RuntimeState | null>(null);
 
   // Simulation loop
   useEffect(() => {
@@ -64,13 +81,22 @@ export function MainLayout() {
       if (deltaTime >= scanTime) {
         lastTimeRef.current = timestamp;
 
-        // Step simulation
+        // Step simulation clock
         stepSimulation();
 
-        // Update all running timers
-        Object.keys(timers).forEach((timerName) => {
-          updateTimer(timerName, scanTime);
-        });
+        // Execute ST program via interpreter
+        const ast = currentASTRef.current;
+        const runtimeState = runtimeStateRef.current;
+        if (ast && runtimeState) {
+          // Get fresh store reference for each cycle
+          const store = useSimulationStore.getState() as SimulationStoreInterface;
+          runScanCycle(ast, store, runtimeState);
+        } else {
+          // Fallback: just update timers manually if no AST
+          Object.keys(timers).forEach((timerName) => {
+            updateTimer(timerName, scanTime);
+          });
+        }
       }
 
       animationFrameRef.current = requestAnimationFrame(runSimulationLoop);
@@ -88,6 +114,13 @@ export function MainLayout() {
 
   // Simulation control handlers
   const handleRun = useCallback(() => {
+    // Initialize variables from AST before starting
+    const ast = currentASTRef.current;
+    if (ast) {
+      const store = useSimulationStore.getState() as SimulationStoreInterface;
+      initializeVariables(ast, store);
+      runtimeStateRef.current = createRuntimeState(ast);
+    }
     startSimulation();
   }, [startSimulation]);
 
@@ -110,6 +143,7 @@ export function MainLayout() {
   const transformCurrentProgram = useProjectStore((state) => state.transformCurrentProgram);
   const transformedNodes = useProjectStore((state) => state.transformedNodes);
   const transformedEdges = useProjectStore((state) => state.transformedEdges);
+  const lastTransformResult = useProjectStore((state) => state.lastTransformResult);
 
   // Project store state for file operations
   const project = useProjectStore((state) => state.project);
@@ -188,6 +222,10 @@ export function MainLayout() {
         if (result.success) {
           setSyncStatus('synced');
           setErrorCount(0);
+          // Store AST for interpreter
+          if (result.intermediates?.ast) {
+            currentASTRef.current = result.intermediates.ast;
+          }
         } else {
           setSyncStatus('error');
           setErrorCount(result.errors.length);
@@ -258,6 +296,12 @@ export function MainLayout() {
         <div className="toolbar-separator" />
 
         <div className="toolbar-group">
+          <ProgramSelector />
+        </div>
+
+        <div className="toolbar-separator" />
+
+        <div className="toolbar-group">
           <button
             className={`toolbar-btn ${simulationStatus === 'running' ? 'active' : ''}`}
             title="Run Simulation"
@@ -318,6 +362,7 @@ export function MainLayout() {
                 initialEdges={transformedEdges}
                 onNodesChange={handleNodesChange}
                 onEdgesChange={handleEdgesChange}
+                onSelectionChange={setSelectedNode}
               />
             </Panel>
 
@@ -330,12 +375,21 @@ export function MainLayout() {
           </PanelGroup>
         </div>
 
+        {/* Properties Panel */}
+        <PropertiesPanel selectedNode={selectedNode} />
+
         {/* Variable Watch Panel */}
         <VariableWatch
           collapsed={watchPanelCollapsed}
           onToggleCollapse={() => setWatchPanelCollapsed(!watchPanelCollapsed)}
         />
       </div>
+
+      {/* Error Panel */}
+      <ErrorPanel
+        errors={lastTransformResult?.errors ?? []}
+        warnings={lastTransformResult?.warnings ?? []}
+      />
 
       {/* Status Bar */}
       <div className="status-bar">

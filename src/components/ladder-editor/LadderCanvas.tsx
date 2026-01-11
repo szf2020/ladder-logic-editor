@@ -14,6 +14,7 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   BackgroundVariant,
+  type OnSelectionChangeParams,
 } from 'reactflow';
 import type { Node, Connection } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -28,6 +29,7 @@ interface LadderCanvasProps {
   initialEdges?: LadderEdge[];
   onNodesChange?: (nodes: LadderNode[]) => void;
   onEdgesChange?: (edges: LadderEdge[]) => void;
+  onSelectionChange?: (node: LadderNode | null) => void;
   className?: string;
 }
 
@@ -36,6 +38,7 @@ export function LadderCanvas({
   initialEdges = [],
   onNodesChange,
   onEdgesChange,
+  onSelectionChange,
   className = '',
 }: LadderCanvasProps) {
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState(initialNodes);
@@ -93,6 +96,18 @@ export function LadderCanvas({
     [onEdgesChangeInternal, onEdgesChange, edges]
   );
 
+  // Handle selection changes
+  const handleSelectionChange = useCallback(
+    ({ nodes: selectedNodes }: OnSelectionChangeParams) => {
+      if (selectedNodes.length === 1) {
+        onSelectionChange?.(selectedNodes[0] as LadderNode);
+      } else {
+        onSelectionChange?.(null);
+      }
+    },
+    [onSelectionChange]
+  );
+
   // MiniMap node color
   const nodeColor = useCallback((node: Node) => {
     switch (node.type) {
@@ -122,6 +137,7 @@ export function LadderCanvas({
           edges={edges}
           onNodesChange={handleNodesChange}
           onEdgesChange={handleEdgesChange}
+          onSelectionChange={handleSelectionChange}
           onConnect={onConnect}
           nodeTypes={ladderNodeTypes}
           fitView
