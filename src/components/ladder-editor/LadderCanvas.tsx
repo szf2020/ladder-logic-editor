@@ -117,6 +117,8 @@ export function LadderCanvas({
         return '#4ec9b0';
       case 'timer':
         return '#dcdcaa';
+      case 'counter':
+        return '#b388ff';
       case 'comparator':
         return '#ce9178';
       case 'powerRail':

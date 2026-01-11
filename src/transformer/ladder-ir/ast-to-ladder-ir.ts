@@ -267,7 +267,7 @@ function functionBlockCallToRung(
 function ifStatementToRungs(
   stmt: STIfStatement,
   baseIndex: number,
-  _variables: Map<string, VariableInfo>,
+  variables: Map<string, VariableInfo>,
   functionBlocks: Map<string, FunctionBlockInfo>
 ): LadderRungIR[] {
   const rungs: LadderRungIR[] = [];
@@ -275,41 +275,19 @@ function ifStatementToRungs(
   // Convert the condition to a contact network
   const conditionNetwork = expressionToContactNetwork(stmt.condition);
 
-  // Each assignment in the THEN branch becomes a rung with the condition
+  // Process all statements in the THEN branch recursively
   for (const thenStmt of stmt.thenBranch) {
-    if (thenStmt.type === 'Assignment') {
-      const targetName = thenStmt.target.accessPath.join('.');
+    const stmtRungs = statementToRungs(thenStmt, baseIndex + rungs.length, variables, functionBlocks);
 
-      // The input is the IF condition AND the assignment's own condition
-      // But for simple assignments, the assignment expression IS the condition already
-      // So we combine the IF condition with any additional logic
-      let inputNetwork: ContactNetwork;
-
-      // If the assignment's expression is just TRUE, use the IF condition
-      if (isLiteralTrue(thenStmt.expression)) {
-        inputNetwork = conditionNetwork;
+    // Prepend the IF condition to each rung's input network
+    for (const rung of stmtRungs) {
+      if (rung.inputNetwork.type === 'true') {
+        rung.inputNetwork = conditionNetwork;
       } else {
-        // Combine IF condition with assignment expression
-        const assignExprNetwork = expressionToContactNetwork(thenStmt.expression);
-        inputNetwork = createSeries([conditionNetwork, assignExprNetwork]);
+        // Combine IF condition with statement's own condition (series)
+        rung.inputNetwork = flattenSeries([conditionNetwork, rung.inputNetwork]);
       }
-
-      rungs.push(createRung(
-        `rung_${baseIndex + rungs.length}`,
-        baseIndex + rungs.length,
-        thenStmt,
-        inputNetwork,
-        createCoil(targetName, 'standard')
-      ));
-    } else if (thenStmt.type === 'FunctionBlockCall') {
-      const fbRung = functionBlockCallToRung(thenStmt, baseIndex + rungs.length, functionBlocks);
-      // Prepend the IF condition to the function block's input
-      if (fbRung.inputNetwork.type !== 'true') {
-        fbRung.inputNetwork = createSeries([conditionNetwork, fbRung.inputNetwork]);
-      } else {
-        fbRung.inputNetwork = conditionNetwork;
-      }
-      rungs.push(fbRung);
+      rungs.push(rung);
     }
   }
 
@@ -318,16 +296,18 @@ function ifStatementToRungs(
     const elsifCondition = expressionToContactNetwork(elsif.condition);
     // ELSIF means NOT(previous conditions) AND this condition
     // For simplicity, we just use the ELSIF condition directly
+
     for (const elsifStmt of elsif.statements) {
-      if (elsifStmt.type === 'Assignment') {
-        const targetName = elsifStmt.target.accessPath.join('.');
-        rungs.push(createRung(
-          `rung_${baseIndex + rungs.length}`,
-          baseIndex + rungs.length,
-          elsifStmt,
-          elsifCondition,
-          createCoil(targetName, 'standard')
-        ));
+      const stmtRungs = statementToRungs(elsifStmt, baseIndex + rungs.length, variables, functionBlocks);
+
+      // Prepend the ELSIF condition to each rung
+      for (const rung of stmtRungs) {
+        if (rung.inputNetwork.type === 'true') {
+          rung.inputNetwork = elsifCondition;
+        } else {
+          rung.inputNetwork = flattenSeries([elsifCondition, rung.inputNetwork]);
+        }
+        rungs.push(rung);
       }
     }
   }
@@ -336,16 +316,18 @@ function ifStatementToRungs(
   if (stmt.elseBranch) {
     // ELSE means NOT(IF condition AND all ELSIF conditions)
     const negatedCondition = negateNetwork(conditionNetwork);
+
     for (const elseStmt of stmt.elseBranch) {
-      if (elseStmt.type === 'Assignment') {
-        const targetName = elseStmt.target.accessPath.join('.');
-        rungs.push(createRung(
-          `rung_${baseIndex + rungs.length}`,
-          baseIndex + rungs.length,
-          elseStmt,
-          negatedCondition,
-          createCoil(targetName, 'standard')
-        ));
+      const stmtRungs = statementToRungs(elseStmt, baseIndex + rungs.length, variables, functionBlocks);
+
+      // Prepend the negated condition to each rung
+      for (const rung of stmtRungs) {
+        if (rung.inputNetwork.type === 'true') {
+          rung.inputNetwork = negatedCondition;
+        } else {
+          rung.inputNetwork = flattenSeries([negatedCondition, rung.inputNetwork]);
+        }
+        rungs.push(rung);
       }
     }
   }
@@ -681,8 +663,3 @@ export function expressionToString(expr: STExpression): string {
   }
 }
 
-function isLiteralTrue(expr: STExpression): boolean {
-  return expr.type === 'Literal' &&
-    expr.literalType === 'BOOL' &&
-    expr.value === true;
-}
