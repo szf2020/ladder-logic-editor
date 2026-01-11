@@ -231,7 +231,14 @@ export function MainLayout() {
           setErrorCount(0);
           // Store AST for interpreter
           if (result.intermediates?.ast) {
-            currentASTRef.current = result.intermediates.ast;
+            const newAST = result.intermediates.ast;
+            currentASTRef.current = newAST;
+
+            // Reinitialize runtime state when AST changes
+            // This ensures ST code changes take effect immediately
+            const store = useSimulationStore.getState() as SimulationStoreInterface;
+            initializeVariables(newAST, store);
+            runtimeStateRef.current = createRuntimeState(newAST);
           }
         } else {
           setSyncStatus('error');
