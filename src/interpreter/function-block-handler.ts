@@ -31,6 +31,8 @@ export interface FunctionBlockStore {
   // Variable access for expression evaluation
   getBool: (name: string) => boolean;
   getInt: (name: string) => number;
+  getReal: (name: string) => number;
+  getTime: (name: string) => number;
 }
 
 /**
@@ -56,9 +58,23 @@ export function createFunctionBlockContext(
     store,
     previousInputs,
     getVariable: (name: string) => {
+      // Try boolean first
       const boolVal = store.getBool(name);
       if (boolVal !== false) return boolVal;
-      return store.getInt(name);
+
+      // Then integer
+      const intVal = store.getInt(name);
+      if (intVal !== 0) return intVal;
+
+      // Then real
+      const realVal = store.getReal(name);
+      if (realVal !== 0) return realVal;
+
+      // Then time (critical for PT := GreenTime etc.)
+      const timeVal = store.getTime(name);
+      if (timeVal !== 0) return timeVal;
+
+      return 0;
     },
     getTimerField: (timerName: string, field: string) => {
       const timer = store.getTimer(timerName);

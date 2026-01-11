@@ -64,6 +64,8 @@ describe('handleFunctionBlockCall', () => {
     resetCounter: ReturnType<typeof vi.fn>;
     getBool: ReturnType<typeof vi.fn>;
     getInt: ReturnType<typeof vi.fn>;
+    getReal: ReturnType<typeof vi.fn>;
+    getTime: ReturnType<typeof vi.fn>;
   };
   let context: FunctionBlockContext;
   let previousInputs: Record<string, boolean>;
@@ -80,6 +82,8 @@ describe('handleFunctionBlockCall', () => {
       resetCounter: vi.fn(),
       getBool: vi.fn().mockReturnValue(false),
       getInt: vi.fn().mockReturnValue(0),
+      getReal: vi.fn().mockReturnValue(0),
+      getTime: vi.fn().mockReturnValue(0),
     };
     previousInputs = {};
     context = createFunctionBlockContext(mockStore, previousInputs);
@@ -143,6 +147,21 @@ describe('handleFunctionBlockCall', () => {
       handleFunctionBlockCall(call, context);
 
       expect(mockStore.setTimerInput).toHaveBeenCalledWith('Timer1', true);
+    });
+
+    it('evaluates TIME variable for PT argument', () => {
+      // This test ensures TIME variables like GreenTime are properly resolved
+      mockStore.getTime.mockReturnValue(10000); // GreenTime = T#10s = 10000ms
+
+      const call = functionBlockCall('Timer1', [
+        { name: 'IN', expression: boolLiteral(true) },
+        { name: 'PT', expression: variable('GreenTime') },
+      ]);
+
+      handleFunctionBlockCall(call, context);
+
+      expect(mockStore.getTime).toHaveBeenCalledWith('GreenTime');
+      expect(mockStore.initTimer).toHaveBeenCalledWith('Timer1', 10000);
     });
   });
 
