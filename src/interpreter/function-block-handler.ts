@@ -19,6 +19,7 @@ export interface FunctionBlockStore {
   // Timer operations
   initTimer: (name: string, pt: number) => void;
   setTimerInput: (name: string, input: boolean) => void;
+  setTimerPT?: (name: string, pt: number) => void; // Optional: update PT dynamically
   getTimer: (name: string) => { IN: boolean; PT: number; Q: boolean; ET: number; running: boolean } | undefined;
 
   // Counter operations
@@ -152,6 +153,11 @@ function handleTimer(instanceName: string, args: STNamedArgument[], context: Fun
   // Initialize timer if not exists
   if (!store.getTimer(instanceName)) {
     store.initTimer(instanceName, ptValue);
+  }
+
+  // Always update PT (it can change dynamically in IEC 61131-3)
+  if (ptArg && store.setTimerPT) {
+    store.setTimerPT(instanceName, ptValue);
   }
 
   // Set timer input

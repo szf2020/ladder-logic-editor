@@ -82,6 +82,7 @@ interface SimulationState {
   updateTimer: (name: string, deltaMs: number) => void;
   getTimer: (name: string) => TimerState | undefined;
   setTimerInput: (name: string, input: boolean) => void;
+  setTimerPT: (name: string, pt: number) => void;
 
   // Counter operations
   initCounter: (name: string, pv: number) => void;
@@ -239,6 +240,7 @@ export const useSimulationStore = create<SimulationState>()(
       const wasOff = !timer.IN;
       const goingOn = input && wasOff;
       const goingOff = !input && timer.IN;
+      const stayingOff = !input && !timer.IN;
 
       let newTimer = { ...timer, IN: input };
 
@@ -248,14 +250,33 @@ export const useSimulationStore = create<SimulationState>()(
         newTimer.ET = 0;
         newTimer.Q = false;
       } else if (goingOff) {
-        // Falling edge - reset timer
+        // Falling edge - stop timer but DON'T reset Q immediately
+        // This allows self-resetting patterns like: Timer(IN := condition AND NOT Timer.Q)
+        // Q will be reset on the NEXT scan when IN stays FALSE
         newTimer.running = false;
         newTimer.ET = 0;
+        // Keep Q as-is so user code can see it for one scan
+      } else if (stayingOff && timer.Q) {
+        // IN stayed FALSE for another scan - NOW reset Q
+        // This gives user code one full scan to see Q=TRUE
         newTimer.Q = false;
       }
 
       set((s) => ({
         timers: { ...s.timers, [name]: newTimer },
+      }));
+    },
+
+    setTimerPT: (name: string, pt: number) => {
+      const state = get();
+      const timer = state.timers[name];
+      if (!timer) return;
+
+      set((s) => ({
+        timers: {
+          ...s.timers,
+          [name]: { ...timer, PT: pt },
+        },
       }));
     },
 
