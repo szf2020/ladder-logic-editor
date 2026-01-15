@@ -24,9 +24,11 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 | [Error Handling](./testing/ERROR_HANDLING.md) | 55 | 55 | 100% | 🟢 Complete |
 | [Property-Based Tests](./testing/PROPERTY_TESTS.md) | 86 | 86 | 100% | 🟢 Complete |
 | [Bounds & Edge Cases](./testing/BOUNDS.md) | 71 | 71 | 100% | 🟢 Complete |
-| **Total** | **990** | **990** | **100%** | 🟢 |
+| Additional Edge Cases | 37 | 37 | 100% | 🟢 Complete |
+| Timer/Counter Interaction | 13 | 13 | 100% | 🟢 Complete |
+| **Total** | **1040** | **1040** | **100%** | 🟢 |
 
-**Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (990 interpreter tests, 1125 total, all passing)
+**Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (1040 interpreter tests, 1125 total, all passing)
 
 \* Array and String bounds tests are pending feature implementation (documented as Future Work)
 
@@ -49,7 +51,9 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 - `pump-level-control.test.ts`: 22 tests ✅ (integration)
 - `batch-sequencer.test.ts`: 20 tests ✅ (integration)
 - `conveyor-control.test.ts`: 23 tests ✅ (integration) - Item counting, position tracking, edge detection
-- Total interpreter tests: 990 (624 compliance + 86 property + 105 integration + 175 other)
+- `additional-edge-cases.test.ts`: 37 tests ✅ (Nested expressions, control flow edge cases, function block interactions, property tests)
+- `timer-counter-interaction.test.ts`: 13 tests ✅ (Timer triggering counters, counter triggering timers, chained timers/counters)
+- Total interpreter tests: 1040 (674 compliance + 86 property + 105 integration + 175 other)
 - Total all tests: 1125 passing
 
 ---
