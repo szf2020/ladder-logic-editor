@@ -71,17 +71,17 @@ function evalInt(expr: string, vars: Record<string, number> = {}): number {
   // Build variable declarations
   const varDecls = Object.entries(vars)
     .map(([name, value]) => `${name} : INT := ${value};`)
-    .join('\n        ');
+    .join('\n  ');
 
-  const code = `
-    PROGRAM Test
-    VAR
-      ${varDecls}
-      Result : INT;
-    END_VAR
-    Result := ${expr};
-    END_PROGRAM
-  `;
+  const code = `PROGRAM Test
+VAR
+  ${varDecls}${varDecls ? '\n  ' : ''}Result : INT;
+END_VAR
+Result := ${expr};
+END_PROGRAM`;
+
+  // Debug: uncomment to see generated code
+  // console.log('Generated code:', code);
 
   const ast = parseSTToAST(code);
   initializeVariables(ast, store);
@@ -201,6 +201,22 @@ describe('Arithmetic Properties', () => {
         { numRuns: 100 }
       );
     });
+
+    it('(a * b) * c = a * (b * c) (associativity)', () => {
+      fc.assert(
+        fc.property(
+          fc.integer({ min: -50, max: 50 }),
+          fc.integer({ min: -50, max: 50 }),
+          fc.integer({ min: -50, max: 50 }),
+          (a, b, c) => {
+            const result1 = evalInt(`(${a} * ${b}) * ${c}`);
+            const result2 = evalInt(`${a} * (${b} * ${c})`);
+            return result1 === result2;
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
   });
 
   describe('Subtraction Properties', () => {
@@ -231,6 +247,26 @@ describe('Arithmetic Properties', () => {
           return result === a;
         }),
         { numRuns: 100 }
+      );
+    });
+
+    it('subtraction is NOT associative: (a - b) - c ≠ a - (b - c) in general', () => {
+      // (a - b) - c = a - b - c
+      // a - (b - c) = a - b + c
+      // These differ by 2c when c ≠ 0
+      fc.assert(
+        fc.property(
+          fc.integer({ min: 10, max: 100 }),
+          fc.integer({ min: 1, max: 10 }),
+          fc.integer({ min: 1, max: 10 }),
+          (a, b, c) => {
+            const result1 = evalInt(`(${a} - ${b}) - ${c}`);
+            const result2 = evalInt(`${a} - (${b} - ${c})`);
+            // Should differ by 2c
+            return result1 !== result2 && result2 - result1 === 2 * c;
+          }
+        ),
+        { numRuns: 50 }
       );
     });
   });
@@ -265,6 +301,58 @@ describe('Arithmetic Properties', () => {
         }),
         { numRuns: 100 }
       );
+    });
+
+    it('division is NOT commutative: a / b ≠ b / a for a ≠ b', () => {
+      fc.assert(
+        fc.property(
+          fc.integer({ min: 2, max: 100 }),
+          fc.integer({ min: 2, max: 100 }),
+          (a, b) => {
+            if (a === b) return true; // Skip equal values
+            const result1 = evalInt(`${a} / ${b}`);
+            const result2 = evalInt(`${b} / ${a}`);
+            // For most a ≠ b, a/b ≠ b/a (except when one divides the other symmetrically)
+            // At minimum, verify they're generally different
+            return result1 !== result2 || (result1 === 0 && result2 === 0);
+          }
+        ),
+        { numRuns: 50 }
+      );
+    });
+
+    it('division is NOT associative: (a / b) / c ≠ a / (b / c) in general', () => {
+      // First debug: verify basic division works
+      expect(evalInt('10 / 2')).toBe(5);  // Simple case
+      expect(evalInt('20 / 4')).toBe(5);  // Another simple case
+
+      // Verify non-associativity with a specific example
+      // (24 / 6) / 2 = 4 / 2 = 2
+      // 24 / (6 / 2) = 24 / 3 = 8
+      const result1 = evalInt('(24 / 6) / 2');
+      const result2 = evalInt('24 / (6 / 2)');
+
+      expect(result1).toBe(2);
+      expect(result2).toBe(8);
+      expect(result1).not.toBe(result2);
+    });
+
+    it('division is NOT associative: verified with multiple examples', () => {
+      // Test several different value combinations that demonstrate non-associativity
+      // The key insight is that (a/b)/c and a/(b/c) generally differ due to
+      // different loss of precision at each step of integer division
+
+      // Example 1: (24 / 6) / 2 = 4 / 2 = 2, but 24 / (6 / 2) = 24 / 3 = 8
+      expect(evalInt('(24 / 6) / 2')).toBe(2);
+      expect(evalInt('24 / (6 / 2)')).toBe(8);
+
+      // Example 2: (48 / 8) / 2 = 6 / 2 = 3, but 48 / (8 / 2) = 48 / 4 = 12
+      expect(evalInt('(48 / 8) / 2')).toBe(3);
+      expect(evalInt('48 / (8 / 2)')).toBe(12);
+
+      // Example 3: (100 / 10) / 5 = 10 / 5 = 2, but 100 / (10 / 5) = 100 / 2 = 50
+      expect(evalInt('(100 / 10) / 5')).toBe(2);
+      expect(evalInt('100 / (10 / 5)')).toBe(50);
     });
   });
 

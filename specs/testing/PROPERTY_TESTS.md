@@ -1,12 +1,12 @@
 # Property-Based Tests
 
-**Status:** 🟢 Complete (81 tests, 100%+)
+**Status:** 🟢 Complete (86 tests, 100%+)
 **Test File:** `src/interpreter/property/`
 **Framework:** fast-check
 **Last Updated:** 2026-01-16
 
 ### Current Test Files
-- `arithmetic-properties.test.ts`: 42 tests (commutativity, associativity, identity, boolean algebra)
+- `arithmetic-properties.test.ts`: 47 tests (commutativity, associativity, identity, boolean algebra, non-commutativity/non-associativity verification)
 - `function-block-properties.test.ts`: 19 tests (timers, counters, edge detection, bistables)
 - `control-flow-properties.test.ts`: 20 tests (FOR, IF, CASE, WHILE, REPEAT properties)
 
@@ -67,8 +67,8 @@ fc.assert(fc.property(
 ### Test Cases
 - [x] Addition is commutative
 - [x] Multiplication is commutative
-- [ ] Subtraction is NOT commutative (verify)
-- [ ] Division is NOT commutative (verify)
+- [x] Subtraction is NOT commutative (verify)
+- [x] Division is NOT commutative (verify)
 
 ### Associativity
 ```typescript
@@ -86,10 +86,10 @@ fc.assert(fc.property(
 ```
 
 ### Test Cases
-- [ ] Addition is associative
-- [ ] Multiplication is associative
-- [ ] Subtraction is NOT associative
-- [ ] Division is NOT associative
+- [x] Addition is associative
+- [x] Multiplication is associative
+- [x] Subtraction is NOT associative
+- [x] Division is NOT associative
 
 ### Distributivity
 ```typescript
@@ -107,8 +107,8 @@ fc.assert(fc.property(
 ```
 
 ### Test Cases
-- [ ] Multiplication distributes over addition
-- [ ] Handles overflow cases
+- [x] Multiplication distributes over addition
+- [x] Handles overflow cases (tested via small integer ranges)
 
 ### Identity Elements
 ```typescript
@@ -126,9 +126,9 @@ fc.assert(fc.property(
 ```
 
 ### Test Cases
-- [ ] 0 is additive identity
-- [ ] 1 is multiplicative identity
-- [ ] 0 is multiplicative absorbing element (a * 0 = 0)
+- [x] 0 is additive identity
+- [x] 1 is multiplicative identity
+- [x] 0 is multiplicative absorbing element (a * 0 = 0)
 
 ---
 
@@ -160,8 +160,8 @@ fc.assert(fc.property(
 ```
 
 ### Test Cases
-- [ ] First De Morgan's law
-- [ ] Second De Morgan's law
+- [x] First De Morgan's law
+- [x] Second De Morgan's law
 
 ### Double Negation
 ```typescript

@@ -22,11 +22,11 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 | [Variables & Scope](./testing/VARIABLES.md) | ~49 | 51 | 100% | 🟢 Complete |
 | [Integration Programs](./testing/INTEGRATION.md) | ~62 | 59 | 95% | 🟢 Complete |
 | [Error Handling](./testing/ERROR_HANDLING.md) | ~49 | 49 | 100% | 🟢 Complete |
-| [Property-Based Tests](./testing/PROPERTY_TESTS.md) | ~69 | 81 | 100% | 🟢 Complete |
+| [Property-Based Tests](./testing/PROPERTY_TESTS.md) | ~69 | 86 | 100% | 🟢 Complete |
 | [Bounds & Edge Cases](./testing/BOUNDS.md) | ~63 | 58 | 92% | 🟢 Complete |
-| **Total** | **~686** | **~705** | **98%** | 🟢 |
+| **Total** | **~686** | **~710** | **98%** | 🟢 |
 
-**Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (930 tests, all passing)
+**Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (935 tests, all passing)
 
 ### Current Test Count by File (2026-01-16)
 - `data-types.test.ts`: 90 tests ✅ (BOOL: 20, INT: 22, REAL: 20, TIME: 18, Properties: 10)
@@ -40,13 +40,13 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 - `timer-compliance.test.ts`: 47 tests ✅ (TON: 28, TOF: 9, TP: 8, Bounds: 4, SelfReset: 2)
 - `counter-compliance.test.ts`: 58 tests ✅ (CTU: 14, CTD: 9, CTUD: 11, Edge: 5, Boundary: 8, Properties: 9, Integration: 2)
 - `operator-precedence.test.ts`: 23 tests ✅
-- `arithmetic-properties.test.ts`: 42 tests ✅ (Arithmetic: 17, Boolean: 13, Comparison: 7, Subtraction: 2, Absorption: 3)
+- `arithmetic-properties.test.ts`: 47 tests ✅ (Arithmetic: 22, Boolean: 13, Comparison: 7, Subtraction: 2, Absorption: 3)
 - `function-block-properties.test.ts`: 19 tests ✅ (Timer: 4, Counter: 4, Edge: 5, Bistable: 4, Combined: 2)
 - `motor-starter.test.ts`: 17 tests ✅ (integration)
 - `pump-level-control.test.ts`: 22 tests ✅ (integration)
 - `batch-sequencer.test.ts`: 20 tests ✅ (integration)
-- Total interpreter tests: ~705 compliance + integration
-- Total all tests: 930 passing
+- Total interpreter tests: ~710 compliance + integration
+- Total all tests: 935 passing
 
 ---
 
