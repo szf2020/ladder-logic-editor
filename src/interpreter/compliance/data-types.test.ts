@@ -1205,3 +1205,357 @@ END_PROGRAM
     });
   });
 });
+
+// ============================================================================
+// INT Boundary Tests (IEC 61131-3)
+// ============================================================================
+
+describe('INT Boundary Tests', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  describe('INT Range Limits', () => {
+    it('maximum INT value 32767 is stored correctly', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : INT := 32767;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      expect(store.getInt('x')).toBe(32767);
+    });
+
+    it('minimum INT value -32768 is stored correctly', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : INT := -32768;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      expect(store.getInt('x')).toBe(-32768);
+    });
+
+    it('zero is stored correctly', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : INT := 0;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      expect(store.getInt('x')).toBe(0);
+    });
+  });
+
+  describe('INT Arithmetic at Boundaries', () => {
+    it('adding 1 to 32766 produces 32767', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : INT := 32766;
+  result : INT;
+END_VAR
+result := x + 1;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(32767);
+    });
+
+    it('subtracting 1 from -32767 produces -32768', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : INT := -32767;
+  result : INT;
+END_VAR
+result := x - 1;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(-32768);
+    });
+
+    it('multiplication near max value', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : INT := 100;
+  y : INT := 100;
+  result : INT;
+END_VAR
+result := x * y;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(10000);
+    });
+  });
+});
+
+// ============================================================================
+// TIME Arithmetic Tests (IEC 61131-3)
+// ============================================================================
+
+describe('TIME Arithmetic Tests', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  describe('TIME Conversions', () => {
+    it('T#24h equals 86400000 milliseconds', () => {
+      const code = `
+PROGRAM Test
+VAR
+  t : TIME := T#24h;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      expect(store.getTime('t')).toBe(86400000);
+    });
+
+    it('T#12h equals 43200000 milliseconds (12 hours)', () => {
+      const code = `
+PROGRAM Test
+VAR
+  t : TIME := T#12h;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      expect(store.getTime('t')).toBe(43200000);  // 12 hours in ms
+    });
+
+    it('compound time T#1h30m parses correctly', () => {
+      const code = `
+PROGRAM Test
+VAR
+  t : TIME := T#1h30m;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      // 1h = 3600000, 30m = 1800000
+      expect(store.getTime('t')).toBe(5400000);
+    });
+
+    it('compound time T#2m30s parses correctly', () => {
+      const code = `
+PROGRAM Test
+VAR
+  t : TIME := T#2m30s;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      // 2m = 120000, 30s = 30000
+      expect(store.getTime('t')).toBe(150000);
+    });
+  });
+
+  describe('TIME Edge Cases', () => {
+    it('very short time T#1ms', () => {
+      const code = `
+PROGRAM Test
+VAR
+  t : TIME := T#1ms;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      expect(store.getTime('t')).toBe(1);
+    });
+
+    it('large time value T#48h', () => {
+      const code = `
+PROGRAM Test
+VAR
+  t : TIME := T#48h;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      expect(store.getTime('t')).toBe(172800000);  // 48 * 3600000
+    });
+  });
+});
+
+// ============================================================================
+// REAL Extended Tests
+// ============================================================================
+
+describe('REAL Extended Tests', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  describe('REAL Special Values', () => {
+    it('handles positive infinity', () => {
+      const code = `
+PROGRAM Test
+VAR
+  result : REAL;
+END_VAR
+result := 1.0 / 0.0;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getReal('result')).toBe(Infinity);
+    });
+
+    it('handles negative infinity', () => {
+      const code = `
+PROGRAM Test
+VAR
+  result : REAL;
+END_VAR
+result := -1.0 / 0.0;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getReal('result')).toBe(-Infinity);
+    });
+
+    it('preserves very small positive values', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : REAL := 0.0001;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      expect(store.getReal('x')).toBeCloseTo(0.0001, 4);
+    });
+
+    it('preserves very large values', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : REAL := 999999.0;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      expect(store.getReal('x')).toBeCloseTo(999999.0, 1);
+    });
+  });
+
+  describe('REAL Arithmetic Precision', () => {
+    it('subtraction precision near zero', () => {
+      const code = `
+PROGRAM Test
+VAR
+  a : REAL := 1.0;
+  b : REAL := 0.9;
+  result : REAL;
+END_VAR
+result := a - b;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getReal('result')).toBeCloseTo(0.1, 4);
+    });
+
+    it('multiplication of small values', () => {
+      const code = `
+PROGRAM Test
+VAR
+  result : REAL;
+END_VAR
+result := 0.1 * 0.1;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getReal('result')).toBeCloseTo(0.01, 4);
+    });
+  });
+});
+
+// ============================================================================
+// BOOL Extended Tests
+// ============================================================================
+
+describe('BOOL Extended Tests', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  describe('Complex Boolean Expressions', () => {
+    it('nested AND and OR with parentheses', () => {
+      const code = `
+PROGRAM Test
+VAR
+  a : BOOL := TRUE;
+  b : BOOL := FALSE;
+  c : BOOL := TRUE;
+  result : BOOL;
+END_VAR
+result := (a AND b) OR c;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getBool('result')).toBe(true);
+    });
+
+    it('nested AND and OR priority (AND before OR)', () => {
+      const code = `
+PROGRAM Test
+VAR
+  a : BOOL := TRUE;
+  b : BOOL := FALSE;
+  c : BOOL := TRUE;
+  result : BOOL;
+END_VAR
+(* a OR b AND c = a OR (b AND c) per precedence *)
+result := a OR b AND c;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getBool('result')).toBe(true);  // TRUE OR (FALSE AND TRUE) = TRUE OR FALSE = TRUE
+    });
+
+    it('triple NOT cancellation', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : BOOL := TRUE;
+  result : BOOL;
+END_VAR
+result := NOT NOT NOT x;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getBool('result')).toBe(false);
+    });
+  });
+
+  describe('Boolean Default Values', () => {
+    it('uninitialized BOOL defaults to FALSE', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : BOOL;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      expect(store.getBool('x')).toBe(false);
+    });
+  });
+});
