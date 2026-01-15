@@ -17,6 +17,7 @@ import type {
   STCaseLabel,
 } from '../transformer/ast/st-ast-types';
 import { evaluateExpression, type Value, type EvaluationContext } from './expression-evaluator';
+import type { DeclaredType } from './variable-initializer';
 
 // ============================================================================
 // Exit Signal (for EXIT statement support)
@@ -48,12 +49,16 @@ export interface ExecutionContext extends EvaluationContext {
   setInt: (name: string, value: number) => void;
   /** Set a real variable */
   setReal: (name: string, value: number) => void;
+  /** Set a time variable */
+  setTime: (name: string, value: number) => void;
   /** Get a boolean variable */
   getBool: (name: string) => boolean;
   /** Get an integer variable */
   getInt: (name: string) => number;
   /** Get a real variable */
   getReal: (name: string) => number;
+  /** Get the declared type of a variable */
+  getVariableType: (name: string) => DeclaredType | undefined;
   /** Handle function block calls (timers, counters) */
   handleFunctionBlockCall: (call: STFunctionBlockCall, ctx: ExecutionContext) => void;
 }
@@ -129,7 +134,43 @@ function executeAssignment(stmt: STAssignment, context: ExecutionContext): void 
   const value = evaluateExpression(stmt.expression, context);
   const targetName = stmt.target.name;
 
-  // Determine the type and call appropriate setter
+  // Get the declared type of the target variable
+  const declaredType = context.getVariableType(targetName);
+
+  // If we have a declared type, use it for storage with proper coercion
+  if (declaredType) {
+    switch (declaredType) {
+      case 'BOOL':
+        context.setBool(targetName, toBoolean(value));
+        return;
+
+      case 'INT':
+        // Truncate REAL values to INT (per IEC 61131-3)
+        context.setInt(targetName, Math.trunc(toNumber(value)));
+        return;
+
+      case 'REAL':
+        // Promote INT values to REAL
+        context.setReal(targetName, toNumber(value));
+        return;
+
+      case 'TIME':
+        // TIME values are stored as milliseconds (numbers)
+        context.setTime(targetName, Math.trunc(toNumber(value)));
+        return;
+
+      case 'TIMER':
+      case 'COUNTER':
+        // Function blocks are handled differently, skip
+        return;
+
+      case 'UNKNOWN':
+        // Fall through to value-based detection
+        break;
+    }
+  }
+
+  // Fallback: Determine storage by value type (legacy behavior for undeclared vars)
   if (typeof value === 'boolean') {
     context.setBool(targetName, value);
   } else if (typeof value === 'number') {

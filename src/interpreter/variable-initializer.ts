@@ -3,9 +3,25 @@
  *
  * Initializes the simulation store from ST variable declarations.
  * Handles all data types including function blocks (timers, counters).
+ * Also builds a type registry for type-aware assignment.
  */
 
 import type { STAST, STVarBlock, STVariableDecl, STLiteral } from '../transformer/ast/st-ast-types';
+
+// ============================================================================
+// Type Registry
+// ============================================================================
+
+/**
+ * Declared data type categories for variable storage.
+ */
+export type DeclaredType = 'BOOL' | 'INT' | 'REAL' | 'TIME' | 'TIMER' | 'COUNTER' | 'UNKNOWN';
+
+/**
+ * Registry mapping variable names to their declared types.
+ * Used for type-aware assignment during execution.
+ */
+export type TypeRegistry = Record<string, DeclaredType>;
 
 // ============================================================================
 // Types
@@ -281,4 +297,83 @@ function parseTimeString(timeStr: string): number {
   // Fallback: try to parse as plain number (assume ms)
   const num = parseFloat(str);
   return isNaN(num) ? 0 : num;
+}
+
+// ============================================================================
+// Type Registry Builder
+// ============================================================================
+
+/**
+ * Build a type registry from AST variable declarations.
+ *
+ * This maps each variable name to its declared type category,
+ * enabling type-aware assignment during execution.
+ *
+ * @param ast - The parsed ST AST
+ * @returns TypeRegistry mapping variable names to declared types
+ */
+export function buildTypeRegistry(ast: STAST): TypeRegistry {
+  const registry: TypeRegistry = {};
+
+  // Process programs
+  for (const program of ast.programs) {
+    for (const varBlock of program.varBlocks) {
+      buildVarBlockTypes(varBlock, registry);
+    }
+  }
+
+  // Process top-level var blocks
+  for (const varBlock of ast.topLevelVarBlocks) {
+    buildVarBlockTypes(varBlock, registry);
+  }
+
+  return registry;
+}
+
+function buildVarBlockTypes(varBlock: STVarBlock, registry: TypeRegistry): void {
+  for (const decl of varBlock.declarations) {
+    const typeName = decl.dataType.typeName.toUpperCase();
+    const declaredType = categorizeType(typeName);
+
+    for (const name of decl.names) {
+      registry[name] = declaredType;
+    }
+  }
+}
+
+/**
+ * Categorize a type name into a DeclaredType category.
+ */
+function categorizeType(typeName: string): DeclaredType {
+  // Boolean
+  if (typeName === 'BOOL') {
+    return 'BOOL';
+  }
+
+  // Integer types (IEC 61131-3 Section 2.3)
+  if (['INT', 'DINT', 'SINT', 'LINT', 'UINT', 'UDINT', 'USINT', 'ULINT'].includes(typeName)) {
+    return 'INT';
+  }
+
+  // Real types
+  if (['REAL', 'LREAL'].includes(typeName)) {
+    return 'REAL';
+  }
+
+  // Time
+  if (typeName === 'TIME') {
+    return 'TIME';
+  }
+
+  // Timer function blocks
+  if (['TON', 'TOF', 'TP'].includes(typeName)) {
+    return 'TIMER';
+  }
+
+  // Counter function blocks
+  if (['CTU', 'CTD', 'CTUD'].includes(typeName)) {
+    return 'COUNTER';
+  }
+
+  return 'UNKNOWN';
 }

@@ -9,6 +9,7 @@ import type { STAST } from '../transformer/ast/st-ast-types';
 import type { ExecutionContext } from './statement-executor';
 import type { FunctionBlockStore } from './function-block-handler';
 import { handleFunctionBlockCall, createFunctionBlockContext } from './function-block-handler';
+import { buildTypeRegistry, type TypeRegistry } from './variable-initializer';
 
 // ============================================================================
 // Types
@@ -83,6 +84,8 @@ export interface RuntimeState {
   previousInputs: Record<string, boolean>;
   /** The AST being executed */
   ast: STAST;
+  /** Type registry mapping variable names to declared types */
+  typeRegistry: TypeRegistry;
 }
 
 // ============================================================================
@@ -107,11 +110,15 @@ export function createExecutionContext(
     setBool: store.setBool,
     setInt: store.setInt,
     setReal: store.setReal,
+    setTime: store.setTime,
 
     // Variable getters
     getBool: store.getBool,
     getInt: store.getInt,
     getReal: store.getReal,
+
+    // Type registry lookup
+    getVariableType: (name: string) => runtimeState.typeRegistry[name],
 
     // Expression evaluation context
     getVariable: (name: string) => {
@@ -192,5 +199,6 @@ export function createRuntimeState(ast: STAST): RuntimeState {
   return {
     previousInputs: {},
     ast,
+    typeRegistry: buildTypeRegistry(ast),
   };
 }

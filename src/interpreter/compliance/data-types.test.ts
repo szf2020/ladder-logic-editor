@@ -493,8 +493,7 @@ END_PROGRAM
     });
 
     it('division with non-integer result stored as REAL', () => {
-      // Note: When 17/5=3.4, the non-integer result is stored as REAL
-      // This is an implementation limitation - true IEC compliance would use declared types
+      // REAL division result is stored in REAL variable using declared type
       const code = `
 PROGRAM Test
 VAR
@@ -1468,11 +1467,10 @@ END_PROGRAM
     });
   });
 
-  // Note: TIME arithmetic (TIME + TIME, TIME - TIME, TIME * INT, TIME / INT) is
-  // not fully supported because the interpreter stores arithmetic results by
-  // inferred type (integer), not declared variable type (TIME). This means
-  // arithmetic results get stored in integers, not times. TIME variables work
-  // correctly for initialization and timer PT values. See GUARDRAILS.md for details.
+  // Note: TIME arithmetic (TIME + TIME, TIME - TIME, etc.) is now fully supported.
+  // The interpreter uses declared variable types for storage, so TIME arithmetic
+  // results are correctly stored in the times dictionary.
+  // See type-aware-assignment.test.ts for comprehensive TIME arithmetic tests.
 
   describe('TIME Edge Cases', () => {
     it('very short time T#1ms', () => {
@@ -1898,8 +1896,7 @@ END_PROGRAM
       expect(store.getInt('resNeg')).toBe(-3);
     });
 
-    // Note: REAL to INT truncation and INT to REAL conversion are not yet
-    // implemented in the interpreter. Cross-type assignment stores 0.
-    // This is a known limitation - see TESTING_GAPS.md for details.
+    // Note: REAL to INT truncation and INT to REAL conversion are now implemented.
+    // See type-aware-assignment.test.ts for comprehensive cross-type assignment tests.
   });
 });

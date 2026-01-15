@@ -549,73 +549,54 @@ Added comprehensive mobile styles in `LadderCanvas.css`:
 
 ---
 
-## Interpreter Test Limitations (2026-01-16)
+## Interpreter Type-Aware Assignment (2026-01-16) ✅ RESOLVED
 
-### ⚠️ Cross-Type Variable Assignment Not Implemented
+### ✅ Cross-Type Variable Assignment - IMPLEMENTED
 
-**What was tried:** Adding tests for REAL to INT truncation and INT to REAL conversion:
+**Previously a limitation**, now fully working. The interpreter now tracks declared variable types at runtime and uses them for proper storage with type coercion.
+
+**What now works:**
 ```st
 result : INT;
-result := 3.7;  (* Expected: 3, Actual: 0 *)
+result := 3.7;  (* ✅ Stores 3 - REAL truncated to INT *)
 
 realVal : REAL;
-intVal : INT := 42;
-realVal := intVal;  (* Expected: 42.0, Actual: 0 *)
+result := 42;
+realVal := result;  (* ✅ Stores 42.0 - INT promoted to REAL *)
 ```
 
-**Why it failed:**
-- The interpreter stores values by type using separate dictionaries (integers, reals, booleans)
-- Assignment checks the target variable's declared type and stores in the corresponding dictionary
-- When assigning a REAL literal to an INT variable, the value is stored in `reals` dictionary but read from `integers` (which returns 0)
-- Cross-type coercion during assignment is not implemented
+**Implementation:**
+1. `buildTypeRegistry()` in `variable-initializer.ts` builds a map of variable names → declared types
+2. `RuntimeState` includes the type registry
+3. `ExecutionContext` provides `getVariableType()` and `setTime()`
+4. `executeAssignment()` uses declared type for storage with proper coercion:
+   - REAL → INT: `Math.trunc()` (per IEC 61131-3)
+   - INT → REAL: Direct promotion
+   - * → TIME: Stored in times dictionary
 
-**Workaround:**
-- Use expressions that evaluate to the correct type
-- Avoid cross-type literal assignments
-- This is documented as "Future Work" in TESTING_GAPS.md
-
-**Impact:**
-- Cannot test REAL→INT truncation semantics
-- Cannot test INT→REAL promotion semantics
-- These tests are commented out with explanation
+**Tests:** `src/interpreter/compliance/type-aware-assignment.test.ts` (22 tests)
 
 ---
 
-### ⚠️ TIME Arithmetic Assignment Limitation
+### ✅ TIME Arithmetic Assignment - IMPLEMENTED
 
-**What was tried:** Adding tests for TIME arithmetic operations:
+**Previously a limitation**, now fully working. TIME arithmetic results are stored in the times dictionary based on declared type.
+
+**What now works:**
 ```st
 t1 : TIME := T#1s;
 t2 : TIME := T#500ms;
 result : TIME;
-result := t1 + t2;  (* Expected: 1500ms in times dict, Actual: stored in integers *)
+result := t1 + t2;  (* ✅ Stores 1500 in times dict *)
+
+totalTime : TIME := T#0ms;
+totalTime := totalTime + T#100ms;  (* ✅ Accumulation works *)
 ```
 
-**Why it doesn't work as expected:**
-- The interpreter's `executeAssignment` determines storage location by inferring type from the expression result value
-- TIME values are stored as numbers (milliseconds)
-- Arithmetic on TIME variables produces plain numbers, which `Number.isInteger()` sees as integers
-- Result: arithmetic results get stored in `integers` dict, not `times` dict
-- Reading back with `getTime()` returns 0 because `times[result]` was never set
+**Implementation:**
+The `executeAssignment()` function now checks the target variable's declared type and uses the appropriate setter:
+- `TIME` → `context.setTime()` stores in `store.times` dictionary
 
-**What works:**
-- TIME literal initialization: `delay : TIME := T#5s;`
-- TIME comparisons: `IF t1 < t2 THEN`
-- Timer PT values: `Timer1(IN := x, PT := delay);`
-
-**What doesn't work:**
-- TIME + TIME assignment to TIME variable
-- TIME - TIME assignment to TIME variable
-- TIME * INT assignment to TIME variable
-- TIME / INT assignment to TIME variable
-- TIME accumulation: `totalTime := totalTime + T#100ms;`
-
-**Root cause:**
-The interpreter doesn't track declared variable types at runtime. Variable storage is determined by value type inference, not declaration. This is a fundamental design limitation.
-
-**Workaround:**
-- Use INT for time calculations in milliseconds, then use the value with timer PT
-- Avoid assigning TIME arithmetic results back to TIME variables
-- This is a known limitation documented in DATA_TYPES.md spec
+**Tests:** TIME arithmetic tests in `src/interpreter/compliance/type-aware-assignment.test.ts`
 
 ---
