@@ -219,6 +219,60 @@ ALM_HIGH_LEVEL := EFFECTIVE_LEVEL >= SP_HIGH;
 ALM_OVERFLOW := EFFECTIVE_LEVEL >= SP_CRITICAL;
 
 (* ============================================================================
+   FAULT DETECTION AND HANDLING
+   ============================================================================ *)
+
+(* Fault reset on rising edge *)
+IF FAULT_RESET AND NOT Prev_Fault_Reset THEN
+    (* Clear all latched faults *)
+    Pump1_Faulted := FALSE;
+    Pump2_Faulted := FALSE;
+    ALM_MOTOR_OL_1 := FALSE;
+    ALM_MOTOR_OL_2 := FALSE;
+    ALM_SEAL_LEAK_1 := FALSE;
+    ALM_SEAL_LEAK_2 := FALSE;
+    ALM_OVERTEMP_1 := FALSE;
+    ALM_OVERTEMP_2 := FALSE;
+END_IF;
+Prev_Fault_Reset := FAULT_RESET;
+
+(* Motor overload detection - MOTOR_OL = FALSE means overload tripped *)
+IF NOT MOTOR_OL_1 THEN
+    Pump1_Faulted := TRUE;
+    ALM_MOTOR_OL_1 := TRUE;
+END_IF;
+
+IF NOT MOTOR_OL_2 THEN
+    Pump2_Faulted := TRUE;
+    ALM_MOTOR_OL_2 := TRUE;
+END_IF;
+
+(* Seal leak detection - SEAL_OK = FALSE means seal leak *)
+IF NOT SEAL_OK_1 THEN
+    Pump1_Faulted := TRUE;
+    ALM_SEAL_LEAK_1 := TRUE;
+END_IF;
+
+IF NOT SEAL_OK_2 THEN
+    Pump2_Faulted := TRUE;
+    ALM_SEAL_LEAK_2 := TRUE;
+END_IF;
+
+(* Overtemperature detection *)
+IF TEMP_1 > TEMP_CRITICAL THEN
+    Pump1_Faulted := TRUE;
+    ALM_OVERTEMP_1 := TRUE;
+END_IF;
+
+IF TEMP_2 > TEMP_CRITICAL THEN
+    Pump2_Faulted := TRUE;
+    ALM_OVERTEMP_2 := TRUE;
+END_IF;
+
+(* Both pumps failed alarm *)
+ALM_BOTH_PUMPS_FAILED := Pump1_Faulted AND Pump2_Faulted;
+
+(* ============================================================================
    LEAD/LAG ASSIGNMENT
    ============================================================================ *)
 
