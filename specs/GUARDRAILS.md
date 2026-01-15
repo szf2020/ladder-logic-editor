@@ -580,3 +580,42 @@ realVal := intVal;  (* Expected: 42.0, Actual: 0 *)
 - These tests are commented out with explanation
 
 ---
+
+### ⚠️ TIME Arithmetic Assignment Limitation
+
+**What was tried:** Adding tests for TIME arithmetic operations:
+```st
+t1 : TIME := T#1s;
+t2 : TIME := T#500ms;
+result : TIME;
+result := t1 + t2;  (* Expected: 1500ms in times dict, Actual: stored in integers *)
+```
+
+**Why it doesn't work as expected:**
+- The interpreter's `executeAssignment` determines storage location by inferring type from the expression result value
+- TIME values are stored as numbers (milliseconds)
+- Arithmetic on TIME variables produces plain numbers, which `Number.isInteger()` sees as integers
+- Result: arithmetic results get stored in `integers` dict, not `times` dict
+- Reading back with `getTime()` returns 0 because `times[result]` was never set
+
+**What works:**
+- TIME literal initialization: `delay : TIME := T#5s;`
+- TIME comparisons: `IF t1 < t2 THEN`
+- Timer PT values: `Timer1(IN := x, PT := delay);`
+
+**What doesn't work:**
+- TIME + TIME assignment to TIME variable
+- TIME - TIME assignment to TIME variable
+- TIME * INT assignment to TIME variable
+- TIME / INT assignment to TIME variable
+- TIME accumulation: `totalTime := totalTime + T#100ms;`
+
+**Root cause:**
+The interpreter doesn't track declared variable types at runtime. Variable storage is determined by value type inference, not declaration. This is a fundamental design limitation.
+
+**Workaround:**
+- Use INT for time calculations in milliseconds, then use the value with timer PT
+- Avoid assigning TIME arithmetic results back to TIME variables
+- This is a known limitation documented in DATA_TYPES.md spec
+
+---

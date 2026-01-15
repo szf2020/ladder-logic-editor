@@ -1468,6 +1468,12 @@ END_PROGRAM
     });
   });
 
+  // Note: TIME arithmetic (TIME + TIME, TIME - TIME, TIME * INT, TIME / INT) is
+  // not fully supported because the interpreter stores arithmetic results by
+  // inferred type (integer), not declared variable type (TIME). This means
+  // arithmetic results get stored in integers, not times. TIME variables work
+  // correctly for initialization and timer PT values. See GUARDRAILS.md for details.
+
   describe('TIME Edge Cases', () => {
     it('very short time T#1ms', () => {
       const code = `
