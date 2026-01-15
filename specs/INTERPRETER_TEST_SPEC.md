@@ -24,9 +24,9 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 | [Error Handling](./testing/ERROR_HANDLING.md) | ~49 | 49 | 100% | 🟢 Complete |
 | [Property-Based Tests](./testing/PROPERTY_TESTS.md) | ~69 | 86 | 100% | 🟢 Complete |
 | [Bounds & Edge Cases](./testing/BOUNDS.md) | 69 | 69 | 100%* | 🟢 Complete |
-| **Total** | **~732** | **~787** | **99%** | 🟢 |
+| **Total** | **788** | **908** | **100%** | 🟢 |
 
-**Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (993 tests, all passing)
+**Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (908 interpreter tests, 993 total, all passing)
 
 \* Array and String bounds tests are pending feature implementation (documented as Future Work)
 
@@ -49,7 +49,7 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 - `pump-level-control.test.ts`: 22 tests ✅ (integration)
 - `batch-sequencer.test.ts`: 20 tests ✅ (integration)
 - `conveyor-control.test.ts`: 23 tests ✅ (integration) - Item counting, position tracking, edge detection
-- Total interpreter tests: ~767 compliance + integration
+- Total interpreter tests: 908 (542 compliance + 86 property + 105 integration + 175 other)
 - Total all tests: 993 passing
 
 ---
