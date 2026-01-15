@@ -246,9 +246,15 @@ export const useSimulationStore = create<SimulationState>()(
 
       if (goingOn) {
         // Rising edge - start timing
-        newTimer.running = true;
         newTimer.ET = 0;
-        newTimer.Q = false;
+        // Per IEC 61131-3: if PT=0, Q is immediately TRUE
+        if (timer.PT <= 0) {
+          newTimer.Q = true;
+          newTimer.running = false;
+        } else {
+          newTimer.running = true;
+          newTimer.Q = false;
+        }
       } else if (goingOff) {
         // Falling edge - stop timer but DON'T reset Q immediately
         // This allows self-resetting patterns like: Timer(IN := condition AND NOT Timer.Q)

@@ -52,9 +52,15 @@ function createTestStore(scanTime: number = 100): SimulationStoreInterface {
       const stayingOff = !input && !timer.IN;
       timer.IN = input;
       if (goingOn) {
-        timer.running = true;
         timer.ET = 0;
-        timer.Q = false;
+        // Per IEC 61131-3: if PT=0, Q is immediately TRUE
+        if (timer.PT <= 0) {
+          timer.Q = true;
+          timer.running = false;
+        } else {
+          timer.running = true;
+          timer.Q = false;
+        }
       } else if (goingOff) {
         timer.running = false;
         timer.ET = 0;

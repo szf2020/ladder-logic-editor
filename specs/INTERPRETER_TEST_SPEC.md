@@ -12,7 +12,7 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 
 | Sub-Spec | Tests | Passing | Coverage | Status |
 |----------|-------|---------|----------|--------|
-| [Timers](./testing/TIMERS.md) | ~58 | ~8 | 14% | 🔴 Blocked |
+| [Timers](./testing/TIMERS.md) | ~58 | ~8 | 14% | 🟡 In Progress |
 | [Counters](./testing/COUNTERS.md) | ~61 | ~15 | 25% | 🟡 Partial |
 | [Data Types](./testing/DATA_TYPES.md) | ~82 | ~30 | 37% | 🟡 Partial |
 | [Operators](./testing/OPERATORS.md) | ~50 | ~47 | 95% | 🟢 Good |
@@ -107,20 +107,22 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 
 ### P0 - Critical (Blocking Tests)
 
-#### function-block-handler.ts:61-78
-Same bug as was fixed in execution-context.ts. Blocks all timer tests.
+None currently. All P0 bugs resolved.
+
+### Fixed Bugs (Reference)
+
+#### ~~function-block-handler.ts:61-78~~ ✅ FIXED
+Same bug as was fixed in execution-context.ts. Was blocking all timer tests.
 
 ```typescript
-// CURRENT (buggy)
-if (boolVal !== false) return boolVal;  // Skips FALSE values
-if (intVal !== 0) return intVal;        // Skips 0 values
+// WAS (buggy) - skipped FALSE/0 values
+if (boolVal !== false) return boolVal;
+if (intVal !== 0) return intVal;
 
-// REQUIRED (fixed)
+// NOW (fixed) - checks key existence
 if (name in store.booleans) return store.booleans[name];
 if (name in store.integers) return store.integers[name];
 ```
-
-**Impact:** All timer tests fail because IN evaluation breaks for boolean variables.
 
 ---
 
@@ -186,7 +188,7 @@ See [CLAUDE.md](../CLAUDE.md) for full development guidelines.
 
 ### Phase 1: Foundation (Current)
 - [x] Fix execution-context.ts getVariable bug
-- [ ] Fix function-block-handler.ts same bug
+- [x] Fix function-block-handler.ts same bug
 - [ ] Complete timer compliance tests (~58 tests)
 - [ ] Complete counter compliance tests (~61 tests)
 

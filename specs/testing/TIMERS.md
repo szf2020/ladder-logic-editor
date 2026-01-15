@@ -1,14 +1,8 @@
 # Timer Compliance Tests
 
 **IEC 61131-3 Section:** 2.5.1
-**Status:** 🔴 Blocked by function-block-handler.ts bug
+**Status:** 🟡 In Progress
 **Test File:** `src/interpreter/compliance/timer-compliance.test.ts`
-
----
-
-## Blocker
-
-Tests are blocked by bug in `function-block-handler.ts:61-78`. See [main spec](../INTERPRETER_TEST_SPEC.md#known-bugs).
 
 ---
 
