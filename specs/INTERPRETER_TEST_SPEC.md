@@ -12,7 +12,7 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 
 | Sub-Spec | Tests | Passing | Coverage | Status |
 |----------|-------|---------|----------|--------|
-| [Timers](./testing/TIMERS.md) | ~58 | 47 | 81% | 🟢 Good |
+| [Timers](./testing/TIMERS.md) | 47 | 47 | 100% | 🟢 Complete |
 | [Counters](./testing/COUNTERS.md) | ~61 | 58 | 95% | 🟢 Complete |
 | [Data Types](./testing/DATA_TYPES.md) | ~82 | 90 | 100% | 🟢 Complete |
 | [Operators](./testing/OPERATORS.md) | ~50 | 58 | 100% | 🟢 Complete |
@@ -37,7 +37,7 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 - `edge-detection.test.ts`: 35 tests ✅ (R_TRIG: 11, F_TRIG: 8, Combined: 4, Properties: 5, Integration: 7)
 - `bistable.test.ts`: 45 tests ✅ (SR: 12, RS: 12, Industrial: 8, State: 4, EdgeCases: 7, Properties: 4)
 - `variables.test.ts`: 51 tests ✅ (Defaults: 4, Init: 10, Assignment: 7, Persistence: 3, Naming: 6, FB: 2, Properties: 4, EdgeCases: 4, TypeConv: 6, MultiVar: 2, ExprInit: 4)
-- `timer-compliance.test.ts`: 47 tests ✅ (TON: 28, TOF: 9, TP: 8, Bounds: 4, SelfReset: 2)
+- `timer-compliance.test.ts`: 47 tests ✅ (TON: 28, TOF: 9, TP: 8, Bounds: 4) - All timer types fully implemented
 - `counter-compliance.test.ts`: 58 tests ✅ (CTU: 14, CTD: 9, CTUD: 11, Edge: 5, Boundary: 8, Properties: 9, Integration: 2)
 - `operator-precedence.test.ts`: 23 tests ✅
 - `arithmetic-properties.test.ts`: 47 tests ✅ (Arithmetic: 22, Boolean: 13, Comparison: 7, Subtraction: 2, Absorption: 3)

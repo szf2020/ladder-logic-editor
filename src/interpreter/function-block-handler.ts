@@ -14,14 +14,19 @@ import { parseTimeLiteral, timeValueToMs } from '../models/plc-types';
 // ============================================================================
 
 /**
+ * Timer type for IEC 61131-3 timers
+ */
+export type TimerType = 'TON' | 'TOF' | 'TP';
+
+/**
  * Store interface for function block operations.
  */
 export interface FunctionBlockStore {
   // Timer operations
-  initTimer: (name: string, pt: number) => void;
+  initTimer: (name: string, pt: number, timerType?: TimerType) => void;
   setTimerInput: (name: string, input: boolean) => void;
   setTimerPT?: (name: string, pt: number) => void; // Optional: update PT dynamically
-  getTimer: (name: string) => { IN: boolean; PT: number; Q: boolean; ET: number; running: boolean } | undefined;
+  getTimer: (name: string) => { IN: boolean; PT: number; Q: boolean; ET: number; running: boolean; timerType?: TimerType } | undefined;
 
   // Counter operations
   initCounter: (name: string, pv: number) => void;

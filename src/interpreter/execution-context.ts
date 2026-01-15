@@ -40,10 +40,10 @@ export interface SimulationStoreInterface extends FunctionBlockStore {
   // Function block storage
   counters: Record<string, { CU: boolean; CD: boolean; R: boolean; LD: boolean; PV: number; QU: boolean; QD: boolean; CV: number }>;
 
-  // Timer operations
-  initTimer: (name: string, pt: number) => void;
+  // Timer operations (timerType is optional for backwards compatibility)
+  initTimer: (name: string, pt: number, timerType?: 'TON' | 'TOF' | 'TP') => void;
   setTimerInput: (name: string, input: boolean) => void;
-  getTimer: (name: string) => { IN: boolean; PT: number; Q: boolean; ET: number; running: boolean } | undefined;
+  getTimer: (name: string) => { IN: boolean; PT: number; Q: boolean; ET: number; running: boolean; timerType?: 'TON' | 'TOF' | 'TP' } | undefined;
   updateTimer: (name: string, deltaMs: number) => void;
 
   // Counter operations
@@ -69,7 +69,7 @@ export interface SimulationStoreInterface extends FunctionBlockStore {
 
   // Simulation state
   scanTime: number;
-  timers: Record<string, { IN: boolean; PT: number; Q: boolean; ET: number; running: boolean }>;
+  timers: Record<string, { IN: boolean; PT: number; Q: boolean; ET: number; running: boolean; timerType?: 'TON' | 'TOF' | 'TP' }>;
 
   // Lifecycle
   clearAll: () => void;

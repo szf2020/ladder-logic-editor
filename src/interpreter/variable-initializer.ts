@@ -12,6 +12,11 @@ import type { STAST, STVarBlock, STVariableDecl, STLiteral } from '../transforme
 // ============================================================================
 
 /**
+ * Timer type for IEC 61131-3 timers
+ */
+export type TimerType = 'TON' | 'TOF' | 'TP';
+
+/**
  * Store interface for variable initialization.
  */
 export interface InitializableStore {
@@ -19,7 +24,7 @@ export interface InitializableStore {
   setInt: (name: string, value: number) => void;
   setReal: (name: string, value: number) => void;
   setTime: (name: string, value: number) => void;
-  initTimer: (name: string, pt: number) => void;
+  initTimer: (name: string, pt: number, timerType?: TimerType) => void;
   initCounter: (name: string, pv: number) => void;
   clearAll: () => void;
 }
@@ -77,7 +82,8 @@ function initializeDeclaration(decl: STVariableDecl, store: InitializableStore):
     // Handle function block types
     if (TIMER_TYPES.has(typeName)) {
       const ptValue = extractTimerPreset(decl);
-      store.initTimer(name, ptValue);
+      const timerType = typeName as TimerType;
+      store.initTimer(name, ptValue, timerType);
       continue;
     }
 

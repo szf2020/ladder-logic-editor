@@ -15,13 +15,24 @@ import { initializeVariables } from '../variable-initializer';
 // Test Store Factory (matches real simulation store behavior)
 // ============================================================================
 
+type TimerType = 'TON' | 'TOF' | 'TP';
+
+interface TimerState {
+  IN: boolean;
+  PT: number;
+  Q: boolean;
+  ET: number;
+  running: boolean;
+  timerType: TimerType;
+}
+
 function createTestStore(scanTime: number = 100): SimulationStoreInterface {
   const store = {
     booleans: {} as Record<string, boolean>,
     integers: {} as Record<string, number>,
     reals: {} as Record<string, number>,
     times: {} as Record<string, number>,
-    timers: {} as Record<string, { IN: boolean; PT: number; Q: boolean; ET: number; running: boolean }>,
+    timers: {} as Record<string, TimerState>,
     counters: {} as Record<string, { CU: boolean; CD: boolean; R: boolean; LD: boolean; PV: number; QU: boolean; QD: boolean; CV: number }>,
     scanTime,
   } as SimulationStoreInterface;
@@ -35,8 +46,8 @@ function createTestStore(scanTime: number = 100): SimulationStoreInterface {
     getReal: (name: string) => store.reals[name] ?? 0,
     setTime: (name: string, value: number) => { store.times[name] = value; },
     getTime: (name: string) => store.times[name] ?? 0,
-    initTimer: (name: string, pt: number) => {
-      store.timers[name] = { IN: false, PT: pt, Q: false, ET: 0, running: false };
+    initTimer: (name: string, pt: number, timerType: TimerType = 'TON') => {
+      store.timers[name] = { IN: false, PT: pt, Q: false, ET: 0, running: false, timerType };
     },
     getTimer: (name: string) => store.timers[name],
     setTimerPT: (name: string, pt: number) => {
@@ -44,38 +55,105 @@ function createTestStore(scanTime: number = 100): SimulationStoreInterface {
       if (timer) timer.PT = pt;
     },
     setTimerInput: (name: string, input: boolean) => {
-      const timer = store.timers[name];
+      const timer = store.timers[name] as TimerState;
       if (!timer) return;
+
       const wasOff = !timer.IN;
       const goingOn = input && wasOff;
       const goingOff = !input && timer.IN;
       const stayingOff = !input && !timer.IN;
+      const stayingOn = input && timer.IN;
+
       timer.IN = input;
-      if (goingOn) {
-        timer.ET = 0;
-        // Per IEC 61131-3: if PT=0, Q is immediately TRUE
-        if (timer.PT <= 0) {
-          timer.Q = true;
-          timer.running = false;
-        } else {
-          timer.running = true;
-          timer.Q = false;
-        }
-      } else if (goingOff) {
-        timer.running = false;
-        timer.ET = 0;
-        // Q reset handled on next scan when stayingOff
-      } else if (stayingOff && timer.Q) {
-        timer.Q = false;
+
+      // Handle based on timer type
+      switch (timer.timerType) {
+        case 'TON':
+          // TON behavior: start timing when IN goes TRUE
+          if (goingOn) {
+            timer.ET = 0;
+            if (timer.PT <= 0) {
+              timer.Q = true;
+              timer.running = false;
+            } else {
+              timer.running = true;
+              timer.Q = false;
+            }
+          } else if (goingOff) {
+            timer.running = false;
+            timer.ET = 0;
+          } else if (stayingOff && timer.Q) {
+            timer.Q = false;
+          }
+          break;
+
+        case 'TOF':
+          // TOF: Q TRUE immediately when IN goes TRUE
+          // ET counts when IN is FALSE, Q goes FALSE after PT
+          if (goingOn) {
+            timer.Q = true;
+            timer.ET = 0;
+            timer.running = false;
+          } else if (goingOff) {
+            if (timer.PT <= 0) {
+              timer.Q = false;
+              timer.running = false;
+              timer.ET = 0;
+            } else {
+              timer.ET = 0;
+              timer.running = true;
+            }
+          } else if (stayingOn) {
+            timer.ET = 0;
+            timer.running = false;
+            if (!timer.Q) timer.Q = true;
+          }
+          break;
+
+        case 'TP':
+          // TP: Pulse timer - Q TRUE for exactly PT duration
+          // Non-retriggerable during pulse
+          if (goingOn && !timer.running && !timer.Q) {
+            if (timer.PT <= 0) {
+              timer.Q = false;
+              timer.running = false;
+              timer.ET = 0;
+            } else {
+              timer.Q = true;
+              timer.ET = 0;
+              timer.running = true;
+            }
+          }
+          // During pulse: IN changes have no effect
+          break;
       }
     },
     updateTimer: (name: string, deltaMs: number) => {
-      const timer = store.timers[name];
+      const timer = store.timers[name] as TimerState;
       if (!timer || !timer.running) return;
+
       timer.ET = Math.min(timer.ET + deltaMs, timer.PT);
-      if (timer.ET >= timer.PT) {
-        timer.Q = true;
-        timer.running = false;
+      const timedOut = timer.ET >= timer.PT;
+
+      switch (timer.timerType) {
+        case 'TON':
+          if (timedOut) {
+            timer.Q = true;
+            timer.running = false;
+          }
+          break;
+        case 'TOF':
+          if (timedOut) {
+            timer.Q = false;
+            timer.running = false;
+          }
+          break;
+        case 'TP':
+          if (timedOut) {
+            timer.Q = false;
+            timer.running = false;
+          }
+          break;
       }
     },
     initCounter: (name: string, pv: number) => {
@@ -743,17 +821,13 @@ describe('TOF Timer Compliance (IEC 61131-3)', () => {
       initializeVariables(ast, store);
       const runtimeState = createRuntimeState(ast);
 
-      // Note: TOF is not implemented yet - this test documents expected behavior
-      // When implemented, Q should be TRUE immediately when IN goes TRUE
       store.setBool('Input', true);
       runScanCycle(ast, store, runtimeState);
 
-      // Expected: Q = TRUE immediately
-      // Actual: Depends on implementation
+      // TOF: Q should be TRUE immediately when IN goes TRUE
       const timer = store.getTimer('Timer1');
-      // This test will fail until TOF is implemented
-      // expect(store.getBool('Done')).toBe(true);
-      expect(timer).toBeDefined(); // At least timer exists
+      expect(timer?.Q).toBe(true);
+      expect(store.getBool('Done')).toBe(true);
     });
 
     it('Q stays TRUE while IN is TRUE (ET not counting)', () => {
@@ -774,9 +848,9 @@ describe('TOF Timer Compliance (IEC 61131-3)', () => {
       runScans(10, ast, store, runtimeState);
 
       const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
-      // Expected for TOF: ET should not be counting while IN is TRUE
-      // Q should stay TRUE the whole time
+      expect(timer?.Q).toBe(true);
+      // ET should be 0 while IN is TRUE (not counting yet)
+      expect(timer?.ET).toBe(0);
     });
 
     it('ET starts counting when IN goes FALSE', () => {
@@ -802,9 +876,10 @@ describe('TOF Timer Compliance (IEC 61131-3)', () => {
       runScans(3, ast, store, runtimeState);
 
       const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
-      // Expected: ET should be 300ms (3 scans * 100ms)
+      // ET should be 300ms (3 scans * 100ms)
+      expect(timer?.ET).toBe(300);
       // Q should still be TRUE (300 < 500)
+      expect(timer?.Q).toBe(true);
     });
 
     it('Q goes FALSE when ET >= PT after IN goes FALSE', () => {
@@ -826,14 +901,16 @@ describe('TOF Timer Compliance (IEC 61131-3)', () => {
       // Start with IN=TRUE (Q=TRUE)
       store.setBool('Input', true);
       runScanCycle(ast, store, runtimeState);
+      expect(store.getBool('Done')).toBe(true);
 
       // Turn IN OFF, wait for timeout
       store.setBool('Input', false);
       runScans(4, ast, store, runtimeState); // 400ms > 300ms PT
 
-      // Expected: Q should be FALSE after timeout
+      // Q should be FALSE after timeout
       const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
+      expect(timer?.Q).toBe(false);
+      expect(store.getBool('Done')).toBe(false);
     });
   });
 
@@ -864,8 +941,10 @@ describe('TOF Timer Compliance (IEC 61131-3)', () => {
       runScanCycle(ast, store, runtimeState);
 
       const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
-      // Expected: ET resets, Q stays TRUE
+      // ET should reset when IN goes TRUE
+      expect(timer?.ET).toBe(0);
+      // Q should still be TRUE
+      expect(timer?.Q).toBe(true);
     });
   });
 
@@ -888,13 +967,15 @@ describe('TOF Timer Compliance (IEC 61131-3)', () => {
 
       store.setBool('Input', true);
       runScanCycle(ast, store, runtimeState);
+      expect(store.getBool('Done')).toBe(true);
 
       store.setBool('Input', false);
       runScanCycle(ast, store, runtimeState);
 
-      // Expected: Q goes FALSE immediately (no delay)
+      // Q should go FALSE immediately (no delay) when PT=0
       const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
+      expect(timer?.Q).toBe(false);
+      expect(store.getBool('Done')).toBe(false);
     });
 
     it('rapid IN toggling keeps Q TRUE (retriggering)', () => {
@@ -911,7 +992,7 @@ describe('TOF Timer Compliance (IEC 61131-3)', () => {
       initializeVariables(ast, store);
       const runtimeState = createRuntimeState(ast);
 
-      // Rapid toggling should keep Q TRUE
+      // Rapid toggling should keep Q TRUE due to constant retriggering
       for (let i = 0; i < 10; i++) {
         store.setBool('Input', true);
         runScanCycle(ast, store, runtimeState);
@@ -920,8 +1001,9 @@ describe('TOF Timer Compliance (IEC 61131-3)', () => {
       }
 
       const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
-      // Expected: Q should still be TRUE due to constant retriggering
+      // Q should still be TRUE due to constant retriggering
+      // (never times out because IN keeps going TRUE again)
+      expect(timer?.Q).toBe(true);
     });
   });
 });
@@ -954,13 +1036,13 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
       initializeVariables(ast, store);
       const runtimeState = createRuntimeState(ast);
 
-      // Note: TP is not implemented yet - this test documents expected behavior
       store.setBool('Input', true);
       runScanCycle(ast, store, runtimeState);
 
       const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
-      // Expected: Q should be TRUE immediately on rising edge
+      // TP: Q should be TRUE immediately on rising edge
+      expect(timer?.Q).toBe(true);
+      expect(store.getBool('Done')).toBe(true);
     });
 
     it('Q stays TRUE for exactly PT duration', () => {
@@ -983,13 +1065,11 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
 
       // Q should be TRUE during pulse
       runScans(2, ast, store, runtimeState); // 200ms < 300ms
-      // Expected: Q = TRUE
+      expect(store.getBool('Done')).toBe(true);
 
       runScans(2, ast, store, runtimeState); // 400ms > 300ms
-      // Expected: Q = FALSE
-
-      const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
+      // Q should be FALSE after pulse ends
+      expect(store.getBool('Done')).toBe(false);
     });
 
     it('Q goes FALSE after PT regardless of IN state', () => {
@@ -998,8 +1078,10 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
         VAR
           Input : BOOL := FALSE;
           Timer1 : TP;
+          Done : BOOL;
         END_VAR
         Timer1(IN := Input, PT := T#200ms);
+        Done := Timer1.Q;
         END_PROGRAM
       `);
 
@@ -1011,8 +1093,8 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
 
       // IN is still TRUE, but Q should be FALSE after pulse completes
       const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
-      // Expected: Q = FALSE even though IN is still TRUE
+      expect(timer?.Q).toBe(false);
+      expect(store.getBool('Done')).toBe(false);
     });
 
     it('ET counts from 0 to PT during pulse', () => {
@@ -1032,13 +1114,10 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
       store.setBool('Input', true);
 
       runScanCycle(ast, store, runtimeState);
-      // Expected: ET = 100ms
+      expect(store.getTimer('Timer1')?.ET).toBe(100);
 
       runScanCycle(ast, store, runtimeState);
-      // Expected: ET = 200ms
-
-      const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
+      expect(store.getTimer('Timer1')?.ET).toBe(200);
     });
   });
 
@@ -1050,7 +1129,7 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
           Input : BOOL := FALSE;
           Timer1 : TP;
         END_VAR
-        Timer1(IN := Input, PT := T#400ms);
+        Timer1(IN := Input, PT := T#500ms);
         END_PROGRAM
       `);
 
@@ -1063,14 +1142,16 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
 
       // Try to retrigger
       store.setBool('Input', false);
-      runScanCycle(ast, store, runtimeState);
+      runScanCycle(ast, store, runtimeState); // 300ms
       store.setBool('Input', true);
-      runScanCycle(ast, store, runtimeState);
+      runScanCycle(ast, store, runtimeState); // 400ms
 
       // Pulse should continue from where it was, not restart
       const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
-      // Expected: ET should be ~400ms (continuing), not 100ms (restarted)
+      // ET should be 400ms (continuing), not 100ms (restarted)
+      expect(timer?.ET).toBe(400);
+      // Q should still be TRUE (400 < 500ms PT)
+      expect(timer?.Q).toBe(true);
     });
 
     it('Q duration is exactly PT, not extended', () => {
@@ -1094,9 +1175,9 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
       store.setBool('Input', true);
       runScans(5, ast, store, runtimeState); // 500ms
 
-      // Q should have been TRUE for only ~2 scans (200ms)
-      const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
+      // Q should have been TRUE for only 2 scans (200ms)
+      // So QChanges should be 2
+      expect(store.getInt('QChanges')).toBe(2);
     });
 
     it('after pulse completes, next rising edge starts new pulse', () => {
@@ -1115,7 +1196,10 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
 
       // First pulse
       store.setBool('Input', true);
-      runScans(4, ast, store, runtimeState); // Complete pulse
+      runScans(4, ast, store, runtimeState); // Complete pulse (400ms > 200ms)
+
+      // After pulse completes, Q should be FALSE
+      expect(store.getTimer('Timer1')?.Q).toBe(false);
 
       store.setBool('Input', false);
       runScanCycle(ast, store, runtimeState);
@@ -1125,13 +1209,14 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
       runScanCycle(ast, store, runtimeState);
 
       const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
-      // Expected: New pulse started, ET should be ~100ms
+      // New pulse should have started
+      expect(timer?.Q).toBe(true);
+      expect(timer?.ET).toBe(100);
     });
   });
 
   describe('TP Edge Cases', () => {
-    it('PT = 0 produces no pulse (or single-scan pulse)', () => {
+    it('PT = 0 produces no pulse', () => {
       const ast = parseSTToAST(`
         PROGRAM TPZeroPT
         VAR
@@ -1151,8 +1236,9 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
       runScanCycle(ast, store, runtimeState);
 
       const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
-      // Expected: Q either never goes TRUE, or is TRUE for exactly one scan
+      // With PT=0, Q should be FALSE (no pulse produced)
+      expect(timer?.Q).toBe(false);
+      expect(store.getBool('Done')).toBe(false);
     });
 
     it('IN going FALSE during pulse does not affect Q', () => {
@@ -1161,8 +1247,10 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
         VAR
           Input : BOOL := FALSE;
           Timer1 : TP;
+          Done : BOOL;
         END_VAR
         Timer1(IN := Input, PT := T#400ms);
+        Done := Timer1.Q;
         END_PROGRAM
       `);
 
@@ -1172,43 +1260,56 @@ describe('TP Timer Compliance (IEC 61131-3)', () => {
       // Start pulse
       store.setBool('Input', true);
       runScans(2, ast, store, runtimeState); // 200ms
+      expect(store.getBool('Done')).toBe(true);
 
       // IN goes FALSE during pulse
       store.setBool('Input', false);
       runScanCycle(ast, store, runtimeState);
 
       const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
-      // Expected: Q should still be TRUE (pulse continues)
-      // Expected: ET should be ~300ms (continuing)
+      // Q should still be TRUE (pulse continues regardless of IN)
+      expect(timer?.Q).toBe(true);
+      // ET should be ~300ms (continuing)
+      expect(timer?.ET).toBe(300);
     });
 
-    it('multiple rapid triggers produce single pulse', () => {
+    it('multiple rapid triggers during pulse are ignored', () => {
       const ast = parseSTToAST(`
         PROGRAM TPMultipleTriggers
         VAR
           Input : BOOL := FALSE;
           Timer1 : TP;
-          PulseCount : INT := 0;
+          QTrueCount : INT := 0;
         END_VAR
-        Timer1(IN := Input, PT := T#200ms);
+        Timer1(IN := Input, PT := T#1000ms);
+        IF Timer1.Q THEN
+          QTrueCount := QTrueCount + 1;
+        END_IF;
         END_PROGRAM
       `);
 
       initializeVariables(ast, store);
       const runtimeState = createRuntimeState(ast);
 
-      // Multiple rapid triggers
-      for (let i = 0; i < 5; i++) {
-        store.setBool('Input', true);
-        runScanCycle(ast, store, runtimeState);
+      // First trigger starts pulse
+      store.setBool('Input', true);
+      runScanCycle(ast, store, runtimeState); // Q=TRUE, ET=100
+
+      // Try multiple rapid triggers during the pulse
+      for (let i = 0; i < 4; i++) {
         store.setBool('Input', false);
         runScanCycle(ast, store, runtimeState);
+        store.setBool('Input', true);
+        runScanCycle(ast, store, runtimeState);
       }
+      // Total: 1 + 8 = 9 scans = 900ms < 1000ms PT
 
-      const timer = store.getTimer('Timer1');
-      expect(timer).toBeDefined();
-      // The first trigger starts a pulse, subsequent triggers are ignored during pulse
+      // All triggers during pulse should have been ignored
+      // Q should have been TRUE for all 9 scans
+      expect(store.getInt('QTrueCount')).toBe(9);
+
+      // ET should have continued counting, not restarted
+      expect(store.getTimer('Timer1')?.ET).toBe(900);
     });
   });
 });
