@@ -425,19 +425,26 @@ const timerSequence = fc.record({
 
 ---
 
-## Test Count Target
+## Test Count Summary
 
-| Category | Properties | Arbitraries | Total |
-|----------|------------|-------------|-------|
-| Arithmetic | 12 | 2 | 14 |
-| Boolean | 8 | 1 | 9 |
-| Comparison | 6 | 1 | 7 |
-| Timer | 5 | 2 | 7 |
-| Counter | 4 | 1 | 5 |
-| Edge Detection | 3 | 1 | 4 |
-| Bistable | 3 | 1 | 4 |
-| Control Flow | 4 | 2 | 6 |
-| **Total** | | | **56** |
+| Test File | Tests | Status |
+|-----------|-------|--------|
+| `arithmetic-properties.test.ts` | 47 | ✅ Complete |
+| `function-block-properties.test.ts` | 19 | ✅ Complete |
+| `control-flow-properties.test.ts` | 20 | ✅ Complete |
+| **Total** | **86** | ✅ |
+
+**Test breakdown by category:**
+- Arithmetic (commutativity, associativity, identity, distributivity): 22 tests
+- Boolean algebra (De Morgan's, idempotence, absorption): 13 tests
+- Comparison properties (reflexivity, symmetry, trichotomy): 7 tests
+- Non-commutativity/non-associativity verification: 5 tests
+- Timer properties (TON, ET bounds): 4 tests
+- Counter properties (CV, QU): 4 tests
+- Edge detection (R_TRIG, F_TRIG): 5 tests
+- Bistable (SR, RS): 4 tests
+- Control flow (FOR, IF, CASE, WHILE, REPEAT): 20 tests
+- Combined/integration: 2 tests
 
 ---
 
