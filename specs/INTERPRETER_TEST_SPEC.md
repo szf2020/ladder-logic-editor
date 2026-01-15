@@ -14,9 +14,9 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 |----------|-------|---------|----------|--------|
 | [Timers](./testing/TIMERS.md) | ~58 | 41 | 71% | 🟢 Good |
 | [Counters](./testing/COUNTERS.md) | ~61 | 34 | 56% | 🟢 Good |
-| [Data Types](./testing/DATA_TYPES.md) | ~82 | ~30 | 37% | 🟡 Partial |
+| [Data Types](./testing/DATA_TYPES.md) | ~82 | 68 | 83% | 🟢 Good |
 | [Operators](./testing/OPERATORS.md) | ~50 | 23+35=58 | 100% | 🟢 Complete |
-| [Control Flow](./testing/CONTROL_FLOW.md) | ~40 | ~35 | 85% | 🟢 Good |
+| [Control Flow](./testing/CONTROL_FLOW.md) | ~74 | 50 | 68% | 🟢 Good |
 | [Edge Detection](./testing/EDGE_DETECTION.md) | ~37 | 19 | 51% | 🟢 Good |
 | [Bistables](./testing/BISTABLES.md) | ~32 | 26 | 81% | 🟢 Good |
 | [Variables & Scope](./testing/VARIABLES.md) | ~49 | 39 | 80% | 🟢 Good |
@@ -24,11 +24,13 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 | [Error Handling](./testing/ERROR_HANDLING.md) | ~49 | 20 | 41% | 🟡 Partial |
 | [Property-Based Tests](./testing/PROPERTY_TESTS.md) | ~50 | 35 | 70% | 🟢 Good |
 | [Bounds & Edge Cases](./testing/BOUNDS.md) | ~63 | 40 | 63% | 🟢 Good |
-| **Total** | **~633** | **~456** | **72%** | 🟢 |
+| **Total** | **~667** | **~489** | **73%** | 🟢 |
 
-**Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (596 tests, all passing)
+**Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (714 tests, all passing)
 
 ### Current Test Count by File (2026-01-15)
+- `data-types.test.ts`: 68 tests ✅ (BOOL: 16, INT: 19, REAL: 14, TIME: 11, Properties: 8)
+- `control-flow.test.ts`: 50 tests ✅ (IF: 15, CASE: 10, FOR: 12, WHILE: 5, REPEAT: 3, Properties: 5)
 - `error-handling.test.ts`: 20 tests ✅
 - `bounds.test.ts`: 40 tests ✅
 - `edge-detection.test.ts`: 19 tests ✅
@@ -41,8 +43,8 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 - `motor-starter.test.ts`: 17 tests ✅ (integration)
 - `pump-level-control.test.ts`: 22 tests ✅ (integration)
 - `batch-sequencer.test.ts`: 20 tests ✅ (integration)
-- Total interpreter tests: ~456 passing
-- Total all tests: 596 passing
+- Total interpreter tests: ~489 compliance + integration
+- Total all tests: 714 passing
 
 ---
 
