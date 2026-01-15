@@ -1,7 +1,7 @@
 # Testing Gaps Analysis
 
 **Last Updated:** 2026-01-16
-**Current State:** Industrial Quality (993 tests, 100% passing)
+**Current State:** Industrial Quality (1060 tests, 100% passing)
 
 ---
 
@@ -10,10 +10,10 @@
 The interpreter test suite now provides comprehensive coverage for IEC 61131-3 compliance and production readiness.
 
 **Test Breakdown:**
-- Compliance tests: 542 tests
+- Compliance tests: 617 tests (includes 8 new short-circuit tests)
 - Property-based tests: 86 tests
 - Integration tests: 105 tests (5 industrial programs)
-- Other tests: 260 tests
+- Other tests: 252 tests
 
 **Target achieved:** 600+ tests with 95%+ passing ✅
 
@@ -44,18 +44,20 @@ The interpreter test suite now provides comprehensive coverage for IEC 61131-3 c
 - **Total**: 90 data type tests, 100% coverage
 
 ### ✅ Operator Precedence (IEC 61131-3 Section 3.3)
-- Precedence tests: 23 tests
+- Precedence tests: 43 tests
+- Short-circuit evaluation tests: 8 tests (documents no short-circuit behavior)
 - Property-based arithmetic tests: 47 tests
-- **Total**: 70 operator tests, 100% coverage
+- **Total**: 98 operator tests, 100% coverage
 
 ### ✅ Control Flow (IEC 61131-3 Section 3.4)
 - IF/ELSIF/ELSE: 15+ tests
 - CASE with ranges: 10+ tests
 - FOR with BY clause: 12+ tests
 - WHILE/REPEAT: 8+ tests
+- EXIT statement: 16 tests (FOR, WHILE, REPEAT, nested)
 - Safety limits: 5 tests
 - Properties: 20 tests
-- **Total**: 94 control flow tests, 100% coverage
+- **Total**: 116 control flow tests, 100% coverage
 
 ### ✅ Edge Detection (IEC 61131-3 Section 2.5.3)
 - R_TRIG: 11 tests
@@ -102,17 +104,10 @@ The interpreter test suite now provides comprehensive coverage for IEC 61131-3 c
 
 ### Not Implemented in Interpreter (Future Features)
 
-1. **EXIT statement** - Loop early exit
-   ```st
-   FOR i := 0 TO 100 DO
-     IF condition THEN EXIT; END_IF;
-   END_FOR;
-   ```
-
-2. **RETURN statement** - Function early return
+1. **RETURN statement** - Function early return
    - Requires user-defined function support
 
-3. **Additional data types**
+2. **Additional data types**
    - SINT, DINT, LINT (signed integers)
    - USINT, UINT, UDINT, ULINT (unsigned)
    - LREAL (64-bit float)
@@ -120,12 +115,12 @@ The interpreter test suite now provides comprehensive coverage for IEC 61131-3 c
    - DATE, TIME_OF_DAY, DATE_AND_TIME
    - BYTE, WORD, DWORD, LWORD
 
-4. **User-defined types**
+3. **User-defined types**
    - STRUCT
    - ARRAY
    - User-defined Function Blocks
 
-5. **Exponentiation operator** (`**`)
+4. **Exponentiation operator** (`**`)
 
 ### Parser Features Not Tested
 
@@ -145,7 +140,7 @@ The interpreter test suite now provides comprehensive coverage for IEC 61131-3 c
 
 ```
 src/interpreter/
-├── compliance/           # IEC 61131-3 spec tests (542 tests)
+├── compliance/           # IEC 61131-3 spec tests (617 tests)
 │   ├── timer-compliance.test.ts
 │   ├── counter-compliance.test.ts
 │   ├── data-types.test.ts
