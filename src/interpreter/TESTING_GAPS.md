@@ -1,7 +1,7 @@
 # Testing Gaps Analysis
 
 **Last Updated:** 2026-01-16
-**Current State:** Industrial Quality (1067 tests, 100% passing)
+**Current State:** Industrial Quality (1125 tests, 100% passing)
 
 ---
 
@@ -10,10 +10,10 @@
 The interpreter test suite now provides comprehensive coverage for IEC 61131-3 compliance and production readiness.
 
 **Test Breakdown:**
-- Compliance tests: 621 tests (includes 8 short-circuit tests, 1 case-sensitivity test, 3 mixed-type comparison tests)
+- Compliance tests: 629 tests (includes 8 short-circuit tests, 1 case-sensitivity test, 3 mixed-type comparison tests, 8 new parser/overflow tests)
 - Property-based tests: 86 tests
 - Integration tests: 105 tests (5 industrial programs)
-- Other tests: 252 tests
+- Other tests: 305 tests
 
 **Target achieved:** 600+ tests with 95%+ passing ✅
 
@@ -85,18 +85,18 @@ The interpreter test suite now provides comprehensive coverage for IEC 61131-3 c
 ### ✅ Error Handling
 - Division by zero: 11 tests
 - Overflow behavior: 11 tests
-- Parser errors: 6 tests
+- Parser errors: 12 tests (includes error detection with position/line info)
 - Edge cases: 12 tests
 - Recovery: 9 tests
-- **Total**: 49 error handling tests
+- **Total**: 55 error handling tests
 
 ### ✅ Bounds & Edge Cases
-- Integer bounds: 10+ tests
+- Integer bounds: 12+ tests (includes -(-32768) unary negation overflow)
 - REAL special values: 7 tests
 - CTD count-down: 3 tests
 - Loop safety: 5 tests
 - Expression depth: 8 tests
-- **Total**: 69 boundary tests
+- **Total**: 71 boundary tests
 
 ---
 

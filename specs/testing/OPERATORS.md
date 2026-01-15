@@ -72,7 +72,7 @@
 - [x] -REAL
 - [x] --x (double negation)
 - [x] ---x (triple negation)
-- [ ] -(-32768) overflow
+- [x] -(-32768) overflow (JavaScript doesn't overflow, tested in bounds.test.ts)
 
 ---
 
