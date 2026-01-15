@@ -180,7 +180,7 @@ This document maps every relevant IEC 61131-3 section to our implementation, ser
 ### P0 - Critical (Blocks Testing)
 | Item | Section | Status | Blocker |
 |------|---------|--------|---------|
-| function-block-handler.ts bug | 2.5 | 🔴 | All FB tests |
+| ~~function-block-handler.ts bug~~ | 2.5 | ✅ Fixed | - |
 | Basic timer behavior | 2.5.1 | 🟡 | Integration tests |
 | Edge detection in counters | 2.5.2 | 🟡 | Counter accuracy |
 
