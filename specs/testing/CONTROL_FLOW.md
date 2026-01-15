@@ -1,9 +1,9 @@
 # Control Flow Compliance Tests
 
 **IEC 61131-3 Section:** 3.4
-**Status:** 🟢 Complete (115 tests, 100%)
+**Status:** 🟢 Complete (116 tests, 100%)
 **Test Files:**
-- `src/interpreter/compliance/control-flow.test.ts` (95 tests)
+- `src/interpreter/compliance/control-flow.test.ts` (96 tests)
 - `src/interpreter/property/control-flow-properties.test.ts` (20 tests)
 
 ---
@@ -143,7 +143,7 @@ END_FOR;
 - [x] Loop variable accessible in body
 - [x] Loop variable equals bounds at start/end
 - [x] Loop variable scope (visible after loop)
-- [ ] Modifying loop variable in body (undefined?)
+- [x] Modifying loop variable in body (implementation-defined - our impl ignores it)
 
 ### FOR with BY (Step)
 ```st
@@ -345,9 +345,9 @@ fc.assert(fc.property(
 
 | Test File | Tests | Status |
 |-----------|-------|--------|
-| `control-flow.test.ts` | 95 | ✅ Complete |
+| `control-flow.test.ts` | 96 | ✅ Complete |
 | `control-flow-properties.test.ts` | 20 | ✅ Complete |
-| **Total** | **115** | ✅ |
+| **Total** | **116** | ✅ |
 
 **Note:** EXIT statement is fully implemented and tested (16 tests).
 CASE descending ranges and first-match-wins behavior are tested (5 tests).

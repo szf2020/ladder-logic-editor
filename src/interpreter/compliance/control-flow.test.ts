@@ -991,6 +991,28 @@ END_PROGRAM
       initializeAndRun(code, store, 1);
       expect(store.getInt('count')).toBe(12);  // 3 * 4
     });
+
+    it('modifying loop variable in body does NOT affect iteration count', () => {
+      // IEC 61131-3: loop variable modification in body is implementation-defined
+      // Our implementation: the loop counter is internally managed
+      const code = `
+PROGRAM Test
+VAR
+  i : INT;
+  count : INT := 0;
+END_VAR
+FOR i := 1 TO 5 DO
+  count := count + 1;
+  i := i + 10;  (* Try to skip ahead - should have no effect *)
+END_FOR;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      // Our implementation iterates based on internal counter, not the variable
+      // The variable assignment is visible but doesn't affect loop count
+      // This is consistent with IEC 61131-3's "implementation-defined" behavior
+      expect(store.getInt('count')).toBe(5);  // Still 5 iterations
+    });
   });
 });
 
