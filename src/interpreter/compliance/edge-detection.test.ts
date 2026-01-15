@@ -581,3 +581,330 @@ describe('Edge Detection Property-Based Tests', () => {
     ), { numRuns: 200 });
   });
 });
+
+// ============================================================================
+// Edge Detection with Counters
+// ============================================================================
+
+describe('Edge Detection Integration with Counters', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  it('R_TRIG pattern produces correct count for sustained TRUE', () => {
+    // This tests the pattern counters use internally
+    store.initEdgeDetector('CountEdge');
+    let count = 0;
+
+    // Sustained TRUE for 10 scans should count only once
+    for (let i = 0; i < 10; i++) {
+      store.updateRTrig('CountEdge', true);
+      if (store.getEdgeDetector('CountEdge')?.Q) {
+        count++;
+      }
+    }
+
+    expect(count).toBe(1);
+  });
+
+  it('R_TRIG pattern counts rapid toggles correctly', () => {
+    store.initEdgeDetector('CountEdge');
+    let count = 0;
+
+    // Toggle 5 times: FALSE → TRUE counts as edge
+    for (let i = 0; i < 10; i++) {
+      const clk = i % 2 === 1;  // FALSE, TRUE, FALSE, TRUE...
+      store.updateRTrig('CountEdge', clk);
+      if (store.getEdgeDetector('CountEdge')?.Q) {
+        count++;
+      }
+    }
+
+    // 5 rising edges (at i = 1, 3, 5, 7, 9)
+    expect(count).toBe(5);
+  });
+
+  it('edge detector integrated with manual counter increment', () => {
+    store.initEdgeDetector('PulseDetect');
+    store.initCounter('MyCounter', 10);
+
+    // Simulate button presses (TRUE then FALSE each press)
+    const buttonSequence = [false, true, false, true, false, true, false];
+
+    for (const pressed of buttonSequence) {
+      store.updateRTrig('PulseDetect', pressed);
+      if (store.getEdgeDetector('PulseDetect')?.Q) {
+        store.pulseCountUp('MyCounter');
+      }
+    }
+
+    // 3 button presses = 3 counts
+    expect(store.getCounter('MyCounter')?.CV).toBe(3);
+  });
+});
+
+// ============================================================================
+// State Re-initialization
+// ============================================================================
+
+describe('Edge Detection State Management', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  it('re-initialization resets M to FALSE', () => {
+    store.initEdgeDetector('Edge');
+
+    // Set M to TRUE
+    store.updateRTrig('Edge', true);
+    expect(store.getEdgeDetector('Edge')?.M).toBe(true);
+
+    // Re-initialize
+    store.initEdgeDetector('Edge');
+    expect(store.getEdgeDetector('Edge')?.M).toBe(false);
+    expect(store.getEdgeDetector('Edge')?.Q).toBe(false);
+    expect(store.getEdgeDetector('Edge')?.CLK).toBe(false);
+  });
+
+  it('clearAll resets all edge detector states', () => {
+    store.initEdgeDetector('Edge1');
+    store.initEdgeDetector('Edge2');
+
+    // Set some state
+    store.updateRTrig('Edge1', true);
+    store.updateFTrig('Edge2', true);
+
+    expect(store.getEdgeDetector('Edge1')?.M).toBe(true);
+    expect(store.getEdgeDetector('Edge2')?.M).toBe(true);
+
+    // Clear all
+    store.clearAll();
+
+    // Edge detectors should be empty
+    expect(store.getEdgeDetector('Edge1')).toBeUndefined();
+    expect(store.getEdgeDetector('Edge2')).toBeUndefined();
+  });
+
+  it('edge detector auto-initializes if not pre-initialized', () => {
+    // Don't call initEdgeDetector
+    store.updateRTrig('AutoInit', true);
+
+    // Should still work - auto-initialized
+    const ed = store.getEdgeDetector('AutoInit');
+    expect(ed).toBeDefined();
+    expect(ed?.Q).toBe(true);  // First TRUE is rising edge
+    expect(ed?.M).toBe(true);
+  });
+});
+
+// ============================================================================
+// Extended Property-Based Tests
+// ============================================================================
+
+describe('Extended Edge Detection Properties', () => {
+  it('F_TRIG Q is never TRUE for more than one consecutive scan', () => {
+    function getFTRIGSequence(clkSequence: boolean[]): boolean[] {
+      const store = createTestStore(100);
+      store.initEdgeDetector('Test');
+      const qSequence: boolean[] = [];
+      for (const clk of clkSequence) {
+        store.updateFTrig('Test', clk);
+        qSequence.push(store.getEdgeDetector('Test')?.Q ?? false);
+      }
+      return qSequence;
+    }
+
+    fc.assert(fc.property(
+      fc.array(fc.boolean(), { minLength: 2, maxLength: 100 }),
+      (clkSequence) => {
+        const qSequence = getFTRIGSequence(clkSequence);
+        for (let i = 0; i < qSequence.length - 1; i++) {
+          if (qSequence[i] && qSequence[i + 1]) {
+            return false;
+          }
+        }
+        return true;
+      }
+    ), { numRuns: 200 });
+  });
+
+  it('combined rising + falling edges equals total transitions', () => {
+    function countRisingEdges(sequence: boolean[]): number {
+      let count = 0;
+      let prev = false;
+      for (const curr of sequence) {
+        if (curr && !prev) count++;
+        prev = curr;
+      }
+      return count;
+    }
+
+    function countFallingEdges(sequence: boolean[]): number {
+      let count = 0;
+      let prev = false;
+      for (const curr of sequence) {
+        if (!curr && prev) count++;
+        prev = curr;
+      }
+      return count;
+    }
+
+    function runRTRIG(sequence: boolean[]): number {
+      const store = createTestStore(100);
+      store.initEdgeDetector('Test');
+      let pulseCount = 0;
+      for (const clk of sequence) {
+        store.updateRTrig('Test', clk);
+        if (store.getEdgeDetector('Test')?.Q) pulseCount++;
+      }
+      return pulseCount;
+    }
+
+    function runFTRIG(sequence: boolean[]): number {
+      const store = createTestStore(100);
+      store.initEdgeDetector('Test');
+      let pulseCount = 0;
+      for (const clk of sequence) {
+        store.updateFTrig('Test', clk);
+        if (store.getEdgeDetector('Test')?.Q) pulseCount++;
+      }
+      return pulseCount;
+    }
+
+    fc.assert(fc.property(
+      fc.array(fc.boolean(), { minLength: 2, maxLength: 100 }),
+      (clkSequence) => {
+        const risingEdges = countRisingEdges(clkSequence);
+        const fallingEdges = countFallingEdges(clkSequence);
+        const rTrigPulses = runRTRIG(clkSequence);
+        const fTrigPulses = runFTRIG(clkSequence);
+
+        return rTrigPulses === risingEdges && fTrigPulses === fallingEdges;
+      }
+    ), { numRuns: 200 });
+  });
+
+  it('edge detection is idempotent for same input', () => {
+    fc.assert(fc.property(
+      fc.boolean(),
+      fc.integer({ min: 2, max: 20 }),
+      (initialValue, repeatCount) => {
+        const store = createTestStore(100);
+        store.initEdgeDetector('Test');
+
+        // Update with same value multiple times
+        const qValues: boolean[] = [];
+        for (let i = 0; i < repeatCount; i++) {
+          store.updateRTrig('Test', initialValue);
+          qValues.push(store.getEdgeDetector('Test')?.Q ?? false);
+        }
+
+        // Only first update can have Q=true (if initialValue is TRUE)
+        // All subsequent should be FALSE
+        if (qValues.length > 1) {
+          for (let i = 1; i < qValues.length; i++) {
+            if (qValues[i] === true) return false;
+          }
+        }
+        return true;
+      }
+    ), { numRuns: 100 });
+  });
+});
+
+// ============================================================================
+// Edge Cases and Boundary Conditions
+// ============================================================================
+
+describe('Edge Detection Edge Cases', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  it('empty sequence produces no pulses', () => {
+    store.initEdgeDetector('Test');
+    // No updates at all
+    expect(store.getEdgeDetector('Test')?.Q).toBe(false);
+  });
+
+  it('single FALSE produces no R_TRIG pulse', () => {
+    store.initEdgeDetector('Test');
+    store.updateRTrig('Test', false);
+    expect(store.getEdgeDetector('Test')?.Q).toBe(false);
+  });
+
+  it('single TRUE produces R_TRIG pulse (edge from initial FALSE)', () => {
+    store.initEdgeDetector('Test');
+    store.updateRTrig('Test', true);
+    expect(store.getEdgeDetector('Test')?.Q).toBe(true);
+  });
+
+  it('single FALSE after init produces no F_TRIG pulse', () => {
+    store.initEdgeDetector('Test');
+    store.updateFTrig('Test', false);
+    expect(store.getEdgeDetector('Test')?.Q).toBe(false);
+  });
+
+  it('single TRUE produces no F_TRIG pulse (no preceding TRUE)', () => {
+    store.initEdgeDetector('Test');
+    store.updateFTrig('Test', true);
+    expect(store.getEdgeDetector('Test')?.Q).toBe(false);
+  });
+
+  it('alternating sequence produces expected rising and falling edges', () => {
+    store.initEdgeDetector('Rising');
+    store.initEdgeDetector('Falling');
+
+    let risingCount = 0;
+    let fallingCount = 0;
+
+    // Alternating: FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, TRUE (ends on TRUE)
+    // Rising edges: FALSE→TRUE at indices 1, 3, 5, 7 = 4 edges
+    // Falling edges: TRUE→FALSE at indices 2, 4, 6 = 3 edges (sequence ends on TRUE)
+    for (let i = 0; i < 8; i++) {
+      const clk = i % 2 === 1;
+      store.updateRTrig('Rising', clk);
+      store.updateFTrig('Falling', clk);
+
+      if (store.getEdgeDetector('Rising')?.Q) risingCount++;
+      if (store.getEdgeDetector('Falling')?.Q) fallingCount++;
+    }
+
+    expect(risingCount).toBe(4);
+    expect(fallingCount).toBe(3);
+  });
+
+  it('long sustained TRUE followed by long sustained FALSE', () => {
+    store.initEdgeDetector('Rising');
+    store.initEdgeDetector('Falling');
+
+    let risingCount = 0;
+    let fallingCount = 0;
+
+    // 50 scans of TRUE
+    for (let i = 0; i < 50; i++) {
+      store.updateRTrig('Rising', true);
+      store.updateFTrig('Falling', true);
+      if (store.getEdgeDetector('Rising')?.Q) risingCount++;
+      if (store.getEdgeDetector('Falling')?.Q) fallingCount++;
+    }
+
+    // 50 scans of FALSE
+    for (let i = 0; i < 50; i++) {
+      store.updateRTrig('Rising', false);
+      store.updateFTrig('Falling', false);
+      if (store.getEdgeDetector('Rising')?.Q) risingCount++;
+      if (store.getEdgeDetector('Falling')?.Q) fallingCount++;
+    }
+
+    // 1 rising edge (first TRUE) and 1 falling edge (first FALSE after TRUE)
+    expect(risingCount).toBe(1);
+    expect(fallingCount).toBe(1);
+  });
+});
