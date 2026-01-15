@@ -170,53 +170,122 @@
   color: var(--mobile-bg-base);
 }
 
-/* Hamburger icon - perfectly centered (Phase 5 fix) */
+/* ============================================================================
+   Hamburger Icon - CRITICAL: DO NOT MODIFY WITHOUT TESTING ON MOBILE
+   ============================================================================
+
+   This hamburger icon implementation is designed to be bulletproof and prevent
+   common CSS cascade issues that cause the icon to break.
+
+   ARCHITECTURE:
+   - Parent (.mobile-menu-btn) uses flexbox centering (NO absolute positioning)
+   - Middle bar (.menu-icon) uses position: relative (NOT absolute)
+   - Top/bottom bars (::before/::after) use absolute positioning relative to .menu-icon
+
+   WHY THIS APPROACH:
+   - Flexbox centering is more reliable than absolute positioning
+   - !important on critical layout properties prevents cascade overrides
+   - Explicit display: block ensures pseudo-elements render
+   - Color fallbacks ensure visibility in all states
+
+   COMMON FAILURES TO AVOID:
+   - ❌ Using position: absolute on .menu-icon (breaks centering)
+   - ❌ Using transform: translate(-50%, -50%) on .menu-icon (conflicts with flex)
+   - ❌ Using bottom: -5px on ::after (use top: 5px instead)
+   - ❌ Omitting !important on critical properties (allows cascade overrides)
+   ========================================================================= */
+
 .menu-icon {
+  /* CRITICAL: Must be relative, not absolute. Parent flexbox handles centering. */
+  position: relative !important;
+
+  /* CRITICAL: Must be block to render pseudo-elements */
+  display: block !important;
+
+  /* Middle bar dimensions - DO NOT CHANGE WITHOUT ADJUSTING ::before/::after */
   width: 16px;
   height: 2px;
+
+  /* Middle bar color - visible in default state, transparent when active */
   background: var(--mobile-text-primary);
   border-radius: 1px;
-  position: relative;
-  display: block;
+
+  /* Smooth transitions for hover/active states */
   transition: all var(--mobile-transition-fast);
+
+  /* Defensive: Prevent any margin/padding that could offset the icon */
+  margin: 0 !important;
+  padding: 0 !important;
+
+  /* Defensive: Ensure no transforms in default state */
+  transform: none;
 }
 
+/* Top and bottom bars of hamburger */
 .menu-icon::before,
 .menu-icon::after {
-  content: '';
-  position: absolute;
+  /* CRITICAL: Must be set for pseudo-elements to render */
+  content: '' !important;
+
+  /* CRITICAL: Absolute positioning relative to .menu-icon parent */
+  position: absolute !important;
+
+  /* Match middle bar dimensions */
   width: 16px;
   height: 2px;
+
+  /* Bar color - must match middle bar in default state */
   background: var(--mobile-text-primary);
   border-radius: 1px;
+
+  /* CRITICAL: Align left edge with middle bar */
   left: 0;
+
+  /* Smooth transitions for animations */
   transition: all var(--mobile-transition-fast);
+
+  /* Defensive: Prevent any transforms in default state */
+  transform: none;
 }
 
+/* Top bar position - 5px above middle bar */
 .menu-icon::before {
+  /* CRITICAL: Use top (not bottom) for predictable positioning */
   top: -5px;
 }
 
+/* Bottom bar position - 5px below middle bar */
 .menu-icon::after {
+  /* CRITICAL: Use top: 5px, NOT bottom: -5px (more reliable) */
   top: 5px;
 }
 
+/* ============================================================================
+   Active State (X Icon) - When menu is open
+   ========================================================================= */
+
+/* Hide middle bar when active */
 .mobile-menu-btn.active .menu-icon {
   background: transparent;
 }
 
+/* Change bar color to dark when menu is active (cyan background) */
 .mobile-menu-btn.active .menu-icon::before,
 .mobile-menu-btn.active .menu-icon::after {
   background: var(--mobile-bg-base);
 }
 
+/* Rotate top bar 45deg and collapse to center */
 .mobile-menu-btn.active .menu-icon::before {
   transform: rotate(45deg);
+  /* CRITICAL: Collapse to center (0 = same as middle bar) */
   top: 0;
 }
 
+/* Rotate bottom bar -45deg and collapse to center */
 .mobile-menu-btn.active .menu-icon::after {
   transform: rotate(-45deg);
+  /* CRITICAL: Collapse to center (0 = same as middle bar) */
   top: 0;
 }
 
