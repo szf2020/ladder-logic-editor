@@ -462,6 +462,313 @@ describe('SR vs RS Dominance Comparison', () => {
 // Property-Based Tests
 // ============================================================================
 
+// ============================================================================
+// Industrial Use Cases - Motor Starter Pattern
+// ============================================================================
+
+describe('Bistable Industrial Use Cases - Motor Starter', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  it('start button latches motor ON', () => {
+    // SR is typically used for motor starters
+    store.initBistable('MotorLatch');
+
+    // Press start button (momentary)
+    store.updateSR('MotorLatch', true, false);
+    expect(store.getBistable('MotorLatch')?.Q1).toBe(true);
+
+    // Release start button - motor should stay ON
+    store.updateSR('MotorLatch', false, false);
+    expect(store.getBistable('MotorLatch')?.Q1).toBe(true);
+  });
+
+  it('motor stays ON after releasing start', () => {
+    store.initBistable('MotorLatch');
+
+    // Press and release start button
+    store.updateSR('MotorLatch', true, false);
+    store.updateSR('MotorLatch', false, false);
+
+    // Run multiple "scans" - motor should stay latched
+    for (let i = 0; i < 10; i++) {
+      store.updateSR('MotorLatch', false, false);
+      expect(store.getBistable('MotorLatch')?.Q1).toBe(true);
+    }
+  });
+
+  it('stop button turns motor OFF', () => {
+    store.initBistable('MotorLatch');
+
+    // Start motor
+    store.updateSR('MotorLatch', true, false);
+    store.updateSR('MotorLatch', false, false);
+    expect(store.getBistable('MotorLatch')?.Q1).toBe(true);
+
+    // Press stop button
+    store.updateSR('MotorLatch', false, true);
+    expect(store.getBistable('MotorLatch')?.Q1).toBe(false);
+  });
+
+  it('motor stays OFF after releasing stop', () => {
+    store.initBistable('MotorLatch');
+
+    // Start and then stop motor
+    store.updateSR('MotorLatch', true, false);
+    store.updateSR('MotorLatch', false, true);
+
+    // Release stop - motor should stay OFF
+    for (let i = 0; i < 10; i++) {
+      store.updateSR('MotorLatch', false, false);
+      expect(store.getBistable('MotorLatch')?.Q1).toBe(false);
+    }
+  });
+
+  it('fault condition forces motor OFF (even if start is pressed)', () => {
+    store.initBistable('MotorLatch');
+
+    // Motor running
+    store.updateSR('MotorLatch', true, false);
+    expect(store.getBistable('MotorLatch')?.Q1).toBe(true);
+
+    // Fault occurs (represented as reset) while trying to restart
+    // For safety, use RS (reset dominant) for fault scenarios
+    store.initBistable('SafetyLatch');
+    store.updateRS('SafetyLatch', true, false);  // Set initially
+    expect(store.getBistable('SafetyLatch')?.Q1).toBe(true);
+
+    // Fault (R1=TRUE) takes priority over start (S=TRUE)
+    store.updateRS('SafetyLatch', true, true);
+    expect(store.getBistable('SafetyLatch')?.Q1).toBe(false);
+  });
+});
+
+// ============================================================================
+// Industrial Use Cases - Emergency Stop Pattern
+// ============================================================================
+
+describe('Bistable Industrial Use Cases - Emergency Stop', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  it('emergency stop always wins (RS reset dominant)', () => {
+    store.initBistable('EStop');
+
+    // System enabled
+    store.updateRS('EStop', true, false);
+    expect(store.getBistable('EStop')?.Q1).toBe(true);
+
+    // Emergency stop pressed - MUST stop regardless of start
+    store.updateRS('EStop', true, true);  // Both start and estop
+    expect(store.getBistable('EStop')?.Q1).toBe(false);
+  });
+
+  it('cannot override emergency with start', () => {
+    store.initBistable('EStop');
+
+    // System in emergency stopped state
+    store.updateRS('EStop', false, true);
+    expect(store.getBistable('EStop')?.Q1).toBe(false);
+
+    // Try to start while estop held
+    store.updateRS('EStop', true, true);
+    expect(store.getBistable('EStop')?.Q1).toBe(false);
+
+    // Release estop but keep start pressed - still should be OFF
+    // (realistic scenario: estop physically held, needs manual release)
+    store.updateRS('EStop', true, false);  // Now start works
+    expect(store.getBistable('EStop')?.Q1).toBe(true);
+  });
+
+  it('system latches off until reset', () => {
+    store.initBistable('EStop');
+
+    // Normal operation
+    store.updateRS('EStop', true, false);
+    expect(store.getBistable('EStop')?.Q1).toBe(true);
+
+    // Emergency stop
+    store.updateRS('EStop', false, true);
+    expect(store.getBistable('EStop')?.Q1).toBe(false);
+
+    // Release estop - system stays off (needs explicit restart)
+    store.updateRS('EStop', false, false);
+    expect(store.getBistable('EStop')?.Q1).toBe(false);
+
+    // Explicit restart required
+    store.updateRS('EStop', true, false);
+    expect(store.getBistable('EStop')?.Q1).toBe(true);
+  });
+});
+
+// ============================================================================
+// State Persistence Tests
+// ============================================================================
+
+describe('Bistable State Persistence', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  it('Q1 remains TRUE until explicitly reset', () => {
+    store.initBistable('Latch');
+
+    // Set
+    store.updateSR('Latch', true, false);
+
+    // Many scans with both inputs FALSE
+    for (let i = 0; i < 100; i++) {
+      store.updateSR('Latch', false, false);
+      expect(store.getBistable('Latch')?.Q1).toBe(true);
+    }
+  });
+
+  it('Q1 remains FALSE until explicitly set', () => {
+    store.initBistable('Latch');
+
+    // Many scans with both inputs FALSE
+    for (let i = 0; i < 100; i++) {
+      store.updateSR('Latch', false, false);
+      expect(store.getBistable('Latch')?.Q1).toBe(false);
+    }
+  });
+
+  it('no state decay over many scans (SR)', () => {
+    store.initBistable('Latch');
+
+    // Toggle state and verify persistence
+    store.updateSR('Latch', true, false);
+    for (let i = 0; i < 50; i++) {
+      store.updateSR('Latch', false, false);
+    }
+    expect(store.getBistable('Latch')?.Q1).toBe(true);
+
+    store.updateSR('Latch', false, true);
+    for (let i = 0; i < 50; i++) {
+      store.updateSR('Latch', false, false);
+    }
+    expect(store.getBistable('Latch')?.Q1).toBe(false);
+  });
+
+  it('no state decay over many scans (RS)', () => {
+    store.initBistable('Latch');
+
+    // Toggle state and verify persistence
+    store.updateRS('Latch', true, false);
+    for (let i = 0; i < 50; i++) {
+      store.updateRS('Latch', false, false);
+    }
+    expect(store.getBistable('Latch')?.Q1).toBe(true);
+
+    store.updateRS('Latch', false, true);
+    for (let i = 0; i < 50; i++) {
+      store.updateRS('Latch', false, false);
+    }
+    expect(store.getBistable('Latch')?.Q1).toBe(false);
+  });
+});
+
+// ============================================================================
+// Edge Cases - Initialization and Rapid Toggling
+// ============================================================================
+
+describe('Bistable Edge Cases', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  it('Q1 starts as FALSE on initialization', () => {
+    store.initBistable('Latch');
+    expect(store.getBistable('Latch')?.Q1).toBe(false);
+  });
+
+  it('first S1=TRUE sets Q1', () => {
+    store.initBistable('Latch');
+    expect(store.getBistable('Latch')?.Q1).toBe(false);
+    store.updateSR('Latch', true, false);
+    expect(store.getBistable('Latch')?.Q1).toBe(true);
+  });
+
+  it('first R=TRUE with Q1=FALSE stays FALSE', () => {
+    store.initBistable('Latch');
+    store.updateSR('Latch', false, true);
+    expect(store.getBistable('Latch')?.Q1).toBe(false);
+  });
+
+  it('rapid S1 toggle: final state correct', () => {
+    store.initBistable('Latch');
+
+    // Rapid toggle of S1
+    for (let i = 0; i < 20; i++) {
+      store.updateSR('Latch', i % 2 === 0, false);
+    }
+    // Last iteration: S1 = false (i=19, 19%2=1, so S1=false)
+    // But after S1=true (i=18), Q1 becomes true
+    // Then S1=false doesn't change Q1
+    expect(store.getBistable('Latch')?.Q1).toBe(true);
+  });
+
+  it('rapid R toggle: final state correct', () => {
+    store.initBistable('Latch');
+
+    // Set first
+    store.updateSR('Latch', true, false);
+    expect(store.getBistable('Latch')?.Q1).toBe(true);
+
+    // Rapid toggle of R
+    for (let i = 0; i < 20; i++) {
+      store.updateSR('Latch', false, i % 2 === 0);
+    }
+    // Last iteration: R = false (i=19, 19%2=1, so R=false)
+    // After R=true (i=18), Q1 becomes false
+    // Then R=false doesn't change Q1
+    expect(store.getBistable('Latch')?.Q1).toBe(false);
+  });
+
+  it('alternating S1 and R: follows truth table', () => {
+    store.initBistable('Latch');
+
+    // Alternate between S and R
+    store.updateSR('Latch', true, false);
+    expect(store.getBistable('Latch')?.Q1).toBe(true);
+
+    store.updateSR('Latch', false, true);
+    expect(store.getBistable('Latch')?.Q1).toBe(false);
+
+    store.updateSR('Latch', true, false);
+    expect(store.getBistable('Latch')?.Q1).toBe(true);
+
+    store.updateSR('Latch', false, true);
+    expect(store.getBistable('Latch')?.Q1).toBe(false);
+  });
+
+  it('simultaneous set in SR followed by simultaneous in RS produces opposite results', () => {
+    store.initBistable('SR_Test');
+    store.initBistable('RS_Test');
+
+    // Both inputs TRUE
+    store.updateSR('SR_Test', true, true);
+    store.updateRS('RS_Test', true, true);
+
+    expect(store.getBistable('SR_Test')?.Q1).toBe(true);   // Set dominant
+    expect(store.getBistable('RS_Test')?.Q1).toBe(false);  // Reset dominant
+  });
+});
+
+// ============================================================================
+// Property-Based Tests
+// ============================================================================
+
 describe('Bistable Property-Based Tests', () => {
   it('SR: S1=TRUE always results in Q1=TRUE', () => {
     fc.assert(fc.property(

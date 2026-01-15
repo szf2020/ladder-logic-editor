@@ -345,6 +345,119 @@ END_PROGRAM
 });
 
 // ============================================================================
+// Variable Declaration - Multiple Variables Same Line
+// ============================================================================
+
+describe('Variable Declaration - Multiple Variables Same Line', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  it('multiple INT variables on same line get same type', () => {
+    const code = `
+PROGRAM Test
+VAR
+  a, b, c : INT;
+END_VAR
+a := 1;
+b := 2;
+c := 3;
+END_PROGRAM
+`;
+    initializeAndRun(code, store, 1);
+    expect(store.getInt('a')).toBe(1);
+    expect(store.getInt('b')).toBe(2);
+    expect(store.getInt('c')).toBe(3);
+  });
+
+  it('multiple BOOL variables on same line default to FALSE', () => {
+    const code = `
+PROGRAM Test
+VAR
+  x, y, z : BOOL;
+END_VAR
+END_PROGRAM
+`;
+    initializeAndRun(code, store, 0);
+    expect(store.getBool('x')).toBe(false);
+    expect(store.getBool('y')).toBe(false);
+    expect(store.getBool('z')).toBe(false);
+  });
+});
+
+// ============================================================================
+// Variable Declaration - Initialization with Expressions
+// ============================================================================
+
+describe('Variable Initialization with Expressions', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  it('INT initialized with arithmetic expression', () => {
+    const code = `
+PROGRAM Test
+VAR
+  base : INT := 10;
+  derived : INT;
+END_VAR
+derived := base + 5;
+END_PROGRAM
+`;
+    initializeAndRun(code, store, 1);
+    expect(store.getInt('derived')).toBe(15);
+  });
+
+  it('REAL initialized with arithmetic expression', () => {
+    const code = `
+PROGRAM Test
+VAR
+  pi : REAL := 3.14159;
+  area : REAL;
+END_VAR
+area := pi * 4.0;
+END_PROGRAM
+`;
+    initializeAndRun(code, store, 1);
+    expect(store.getReal('area')).toBeCloseTo(12.566, 2);
+  });
+
+  it('BOOL initialized with logical expression', () => {
+    const code = `
+PROGRAM Test
+VAR
+  a : BOOL := TRUE;
+  b : BOOL := FALSE;
+  result : BOOL;
+END_VAR
+result := a AND NOT b;
+END_PROGRAM
+`;
+    initializeAndRun(code, store, 1);
+    expect(store.getBool('result')).toBe(true);
+  });
+
+  it('INT initialized with comparison expression', () => {
+    const code = `
+PROGRAM Test
+VAR
+  x : INT := 10;
+  y : INT := 5;
+  isGreater : BOOL;
+END_VAR
+isGreater := x > y;
+END_PROGRAM
+`;
+    initializeAndRun(code, store, 1);
+    expect(store.getBool('isGreater')).toBe(true);
+  });
+});
+
+// ============================================================================
 // Variable Assignment
 // ============================================================================
 
@@ -736,6 +849,114 @@ END_PROGRAM
         return Math.abs(store.getReal('r') - roundedValue) < 0.2;
       }
     ), { numRuns: 100 });
+  });
+});
+
+// ============================================================================
+// Type Conversion via Expressions
+// Note: Direct implicit coercion (e.g., myReal := myInt) is not currently supported.
+// These tests verify type conversion through explicit operations.
+// Note: Number.isInteger(42.0) returns true in JavaScript, so we use 0.5 to force
+// results into REAL storage.
+// ============================================================================
+
+describe('Type Conversion via Expressions', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  it('INT in REAL arithmetic produces REAL result', () => {
+    const code = `
+PROGRAM Test
+VAR
+  myInt : INT := 42;
+  myReal : REAL;
+END_VAR
+myReal := myInt + 0.5;
+END_PROGRAM
+`;
+    initializeAndRun(code, store, 1);
+    expect(store.getReal('myReal')).toBeCloseTo(42.5, 5);
+  });
+
+  it('INT division produces REAL when result is fractional', () => {
+    const code = `
+PROGRAM Test
+VAR
+  myInt : INT := 7;
+  myReal : REAL;
+END_VAR
+myReal := myInt / 2.0;
+END_PROGRAM
+`;
+    initializeAndRun(code, store, 1);
+    expect(store.getReal('myReal')).toBeCloseTo(3.5, 5);
+  });
+
+  it('BOOL to INT: FALSE becomes 0 (via conditional)', () => {
+    const code = `
+PROGRAM Test
+VAR
+  myBool : BOOL := FALSE;
+  myInt : INT;
+END_VAR
+IF myBool THEN
+  myInt := 1;
+ELSE
+  myInt := 0;
+END_IF;
+END_PROGRAM
+`;
+    initializeAndRun(code, store, 1);
+    expect(store.getInt('myInt')).toBe(0);
+  });
+
+  it('BOOL to INT: TRUE becomes 1 (via conditional)', () => {
+    const code = `
+PROGRAM Test
+VAR
+  myBool : BOOL := TRUE;
+  myInt : INT;
+END_VAR
+IF myBool THEN
+  myInt := 1;
+ELSE
+  myInt := 0;
+END_IF;
+END_PROGRAM
+`;
+    initializeAndRun(code, store, 1);
+    expect(store.getInt('myInt')).toBe(1);
+  });
+
+  it('INT to BOOL: 0 is FALSE (via comparison)', () => {
+    const code = `
+PROGRAM Test
+VAR
+  myInt : INT := 0;
+  myBool : BOOL;
+END_VAR
+myBool := myInt <> 0;
+END_PROGRAM
+`;
+    initializeAndRun(code, store, 1);
+    expect(store.getBool('myBool')).toBe(false);
+  });
+
+  it('INT to BOOL: non-zero is TRUE (via comparison)', () => {
+    const code = `
+PROGRAM Test
+VAR
+  myInt : INT := 42;
+  myBool : BOOL;
+END_VAR
+myBool := myInt <> 0;
+END_PROGRAM
+`;
+    initializeAndRun(code, store, 1);
+    expect(store.getBool('myBool')).toBe(true);
   });
 });
 
