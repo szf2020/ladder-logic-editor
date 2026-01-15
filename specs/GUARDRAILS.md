@@ -308,9 +308,14 @@ All mobile elements reduced by 15% for better screen utilization:
 - Still meets accessibility requirements (WCAG 2.1 minimum 24px)
 
 #### 4. Fixed Hamburger Icon Offset Bug ✅ (Updated 2026-01-15)
-**Problem:** Hamburger icon lines were not perfectly centered within button due to absolute positioning conflict
+**Problem:** Hamburger icon lines were not perfectly centered within button due to absolute positioning conflict, AND the icon kept breaking easily due to CSS cascade issues.
 
-**Failed Approach:**
+**Root Cause:**
+1. Original implementation used conflicting positioning (flexbox + absolute)
+2. CSS cascade was overriding critical properties
+3. No defensive guards against style inheritance
+
+**Failed Approach #1 - Absolute Positioning:**
 ```css
 .menu-icon {
   position: absolute;
@@ -321,7 +326,16 @@ All mobile elements reduced by 15% for better screen utilization:
 ```
 This created offset issues because the parent used flexbox centering AND the icon used absolute positioning.
 
-**Working Solution:**
+**Failed Approach #2 - Basic Relative Positioning (Still Fragile):**
+```css
+.menu-icon {
+  position: relative;
+  /* No defensive properties - easily overridden by cascade */
+}
+```
+This was better but still broke easily when other CSS was added or modified.
+
+**Working Solution - Defensive CSS with !important:**
 ```css
 .mobile-menu-btn {
   display: flex;           /* Flex container centers children */
@@ -330,16 +344,47 @@ This created offset issues because the parent used flexbox centering AND the ico
 }
 
 .menu-icon {
-  position: relative;      /* Relative positioning, not absolute */
-  /* Centered by parent flex container */
+  /* CRITICAL: Use !important to prevent cascade overrides */
+  position: relative !important;
+  display: block !important;
+
+  /* Dimensions */
+  width: 16px;
+  height: 2px;
+
+  /* Visual */
+  background: var(--mobile-text-primary);
+  border-radius: 1px;
+
+  /* Defensive: Prevent layout shifts */
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none;
+}
+
+.menu-icon::before,
+.menu-icon::after {
+  /* CRITICAL: Must be set for pseudo-elements to render */
+  content: '' !important;
+  position: absolute !important;
+
+  /* Match middle bar dimensions */
+  width: 16px;
+  height: 2px;
+  background: var(--mobile-text-primary);
+  border-radius: 1px;
+  left: 0;
+
+  /* Defensive: Prevent transforms in default state */
+  transform: none;
 }
 
 .menu-icon::before {
-  top: -5px;              /* Position relative to parent */
+  top: -5px;              /* Use top (not bottom) for predictability */
 }
 
 .menu-icon::after {
-  top: 5px;               /* Position relative to parent (not bottom: -5px) */
+  top: 5px;               /* Use top: 5px, NOT bottom: -5px */
 }
 
 .mobile-menu-btn.active .menu-icon::before {
@@ -353,7 +398,18 @@ This created offset issues because the parent used flexbox centering AND the ico
 }
 ```
 
-**Result:** Icon now perfectly centered in all states by letting flexbox do the work
+**Key Defensive Strategies:**
+1. **!important on critical layout properties** - Prevents cascade overrides on `position`, `display`, `content`
+2. **Explicit margin: 0 and padding: 0** - Prevents box model inheritance issues
+3. **transform: none in default state** - Ensures clean starting point for animations
+4. **Comprehensive inline comments** - Explains WHY each property exists to prevent future removals
+5. **Warning banner in CSS** - "CRITICAL: DO NOT MODIFY WITHOUT TESTING ON MOBILE"
+
+**Result:**
+- Icon now perfectly centered in all states
+- Bulletproof against CSS cascade issues
+- Clear documentation prevents future breakage
+- Successfully builds with all defensive properties intact
 
 #### 5. Full-Width Panels on Mobile ✅ (Added 2026-01-15)
 **Problem:** VariableWatch (280px) and PropertiesPanel (220px) had fixed desktop widths that wasted screen space on mobile
