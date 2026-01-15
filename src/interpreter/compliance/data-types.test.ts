@@ -1392,6 +1392,30 @@ END_PROGRAM
       expect(store.getTime('t')).toBe(86400000);
     });
 
+    it('T#1d equals 86400000 milliseconds (same as 24h)', () => {
+      const code = `
+PROGRAM Test
+VAR
+  t : TIME := T#1d;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      expect(store.getTime('t')).toBe(86400000);  // 1 day in ms
+    });
+
+    it('T#2d equals 172800000 milliseconds', () => {
+      const code = `
+PROGRAM Test
+VAR
+  t : TIME := T#2d;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      expect(store.getTime('t')).toBe(172800000);  // 2 days in ms
+    });
+
     it('T#12h equals 43200000 milliseconds (12 hours)', () => {
       const code = `
 PROGRAM Test
@@ -1415,6 +1439,19 @@ END_PROGRAM
       initializeAndRun(code, store, 0);
       // 1h = 3600000, 30m = 1800000
       expect(store.getTime('t')).toBe(5400000);
+    });
+
+    it('full compound time T#1h30m45s500ms parses correctly', () => {
+      const code = `
+PROGRAM Test
+VAR
+  t : TIME := T#1h30m45s500ms;
+END_VAR
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 0);
+      // 1h=3600000 + 30m=1800000 + 45s=45000 + 500ms=500 = 5445500
+      expect(store.getTime('t')).toBe(5445500);
     });
 
     it('compound time T#2m30s parses correctly', () => {

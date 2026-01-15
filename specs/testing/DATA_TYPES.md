@@ -128,9 +128,9 @@
 - [x] T#1s (seconds)
 - [x] T#1m (minutes)
 - [x] T#1h (hours)
-- [ ] T#1d (days)
+- [x] T#1d (days) - 86400000ms
 - [x] T#1m30s (compound)
-- [ ] T#1h30m45s500ms (full compound)
+- [x] T#1h30m45s500ms (full compound) - 5445500ms
 
 ### Arithmetic
 - [ ] TIME + TIME

@@ -260,13 +260,15 @@ function parseTimeString(timeStr: string): number {
     return parseFloat(hMatch[1]) * 60 * 60 * 1000;
   }
 
-  // Complex format like T#1h2m3s4ms
+  // Complex format like T#1h2m3s4ms or T#1d2h3m4s5ms
   let total = 0;
-  const complexMatch = str.matchAll(/(\d+(?:\.\d+)?)\s*(h|m|s|ms)/gi);
+  // Note: ms must come before m and s to avoid s500ms being matched as s + 500m
+  const complexMatch = str.matchAll(/(\d+(?:\.\d+)?)\s*(d|h|ms|m|s)/gi);
   for (const match of complexMatch) {
     const value = parseFloat(match[1]);
     const unit = match[2].toLowerCase();
     switch (unit) {
+      case 'd': total += value * 24 * 60 * 60 * 1000; break;
       case 'h': total += value * 60 * 60 * 1000; break;
       case 'm': total += value * 60 * 1000; break;
       case 's': total += value * 1000; break;
