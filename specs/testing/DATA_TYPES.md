@@ -63,11 +63,11 @@
 
 ### Arithmetic
 - [x] Addition
-- [x] Subtraction
-- [x] Multiplication
-- [x] Division (truncates toward zero)
-- [x] MOD (remainder)
-- [ ] Division by zero behavior
+- [x] Subtraction (including negative results)
+- [x] Multiplication (including negative operands)
+- [x] Division (truncates toward zero, including negative results)
+- [x] MOD (remainder, all sign combinations tested)
+- [x] Division by zero behavior (tested in error-handling.test.ts)
 
 ### Comparison
 - [x] Equal (=)

@@ -532,6 +532,73 @@ END_PROGRAM
       initializeAndRun(code, store, 1);
       expect(store.getInt('result')).toBe(-2);
     });
+
+    it('positive MOD negative (17 MOD -5)', () => {
+      // JavaScript: 17 % -5 = 2 (same sign as dividend)
+      const code = `
+PROGRAM Test
+VAR
+  result : INT;
+END_VAR
+result := 17 MOD -5;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(2);
+    });
+
+    it('negative MOD negative (-17 MOD -5)', () => {
+      // JavaScript: -17 % -5 = -2 (same sign as dividend)
+      const code = `
+PROGRAM Test
+VAR
+  result : INT;
+END_VAR
+result := -17 MOD -5;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(-2);
+    });
+
+    it('subtraction produces negative result', () => {
+      const code = `
+PROGRAM Test
+VAR
+  result : INT;
+END_VAR
+result := 5 - 10;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(-5);
+    });
+
+    it('multiplication with negative operand', () => {
+      const code = `
+PROGRAM Test
+VAR
+  result : INT;
+END_VAR
+result := 5 * -3;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(-15);
+    });
+
+    it('division producing negative result', () => {
+      const code = `
+PROGRAM Test
+VAR
+  result : INT;
+END_VAR
+result := -15 / 3;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(-5);
+    });
   });
 
   describe('Comparison Operations', () => {

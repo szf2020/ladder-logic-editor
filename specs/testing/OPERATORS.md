@@ -38,8 +38,8 @@
 ### Subtraction (-)
 - [x] INT - INT
 - [x] REAL - REAL
+- [x] Negative results (5 - 10 = -5)
 - [ ] Underflow behavior
-- [ ] Negative results
 
 ### Multiplication (*)
 - [x] INT * INT
@@ -56,8 +56,9 @@
 ### Modulo (MOD)
 - [x] Positive MOD positive
 - [x] Negative MOD positive
-- [ ] Positive MOD negative
-- [ ] MOD by zero behavior
+- [x] Positive MOD negative (17 MOD -5 = 2)
+- [x] Negative MOD negative (-17 MOD -5 = -2)
+- [x] MOD by zero behavior (tested in error-handling.test.ts)
 
 ### Exponentiation (**)
 - [ ] INT ** INT
