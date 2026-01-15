@@ -153,6 +153,10 @@ function extractIntValue(expr: STVariableDecl['initialValue']): number {
   if (expr.type === 'Literal' && expr.literalType === 'BOOL') {
     return expr.value ? 1 : 0;
   }
+  // Handle unary minus expression
+  if (expr.type === 'UnaryExpr' && expr.operator === '-') {
+    return -extractIntValue(expr.operand);
+  }
   return 0;
 }
 
@@ -160,6 +164,10 @@ function extractRealValue(expr: STVariableDecl['initialValue']): number {
   if (!expr) return 0.0;
   if (expr.type === 'Literal' && (expr.literalType === 'REAL' || expr.literalType === 'INT')) {
     return expr.value as number;
+  }
+  // Handle unary minus expression
+  if (expr.type === 'UnaryExpr' && expr.operator === '-') {
+    return -extractRealValue(expr.operand);
   }
   return 0.0;
 }
