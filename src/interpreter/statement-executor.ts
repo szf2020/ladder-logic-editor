@@ -237,12 +237,26 @@ function executeCaseStatement(stmt: STCaseStatement, context: ExecutionContext):
   }
 }
 
+// Track already-warned descending ranges to avoid duplicate warnings
+const warnedDescendingRanges = new Set<string>();
+
 function matchesCaseLabels(value: number, labels: STCaseLabel[]): boolean {
   for (const label of labels) {
     if (label.type === 'single' && label.value === value) {
       return true;
     }
     if (label.type === 'range' && label.start !== undefined && label.end !== undefined) {
+      // Warn about descending ranges (non-standard IEC 61131-3)
+      if (label.start > label.end) {
+        const rangeKey = `${label.start}..${label.end}`;
+        if (!warnedDescendingRanges.has(rangeKey)) {
+          warnedDescendingRanges.add(rangeKey);
+          console.warn(
+            `CASE range ${label.start}..${label.end} is descending. ` +
+            `This works but is non-standard IEC 61131-3. Consider using ${label.end}..${label.start} instead.`
+          );
+        }
+      }
       // Handle both ascending (1..10) and descending (10..1) ranges
       const min = Math.min(label.start, label.end);
       const max = Math.max(label.start, label.end);

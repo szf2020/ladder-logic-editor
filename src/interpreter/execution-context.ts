@@ -103,7 +103,8 @@ export function createExecutionContext(
   store: SimulationStoreInterface,
   runtimeState: RuntimeState
 ): ExecutionContext {
-  const fbContext = createFunctionBlockContext(store, runtimeState.previousInputs);
+  const getVariableType = (name: string) => runtimeState.typeRegistry[name];
+  const fbContext = createFunctionBlockContext(store, runtimeState.previousInputs, getVariableType);
 
   return {
     // Variable setters

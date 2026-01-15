@@ -8,6 +8,7 @@
 import type { STFunctionBlockCall, STNamedArgument } from '../transformer/ast/st-ast-types';
 import { evaluateExpression, type Value, type EvaluationContext } from './expression-evaluator';
 import { parseTimeLiteral, timeValueToMs } from '../models/plc-types';
+import type { DeclaredType } from './variable-initializer';
 
 // ============================================================================
 // Types
@@ -67,6 +68,8 @@ export interface FunctionBlockStore {
 export interface FunctionBlockContext extends EvaluationContext {
   store: FunctionBlockStore;
   previousInputs: Record<string, boolean>;
+  /** Get the declared type of a variable (for edge detector type resolution) */
+  getVariableType?: (name: string) => DeclaredType | undefined;
 }
 
 // ============================================================================
@@ -78,11 +81,13 @@ export interface FunctionBlockContext extends EvaluationContext {
  */
 export function createFunctionBlockContext(
   store: FunctionBlockStore,
-  previousInputs: Record<string, boolean>
+  previousInputs: Record<string, boolean>,
+  getVariableType?: (name: string) => DeclaredType | undefined
 ): FunctionBlockContext {
   return {
     store,
     previousInputs,
+    getVariableType,
     getVariable: (name: string) => {
       // Check if variable exists in each store (not just truthy value)
       // This is critical for handling FALSE and 0 values correctly
@@ -259,29 +264,24 @@ function handleCounter(instanceName: string, args: STNamedArgument[], context: F
 // ============================================================================
 
 function handleEdgeDetector(instanceName: string, args: STNamedArgument[], context: FunctionBlockContext): void {
-  const { store, previousInputs } = context;
+  const { store, previousInputs, getVariableType } = context;
 
   // Get CLK value
   const clkArg = findArg(args, 'CLK');
   const clkValue = clkArg ? toBoolean(evaluateExpression(clkArg.expression, context)) : false;
 
   // Edge detection requires knowing the type (R_TRIG vs F_TRIG)
-  // We detect this by tracking the previous value and using the store methods
-  // The store's updateRTrig/updateFTrig will handle the actual edge detection logic
-
-  // For now, we use the previousInputs to track which type was used
-  // Default to R_TRIG if store methods are available
+  // We get this from the declared type in the type registry
   if (store.updateRTrig) {
-    // Default behavior - rising edge detection
-    // Note: The actual type differentiation would need to come from variable declarations
-    // For now, we'll use a heuristic based on the instance name
-    const isRTrig = !instanceName.toUpperCase().includes('FTRIG') &&
-                    !instanceName.toUpperCase().startsWith('F_');
+    // Determine edge detector type from variable declaration
+    const declaredType = getVariableType?.(instanceName);
+    const isRTrig = declaredType === 'R_TRIG' || declaredType === undefined;
+    const isFTrig = declaredType === 'F_TRIG';
 
-    if (isRTrig) {
-      store.updateRTrig(instanceName, clkValue);
-    } else if (store.updateFTrig) {
+    if (isFTrig && store.updateFTrig) {
       store.updateFTrig(instanceName, clkValue);
+    } else if (isRTrig) {
+      store.updateRTrig(instanceName, clkValue);
     }
   } else {
     // Fallback: manual edge detection using previousInputs

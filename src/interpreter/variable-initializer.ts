@@ -15,7 +15,7 @@ import type { STAST, STVarBlock, STVariableDecl, STLiteral } from '../transforme
 /**
  * Declared data type categories for variable storage.
  */
-export type DeclaredType = 'BOOL' | 'INT' | 'REAL' | 'TIME' | 'TIMER' | 'COUNTER' | 'UNKNOWN';
+export type DeclaredType = 'BOOL' | 'INT' | 'REAL' | 'TIME' | 'TIMER' | 'COUNTER' | 'R_TRIG' | 'F_TRIG' | 'BISTABLE' | 'UNKNOWN';
 
 /**
  * Registry mapping variable names to their declared types.
@@ -373,6 +373,19 @@ function categorizeType(typeName: string): DeclaredType {
   // Counter function blocks
   if (['CTU', 'CTD', 'CTUD'].includes(typeName)) {
     return 'COUNTER';
+  }
+
+  // Edge detector function blocks
+  if (typeName === 'R_TRIG') {
+    return 'R_TRIG';
+  }
+  if (typeName === 'F_TRIG') {
+    return 'F_TRIG';
+  }
+
+  // Bistable function blocks
+  if (['SR', 'RS'].includes(typeName)) {
+    return 'BISTABLE';
   }
 
   return 'UNKNOWN';
