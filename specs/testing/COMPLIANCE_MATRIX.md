@@ -235,9 +235,10 @@ This document maps every relevant IEC 61131-3 section to our implementation, ser
 | [BOUNDS](./BOUNDS.md) | - | 69 | 69 | 69 | 100% |
 | [INTEGRATION](./INTEGRATION.md) | - | 105 | 105 | 105 | 100% |
 | Additional Edge Cases | - | 37 | 37 | 37 | 100% |
-| **TOTAL** | | **~863** | **~863** | **~863** | **100%** |
+| Timer/Counter Interaction | - | 13 | 13 | 13 | 100% |
+| **TOTAL** | | **~876** | **~876** | **~876** | **100%** |
 
-**Target:** 600+ tests, 95%+ passing ✅ ACHIEVED (1104 total tests, 100% passing)
+**Target:** 600+ tests, 95%+ passing ✅ ACHIEVED (1117 total tests, 100% passing)
 
 ---
 
@@ -277,7 +278,7 @@ When the standard is unclear, document decisions here:
 ## Validation Checklist
 
 ### Phase 1: Self-Validation
-- [x] All unit tests pass (1104 tests)
+- [x] All unit tests pass (1117 tests)
 - [x] All property tests pass (86 tests)
 - [x] All integration tests pass (105 tests)
 - [x] No known bugs blocking tests
@@ -301,6 +302,12 @@ When the standard is unclear, document decisions here:
 ---
 
 ## Changelog
+
+### 2026-01-16 (Update 6)
+- Added 13 timer/counter interaction tests in timer-counter-interaction.test.ts
+- Tests cover: timer Q triggering counters, counter QU triggering timers, chained timers/counters
+- Total tests increased from 1104 to 1117
+- All tests verified passing (1117 total)
 
 ### 2026-01-16 (Update 5)
 - Added 37 new edge case tests in additional-edge-cases.test.ts
