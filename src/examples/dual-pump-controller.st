@@ -113,6 +113,11 @@ VAR
     Min_Level : INT;
     Max_Level : INT;
     Mid_Level : INT;
+
+    (* Dry run protection timers *)
+    DryRunTimer1 : TON;
+    DryRunTimer2 : TON;
+    DRY_RUN_DELAY : TIME := T#5s;  (* 5 second delay before fault *)
 END_VAR
 
 (* ============================================================================
@@ -233,6 +238,8 @@ IF FAULT_RESET AND NOT Prev_Fault_Reset THEN
     ALM_SEAL_LEAK_2 := FALSE;
     ALM_OVERTEMP_1 := FALSE;
     ALM_OVERTEMP_2 := FALSE;
+    ALM_DRY_RUN_1 := FALSE;
+    ALM_DRY_RUN_2 := FALSE;
 END_IF;
 Prev_Fault_Reset := FAULT_RESET;
 
@@ -267,6 +274,26 @@ END_IF;
 IF TEMP_2 > TEMP_CRITICAL THEN
     Pump2_Faulted := TRUE;
     ALM_OVERTEMP_2 := TRUE;
+END_IF;
+
+(* ============================================================================
+   DRY RUN PROTECTION
+   Timer runs when pump is running but no flow detected
+   Uses Pump1_Running/Pump2_Running which track previous cycle's output
+   ============================================================================ *)
+
+(* Pump 1 dry run detection - start timer when running without flow *)
+DryRunTimer1(IN := Pump1_Running AND NOT FLOW_1 AND NOT DryRunTimer1.Q, PT := DRY_RUN_DELAY);
+IF DryRunTimer1.Q THEN
+    Pump1_Faulted := TRUE;
+    ALM_DRY_RUN_1 := TRUE;
+END_IF;
+
+(* Pump 2 dry run detection *)
+DryRunTimer2(IN := Pump2_Running AND NOT FLOW_2 AND NOT DryRunTimer2.Q, PT := DRY_RUN_DELAY);
+IF DryRunTimer2.Q THEN
+    Pump2_Faulted := TRUE;
+    ALM_DRY_RUN_2 := TRUE;
 END_IF;
 
 (* Both pumps failed alarm *)
@@ -407,5 +434,13 @@ ELSE
         PUMP_2_RUN := Pump2_AutoCmd AND Pump2_Available;
     END_IF;
 END_IF;
+
+(* ============================================================================
+   TRACK PUMP RUNNING STATE
+   Store current output for use in next scan cycle (dry run detection)
+   ============================================================================ *)
+
+Pump1_Running := PUMP_1_RUN;
+Pump2_Running := PUMP_2_RUN;
 
 END_PROGRAM

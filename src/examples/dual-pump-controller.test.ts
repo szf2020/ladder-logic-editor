@@ -1007,4 +1007,149 @@ describe('dual-pump-controller', () => {
       expect(store.getBool('PUMP_1_RUN')).toBe(false);
     });
   });
+
+  // ==========================================================================
+  // Dry Run Protection Tests (from spec: Pump Protection Features)
+  // ==========================================================================
+
+  describe('dry run protection', () => {
+    beforeEach(() => {
+      setAutoMode();
+      setNormalConditions();
+    });
+
+    it('does not fault pump when running with flow detected', () => {
+      // Start pump with flow
+      store.setInt('LEVEL_1', 75);
+      store.setInt('LEVEL_2', 75);
+      store.setInt('LEVEL_3', 75);
+      store.setBool('FLOW_1', true);
+      runCycle();
+
+      expect(store.getBool('PUMP_1_RUN')).toBe(true);
+      expect(store.getBool('ALM_DRY_RUN_1')).toBe(false);
+
+      // Run for many cycles with flow - still no fault (runScanCycle advances timers)
+      for (let i = 0; i < 100; i++) {
+        runCycle();
+      }
+
+      expect(store.getBool('ALM_DRY_RUN_1')).toBe(false);
+      expect(store.getBool('Pump1_Faulted')).toBe(false);
+    });
+
+    it('starts dry run timer when pump running without flow', () => {
+      // Start pump
+      store.setInt('LEVEL_1', 75);
+      store.setInt('LEVEL_2', 75);
+      store.setInt('LEVEL_3', 75);
+      store.setBool('FLOW_1', false); // No flow
+      runCycle();
+
+      expect(store.getBool('PUMP_1_RUN')).toBe(true);
+
+      // Second cycle - now Pump1_Running reflects the previous cycle's output
+      runCycle();
+
+      // Timer should be running (initialized and input set)
+      const timer = store.getTimer('DryRunTimer1');
+      expect(timer).toBeDefined();
+      expect(timer?.IN).toBe(true);
+    });
+
+    it('faults pump after dry run timeout (5 seconds)', () => {
+      // Start pump with no flow
+      store.setInt('LEVEL_1', 75);
+      store.setInt('LEVEL_2', 75);
+      store.setInt('LEVEL_3', 75);
+      store.setBool('FLOW_1', false);
+
+      // Note: runScanCycle automatically updates timer ET by scanTime (100ms)
+      // So each runCycle() advances timer by 100ms
+
+      runCycle();  // Cycle 1: Pump starts, Pump1_Running set at end
+      expect(store.getBool('PUMP_1_RUN')).toBe(true);
+
+      // Cycle 2: Timer starts (Pump1_Running is now TRUE from cycle 1)
+      // After this cycle, timer ET = 100ms
+      runCycle();
+
+      // Run 48 more cycles (100ms each) = 4800ms more -> total ET = 4900ms
+      for (let i = 0; i < 48; i++) {
+        runCycle();
+      }
+
+      // ET should be ~4900ms, which is < 5000ms - timer hasn't completed
+      expect(store.getBool('ALM_DRY_RUN_1')).toBe(false);
+
+      // One more cycle to reach 5000ms (timer Q becomes TRUE at end of this cycle)
+      runCycle();
+      // ET is now 5000ms, Q=TRUE, but fault check already ran this cycle
+
+      // One more cycle to process the fault (Q was set, now IF DryRunTimer1.Q runs)
+      runCycle();
+
+      // Now should be faulted
+      expect(store.getBool('ALM_DRY_RUN_1')).toBe(true);
+      expect(store.getBool('Pump1_Faulted')).toBe(true);
+      expect(store.getBool('PUMP_1_RUN')).toBe(false);
+    });
+
+    it('resets dry run timer when flow is restored', () => {
+      // Start pump with no flow
+      store.setInt('LEVEL_1', 75);
+      store.setInt('LEVEL_2', 75);
+      store.setInt('LEVEL_3', 75);
+      store.setBool('FLOW_1', false);
+      runCycle();  // Cycle 1: Pump starts
+
+      // Run 20 more cycles (runScanCycle advances timers automatically)
+      // This builds up ~2000ms on the timer
+      for (let i = 0; i < 20; i++) {
+        runCycle();
+      }
+
+      // Restore flow
+      store.setBool('FLOW_1', true);
+      runCycle();
+
+      // Timer should be reset (IN = false because flow is detected)
+      const timer = store.getTimer('DryRunTimer1');
+      expect(timer?.IN).toBe(false);
+
+      // Continue running with flow - no fault even after many cycles
+      for (let i = 0; i < 100; i++) {
+        runCycle();
+      }
+
+      expect(store.getBool('ALM_DRY_RUN_1')).toBe(false);
+    });
+
+    it('dry run protection works for pump 2', () => {
+      // Start both pumps (HIGH_HIGH level)
+      store.setInt('LEVEL_1', 90);
+      store.setInt('LEVEL_2', 90);
+      store.setInt('LEVEL_3', 90);
+      store.setBool('FLOW_1', true);  // Pump 1 has flow
+      store.setBool('FLOW_2', false); // Pump 2 no flow
+      runCycle();  // Cycle 1
+      runCycle();  // Cycle 2: Get to PUMPING_2
+
+      expect(store.getBool('PUMP_2_RUN')).toBe(true);
+
+      // Timer starts on cycle 3 (Pump2_Running set at end of cycle 2)
+      // Need 50 cycles of timer running to hit 5000ms
+      // Then 1 more cycle to process the fault
+      for (let i = 0; i < 51; i++) {
+        runCycle();
+      }
+
+      // Pump 2 should be faulted
+      expect(store.getBool('ALM_DRY_RUN_2')).toBe(true);
+      expect(store.getBool('Pump2_Faulted')).toBe(true);
+      expect(store.getBool('PUMP_2_RUN')).toBe(false);
+      // Pump 1 should still be running
+      expect(store.getBool('PUMP_1_RUN')).toBe(true);
+    });
+  });
 });
