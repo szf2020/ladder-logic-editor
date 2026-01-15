@@ -273,18 +273,32 @@ END_IF;
 ALM_BOTH_PUMPS_FAILED := Pump1_Faulted AND Pump2_Faulted;
 
 (* ============================================================================
-   LEAD/LAG ASSIGNMENT
-   ============================================================================ *)
-
-LEAD_PUMP := LeadPumpNum;
-
-(* ============================================================================
    PUMP AVAILABILITY
    A pump is available for AUTO control if HOA is in AUTO and not faulted
    ============================================================================ *)
 
 Pump1_Available := (HOA_1 = 2) AND NOT Pump1_Faulted;
 Pump2_Available := (HOA_2 = 2) AND NOT Pump2_Faulted;
+
+(* ============================================================================
+   LEAD/LAG ASSIGNMENT WITH FAILOVER
+   If lead pump faults and lag pump is OK, swap lead/lag
+   ============================================================================ *)
+
+(* Lead pump failover logic *)
+IF LeadPumpNum = 1 THEN
+    (* Pump 1 is lead - check if it faulted and pump 2 is OK *)
+    IF Pump1_Faulted AND NOT Pump2_Faulted THEN
+        LeadPumpNum := 2;  (* Swap to pump 2 as lead *)
+    END_IF;
+ELSE
+    (* Pump 2 is lead - check if it faulted and pump 1 is OK *)
+    IF Pump2_Faulted AND NOT Pump1_Faulted THEN
+        LeadPumpNum := 1;  (* Swap to pump 1 as lead *)
+    END_IF;
+END_IF;
+
+LEAD_PUMP := LeadPumpNum;
 
 (* ============================================================================
    PUMP CONTROL STATE MACHINE

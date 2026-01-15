@@ -912,4 +912,99 @@ describe('dual-pump-controller', () => {
       expect(store.getBool('Pump2_Available')).toBe(true);
     });
   });
+
+  // ==========================================================================
+  // Lead/Lag Failover Tests (from spec: Failover Logic)
+  // ==========================================================================
+
+  describe('lead/lag failover', () => {
+    beforeEach(() => {
+      setAutoMode();
+      setNormalConditions();
+    });
+
+    it('swaps lead/lag when lead pump faults while pumping', () => {
+      // Start with pump 1 as lead, running
+      store.setInt('LEVEL_1', 75);
+      store.setInt('LEVEL_2', 75);
+      store.setInt('LEVEL_3', 75);
+      runCycle();
+      expect(store.getInt('SYSTEM_STATE')).toBe(1);
+      expect(store.getBool('PUMP_1_RUN')).toBe(true);
+      expect(store.getInt('LEAD_PUMP')).toBe(1);
+
+      // Fault pump 1 - lag should become lead and run
+      store.setBool('MOTOR_OL_1', false);
+      runCycle();
+
+      // Lead should swap to pump 2
+      expect(store.getInt('LEAD_PUMP')).toBe(2);
+      // Pump 2 should now be running as the new lead
+      expect(store.getBool('PUMP_2_RUN')).toBe(true);
+      expect(store.getBool('PUMP_1_RUN')).toBe(false);
+      // State should still be PUMPING_1 (one pump running)
+      expect(store.getInt('SYSTEM_STATE')).toBe(1);
+    });
+
+    it('maintains pumping when lead faults and lag takes over', () => {
+      // Start at high level with pump 1 running
+      store.setInt('LEVEL_1', 75);
+      store.setInt('LEVEL_2', 75);
+      store.setInt('LEVEL_3', 75);
+      runCycle();
+      expect(store.getBool('PUMP_1_RUN')).toBe(true);
+
+      // Fault the lead pump
+      store.setBool('MOTOR_OL_1', false);
+      runCycle();
+
+      // Pumping should continue via the new lead (pump 2)
+      expect(store.getBool('PUMP_2_RUN')).toBe(true);
+      expect(store.getInt('SYSTEM_STATE')).toBe(1);
+    });
+
+    it('sets ALM_BOTH_PUMPS_FAILED when both pumps fault during operation', () => {
+      // Get to PUMPING_2 state (both pumps running)
+      store.setInt('LEVEL_1', 90);
+      store.setInt('LEVEL_2', 90);
+      store.setInt('LEVEL_3', 90);
+      runCycle(); // IDLE -> PUMPING_1
+      runCycle(); // PUMPING_1 -> PUMPING_2
+      expect(store.getInt('SYSTEM_STATE')).toBe(2);
+
+      // Fault both pumps
+      store.setBool('MOTOR_OL_1', false);
+      store.setBool('SEAL_OK_2', false);
+      runCycle();
+
+      // Both pumps down
+      expect(store.getBool('ALM_BOTH_PUMPS_FAILED')).toBe(true);
+      expect(store.getBool('PUMP_1_RUN')).toBe(false);
+      expect(store.getBool('PUMP_2_RUN')).toBe(false);
+    });
+
+    it('uses pump 2 as lead after failover and continues pumping cycle', () => {
+      // Start with pump 1 as lead
+      store.setInt('LEVEL_1', 75);
+      store.setInt('LEVEL_2', 75);
+      store.setInt('LEVEL_3', 75);
+      runCycle();
+
+      // Fault pump 1 - failover to pump 2
+      store.setBool('MOTOR_OL_1', false);
+      runCycle();
+      expect(store.getInt('LEAD_PUMP')).toBe(2);
+      expect(store.getBool('PUMP_2_RUN')).toBe(true);
+
+      // Level rises to HIGH_HIGH - lag pump (pump 1) is faulted, so only pump 2 runs
+      store.setInt('LEVEL_1', 90);
+      store.setInt('LEVEL_2', 90);
+      store.setInt('LEVEL_3', 90);
+      runCycle();
+
+      // Only pump 2 can run (pump 1 is faulted)
+      expect(store.getBool('PUMP_2_RUN')).toBe(true);
+      expect(store.getBool('PUMP_1_RUN')).toBe(false);
+    });
+  });
 });
