@@ -1,9 +1,9 @@
 # Operators & Precedence Compliance Tests
 
 **IEC 61131-3 Section:** 3.3
-**Status:** 🟢 Complete (98 tests, 100%)
+**Status:** 🟢 Complete (101 tests, 100%)
 **Test Files:**
-- `src/interpreter/compliance/operator-precedence.test.ts` (51 tests)
+- `src/interpreter/compliance/operator-precedence.test.ts` (54 tests)
 - `src/interpreter/property/arithmetic-properties.test.ts` (47 tests)
 
 ---
@@ -89,7 +89,7 @@
 ### Inequality (<>)
 - [x] INT <> INT
 - [x] BOOL <> BOOL
-- [ ] Mixed type comparison
+- [x] Mixed type comparison (INT vs REAL)
 
 ### Less Than (<)
 - [x] INT < INT
@@ -210,9 +210,9 @@ fc.assert(fc.property(fc.boolean(), fc.boolean(), (a, b) => {
 
 | Test File | Tests | Status |
 |-----------|-------|--------|
-| `operator-precedence.test.ts` | 51 | ✅ Complete |
+| `operator-precedence.test.ts` | 54 | ✅ Complete |
 | `arithmetic-properties.test.ts` | 47 | ✅ Complete |
-| **Total** | **98** | ✅ |
+| **Total** | **101** | ✅ |
 
 ---
 

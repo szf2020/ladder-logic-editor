@@ -321,6 +321,66 @@ describe('Comparison Operator Precedence', () => {
       expect(store.getBool('Result')).toBe(true);
     });
   });
+
+  describe('Mixed type comparison', () => {
+    it('INT compared to REAL - equal values', () => {
+      // 10 (INT) compared with 10.0 (REAL) should be TRUE
+      const store = createTestStore();
+      const ast = parseSTToAST(`
+        PROGRAM Test
+        VAR
+          intVal : INT := 10;
+          realVal : REAL := 10.0;
+          Result : BOOL;
+        END_VAR
+        Result := intVal = realVal;
+        END_PROGRAM
+      `);
+
+      initializeVariables(ast, store);
+      runScanCycle(ast, store, createRuntimeState(ast));
+
+      expect(store.getBool('Result')).toBe(true);
+    });
+
+    it('INT compared to REAL - unequal values', () => {
+      const store = createTestStore();
+      const ast = parseSTToAST(`
+        PROGRAM Test
+        VAR
+          intVal : INT := 10;
+          realVal : REAL := 10.5;
+          Result : BOOL;
+        END_VAR
+        Result := intVal <> realVal;
+        END_PROGRAM
+      `);
+
+      initializeVariables(ast, store);
+      runScanCycle(ast, store, createRuntimeState(ast));
+
+      expect(store.getBool('Result')).toBe(true);
+    });
+
+    it('INT less than REAL', () => {
+      const store = createTestStore();
+      const ast = parseSTToAST(`
+        PROGRAM Test
+        VAR
+          intVal : INT := 10;
+          realVal : REAL := 10.5;
+          Result : BOOL;
+        END_VAR
+        Result := intVal < realVal;
+        END_PROGRAM
+      `);
+
+      initializeVariables(ast, store);
+      runScanCycle(ast, store, createRuntimeState(ast));
+
+      expect(store.getBool('Result')).toBe(true);
+    });
+  });
 });
 
 // ============================================================================

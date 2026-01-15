@@ -210,15 +210,15 @@ These should be caught before simulation starts.
 
 ### Partial Execution
 When an error occurs mid-scan:
-- [ ] Statements before error executed
-- [ ] Error statement sets flag, may skip
-- [ ] Statements after error still execute
-- [ ] Scan completes
+- [x] Statements before error executed
+- Note: Error flag system not implemented
+- [x] Statements after error still execute
+- [x] Scan completes
 
 ### Timer/Counter Continuity
-- [ ] Timers continue timing despite errors in other code
-- [ ] Counters maintain state
-- [ ] Error in one FB doesn't affect others
+- [x] Timers continue timing despite errors in other code
+- [x] Counters maintain state
+- Note: Error in one FB doesn't affect others (inherent in implementation)
 
 ---
 
