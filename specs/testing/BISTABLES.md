@@ -1,8 +1,8 @@
 # Bistables Compliance Tests
 
 **IEC 61131-3 Section:** 2.5.4
-**Status:** 🔴 Not Started
-**Test File:** `src/interpreter/compliance/bistables.test.ts`
+**Status:** 🟢 Good (26 tests, 81% coverage)
+**Test File:** `src/interpreter/compliance/bistable.test.ts`
 
 ---
 
@@ -46,20 +46,20 @@ Q1: ___/‾‾‾‾‾‾‾‾‾‾‾\/‾‾‾‾‾‾
 ### Test Cases
 
 #### Basic Operation
-- [ ] S1=TRUE sets Q1 to TRUE
-- [ ] R=TRUE resets Q1 to FALSE (when S1=FALSE)
-- [ ] Q1 holds value when both S1 and R are FALSE
-- [ ] State persists across scan cycles
+- [x] S1=TRUE sets Q1 to TRUE
+- [x] R=TRUE resets Q1 to FALSE (when S1=FALSE)
+- [x] Q1 holds value when both S1 and R are FALSE
+- [x] State persists across scan cycles
 
 #### Set Dominance
-- [ ] S1=TRUE and R=TRUE → Q1=TRUE
-- [ ] S1 wins even when R goes TRUE first
-- [ ] Simultaneous set and reset: set wins
+- [x] S1=TRUE and R=TRUE → Q1=TRUE
+- [x] S1 wins even when R goes TRUE first
+- [x] Simultaneous set and reset: set wins
 
 #### Transitions
-- [ ] Rising edge on S1 sets output
-- [ ] Rising edge on R resets output (if S1 not active)
-- [ ] S1 going FALSE doesn't affect Q1
+- [x] Rising edge on S1 sets output
+- [x] Rising edge on R resets output (if S1 not active)
+- [x] S1 going FALSE doesn't affect Q1
 
 ---
 
@@ -88,15 +88,15 @@ Output := Latch.Q1;
 ### Test Cases
 
 #### Basic Operation
-- [ ] S=TRUE sets Q1 to TRUE
-- [ ] R1=TRUE resets Q1 to FALSE
-- [ ] Q1 holds value when both S and R1 are FALSE
-- [ ] State persists across scan cycles
+- [x] S=TRUE sets Q1 to TRUE
+- [x] R1=TRUE resets Q1 to FALSE
+- [x] Q1 holds value when both S and R1 are FALSE
+- [x] State persists across scan cycles
 
 #### Reset Dominance
-- [ ] S=TRUE and R1=TRUE → Q1=FALSE
-- [ ] R1 wins even when S goes TRUE first
-- [ ] Simultaneous set and reset: reset wins
+- [x] S=TRUE and R1=TRUE → Q1=FALSE
+- [x] R1 wins even when S goes TRUE first
+- [x] Simultaneous set and reset: reset wins
 
 ---
 

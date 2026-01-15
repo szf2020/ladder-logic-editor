@@ -1,7 +1,7 @@
 # Edge Detection Compliance Tests
 
 **IEC 61131-3 Section:** 2.5.3
-**Status:** 🔴 Not Started
+**Status:** 🟢 Good (19 tests, 51% coverage)
 **Test File:** `src/interpreter/compliance/edge-detection.test.ts`
 
 ---
@@ -43,15 +43,15 @@ END_IF;
 ### Test Cases
 
 #### Basic Behavior
-- [ ] Q is FALSE when CLK is FALSE
-- [ ] Q is FALSE when CLK stays TRUE (no edge)
-- [ ] Q is TRUE for exactly one scan when CLK goes FALSE → TRUE
-- [ ] Q returns to FALSE on next scan (even if CLK still TRUE)
+- [x] Q is FALSE when CLK is FALSE
+- [x] Q is FALSE when CLK stays TRUE (no edge)
+- [x] Q is TRUE for exactly one scan when CLK goes FALSE → TRUE
+- [x] Q returns to FALSE on next scan (even if CLK still TRUE)
 
 #### Edge Sequence
-- [ ] Multiple rising edges detected correctly
-- [ ] Rapid toggle: FALSE → TRUE → FALSE → TRUE detects 2 edges
-- [ ] Initial state: first TRUE is detected as rising edge
+- [x] Multiple rising edges detected correctly
+- [x] Rapid toggle: FALSE → TRUE → FALSE → TRUE detects 2 edges
+- [x] Initial state: first TRUE is detected as rising edge
 
 #### Integration with Counters
 ```st
@@ -93,15 +93,15 @@ END_IF;
 ### Test Cases
 
 #### Basic Behavior
-- [ ] Q is FALSE when CLK is TRUE
-- [ ] Q is FALSE when CLK stays FALSE (no edge)
-- [ ] Q is TRUE for exactly one scan when CLK goes TRUE → FALSE
-- [ ] Q returns to FALSE on next scan (even if CLK still FALSE)
+- [x] Q is FALSE when CLK is TRUE
+- [x] Q is FALSE when CLK stays FALSE (no edge)
+- [x] Q is TRUE for exactly one scan when CLK goes TRUE → FALSE
+- [x] Q returns to FALSE on next scan (even if CLK still FALSE)
 
 #### Edge Sequence
-- [ ] Multiple falling edges detected correctly
-- [ ] Rapid toggle: TRUE → FALSE → TRUE → FALSE detects 2 edges
-- [ ] Initial state: FALSE startup doesn't count as falling edge
+- [x] Multiple falling edges detected correctly
+- [x] Rapid toggle: TRUE → FALSE → TRUE → FALSE detects 2 edges
+- [x] Initial state: FALSE startup doesn't count as falling edge
 
 ---
 
@@ -122,10 +122,10 @@ Changed := Rising.Q OR Falling.Q;
 ```
 
 #### Test Cases
-- [ ] Detects rising edge only
-- [ ] Detects falling edge only
-- [ ] Both detectors on same signal work independently
-- [ ] Change detection (either edge)
+- [x] Detects rising edge only
+- [x] Detects falling edge only
+- [x] Both detectors on same signal work independently
+- [x] Change detection (either edge)
 
 ---
 

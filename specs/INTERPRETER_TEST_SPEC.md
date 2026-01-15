@@ -12,21 +12,32 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 
 | Sub-Spec | Tests | Passing | Coverage | Status |
 |----------|-------|---------|----------|--------|
-| [Timers](./testing/TIMERS.md) | ~58 | ~8 | 14% | 🟡 In Progress |
+| [Timers](./testing/TIMERS.md) | ~58 | 10 | 17% | 🟡 In Progress |
 | [Counters](./testing/COUNTERS.md) | ~61 | ~15 | 25% | 🟡 Partial |
 | [Data Types](./testing/DATA_TYPES.md) | ~82 | ~30 | 37% | 🟡 Partial |
-| [Operators](./testing/OPERATORS.md) | ~50 | ~47 | 95% | 🟢 Good |
+| [Operators](./testing/OPERATORS.md) | ~50 | 23+35=58 | 100% | 🟢 Complete |
 | [Control Flow](./testing/CONTROL_FLOW.md) | ~40 | ~35 | 85% | 🟢 Good |
-| [Edge Detection](./testing/EDGE_DETECTION.md) | ~40 | 0 | 0% | 🔴 Not Started |
-| [Bistables](./testing/BISTABLES.md) | ~20 | 0 | 0% | 🔴 Not Started |
-| [Variables & Scope](./testing/VARIABLES.md) | ~30 | 0 | 0% | 🔴 Not Started |
-| [Integration Programs](./testing/INTEGRATION.md) | ~50 | ~15 | 30% | 🟡 Partial |
+| [Edge Detection](./testing/EDGE_DETECTION.md) | ~37 | 19 | 51% | 🟢 Good |
+| [Bistables](./testing/BISTABLES.md) | ~32 | 26 | 81% | 🟢 Good |
+| [Variables & Scope](./testing/VARIABLES.md) | ~49 | 39 | 80% | 🟢 Good |
+| [Integration Programs](./testing/INTEGRATION.md) | ~50 | 20 | 40% | 🟡 Partial |
 | [Error Handling](./testing/ERROR_HANDLING.md) | ~30 | 0 | 0% | 🔴 Not Started |
-| [Property-Based Tests](./testing/PROPERTY_TESTS.md) | ~50 | ~5 | 10% | 🔴 Minimal |
-| [Bounds & Edge Cases](./testing/BOUNDS.md) | ~40 | 0 | 0% | 🔴 Not Started |
-| **Total** | **~551** | **~155** | **28%** | 🟡 |
+| [Property-Based Tests](./testing/PROPERTY_TESTS.md) | ~50 | 35 | 70% | 🟢 Good |
+| [Bounds & Edge Cases](./testing/BOUNDS.md) | ~63 | 40 | 63% | 🟢 Good |
+| **Total** | **~602** | **~320** | **53%** | 🟡 |
 
 **Target for Industrial Simulation:** 600+ tests, 95%+ passing
+
+### Current Test Count by File (2026-01-15)
+- `bounds.test.ts`: 40 tests ✅
+- `edge-detection.test.ts`: 19 tests ✅
+- `bistable.test.ts`: 26 tests ✅
+- `variables.test.ts`: 39 tests ✅
+- `timer-compliance.test.ts`: 10 tests ✅
+- `operator-precedence.test.ts`: 23 tests ✅
+- `arithmetic-properties.test.ts`: 35 tests ✅
+- Total interpreter tests: ~320 passing
+- Total all tests: 452 passing
 
 ---
 
