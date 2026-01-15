@@ -861,3 +861,416 @@ END_PROGRAM
     ), { numRuns: 100 });
   });
 });
+
+// ============================================================================
+// Expression Depth Tests
+// ============================================================================
+
+describe('Expression Depth (IEC 61131-3)', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  describe('Deeply Nested Expressions', () => {
+    it('10 levels of nesting evaluates correctly', () => {
+      const code = `
+PROGRAM Test
+VAR
+  a : INT := 1;
+  result : INT;
+END_VAR
+result := ((((((((((a + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1);
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(11);
+    });
+
+    it('20 levels of nesting evaluates correctly', () => {
+      // Build 20 levels of nested addition
+      let expr = 'a';
+      for (let i = 0; i < 20; i++) {
+        expr = `(${expr} + 1)`;
+      }
+      const code = `
+PROGRAM Test
+VAR
+  a : INT := 0;
+  result : INT;
+END_VAR
+result := ${expr};
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(20);
+    });
+
+    it('mixed operators in deep nesting', () => {
+      const code = `
+PROGRAM Test
+VAR
+  result : INT;
+END_VAR
+result := ((((2 + 3) * 2) - 4) / 2);
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      // ((2+3)*2-4)/2 = ((5)*2-4)/2 = (10-4)/2 = 6/2 = 3
+      expect(store.getInt('result')).toBe(3);
+    });
+  });
+
+  describe('Deeply Nested Control Flow', () => {
+    it('3 levels of nested IF', () => {
+      const code = `
+PROGRAM Test
+VAR
+  result : INT := 0;
+END_VAR
+IF TRUE THEN
+  IF TRUE THEN
+    IF TRUE THEN
+      result := 3;
+    END_IF;
+  END_IF;
+END_IF;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(3);
+    });
+
+    it('5 levels of nested IF with different branches', () => {
+      const code = `
+PROGRAM Test
+VAR
+  level : INT := 0;
+END_VAR
+IF TRUE THEN
+  level := level + 1;
+  IF TRUE THEN
+    level := level + 1;
+    IF TRUE THEN
+      level := level + 1;
+      IF TRUE THEN
+        level := level + 1;
+        IF TRUE THEN
+          level := level + 1;
+        END_IF;
+      END_IF;
+    END_IF;
+  END_IF;
+END_IF;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('level')).toBe(5);
+    });
+
+    it('nested IF with ELSIF', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : INT := 2;
+  result : INT := 0;
+END_VAR
+IF x = 1 THEN
+  IF FALSE THEN
+    result := 1;
+  ELSIF TRUE THEN
+    result := 11;
+  END_IF;
+ELSIF x = 2 THEN
+  IF FALSE THEN
+    result := 2;
+  ELSIF TRUE THEN
+    result := 22;
+  END_IF;
+END_IF;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(22);
+    });
+  });
+});
+
+// ============================================================================
+// Scan Cycle Bounds Tests
+// ============================================================================
+
+describe('Scan Cycle Bounds (IEC 61131-3)', () => {
+  describe('Rapid Scan Times', () => {
+    it('1ms scan time: timer updates correctly', () => {
+      const store = createTestStore(1); // 1ms scan
+      const code = `
+PROGRAM Test
+VAR
+  input : BOOL := TRUE;
+  Timer1 : TON;
+END_VAR
+Timer1(IN := input, PT := T#10ms);
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 5); // 5 scans at 1ms = 5ms elapsed
+      const timer = store.getTimer('Timer1');
+      expect(timer?.ET).toBe(5);
+      expect(timer?.Q).toBe(false);
+    });
+
+    it('1ms scan time: timer completes after enough scans', () => {
+      const store = createTestStore(1);
+      const code = `
+PROGRAM Test
+VAR
+  input : BOOL := TRUE;
+  Timer1 : TON;
+END_VAR
+Timer1(IN := input, PT := T#10ms);
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 10);
+      const timer = store.getTimer('Timer1');
+      expect(timer?.ET).toBe(10);
+      expect(timer?.Q).toBe(true);
+    });
+  });
+
+  describe('Slow Scan Times', () => {
+    it('1000ms scan time: timer jumps by large amount', () => {
+      const store = createTestStore(1000); // 1s scan
+      const code = `
+PROGRAM Test
+VAR
+  input : BOOL := TRUE;
+  Timer1 : TON;
+END_VAR
+Timer1(IN := input, PT := T#5s);
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 3); // 3 scans at 1000ms = 3000ms elapsed
+      const timer = store.getTimer('Timer1');
+      expect(timer?.ET).toBe(3000);
+      expect(timer?.Q).toBe(false);
+    });
+
+    it('1000ms scan time: timer completes', () => {
+      const store = createTestStore(1000);
+      const code = `
+PROGRAM Test
+VAR
+  input : BOOL := TRUE;
+  Timer1 : TON;
+END_VAR
+Timer1(IN := input, PT := T#5s);
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 5);
+      const timer = store.getTimer('Timer1');
+      expect(timer?.ET).toBe(5000);
+      expect(timer?.Q).toBe(true);
+    });
+  });
+
+  describe('Variable Scan Time', () => {
+    it('counter counts edges regardless of scan time', () => {
+      // Fast scan
+      const store1 = createTestStore(1);
+      const code = `
+PROGRAM Test
+VAR
+  Counter1 : CTU;
+END_VAR
+Counter1(CU := TRUE, PV := 10);
+END_PROGRAM
+`;
+      initializeAndRun(code, store1, 1);
+      expect(store1.getCounter('Counter1')?.CV).toBe(1);
+
+      // Slow scan - same result
+      const store2 = createTestStore(1000);
+      initializeAndRun(code, store2, 1);
+      expect(store2.getCounter('Counter1')?.CV).toBe(1);
+    });
+  });
+});
+
+// ============================================================================
+// Overflow Behavior Tests
+// ============================================================================
+
+describe('Overflow Behavior (IEC 61131-3)', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  describe('Integer Overflow', () => {
+    it('INT_MAX + 1 overflows (JavaScript behavior)', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : INT;
+END_VAR
+x := 32767 + 1;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      // JavaScript doesn't have 16-bit overflow, so this becomes 32768
+      expect(store.getInt('x')).toBe(32768);
+    });
+
+    it('INT_MIN - 1 underflows (JavaScript behavior)', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : INT;
+END_VAR
+x := -32768 - 1;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      // JavaScript doesn't have 16-bit underflow
+      expect(store.getInt('x')).toBe(-32769);
+    });
+
+    it('multiplication overflow (JavaScript behavior)', () => {
+      const code = `
+PROGRAM Test
+VAR
+  x : INT;
+END_VAR
+x := 32767 * 2;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('x')).toBe(65534);
+    });
+  });
+
+  describe('Counter Overflow', () => {
+    it('counter CV increments beyond PV', () => {
+      const code = `
+PROGRAM Test
+VAR
+  Counter1 : CTU;
+END_VAR
+Counter1(CU := TRUE, PV := 2);
+END_PROGRAM
+`;
+      // Run multiple scans with rising edges
+      const ast = parseSTToAST(code);
+      initializeVariables(ast, store);
+
+      // First rising edge
+      const runtimeState = createRuntimeState(ast);
+      runScanCycle(ast, store, runtimeState);
+      expect(store.getCounter('Counter1')?.CV).toBe(1);
+
+      // Second rising edge (need to go low then high again)
+      store.setBool('pulse', false);
+      const code2 = `
+PROGRAM Test
+VAR
+  Counter1 : CTU;
+END_VAR
+Counter1(CU := FALSE, PV := 2);
+END_PROGRAM
+`;
+      const ast2 = parseSTToAST(code2);
+      const runtimeState2 = createRuntimeState(ast2);
+      runScanCycle(ast2, store, runtimeState2);
+
+      // Third - back to TRUE for rising edge
+      runScanCycle(ast, store, createRuntimeState(ast));
+      expect(store.getCounter('Counter1')?.CV).toBe(2);
+      expect(store.getCounter('Counter1')?.QU).toBe(true);
+    });
+  });
+});
+
+// ============================================================================
+// Additional Property-Based Bounds Tests
+// ============================================================================
+
+describe('Additional Bounds Property Tests', () => {
+  it('nested expression evaluation is consistent', () => {
+    fc.assert(fc.property(
+      fc.integer({ min: 1, max: 10 }),
+      fc.integer({ min: 1, max: 10 }),
+      fc.integer({ min: 1, max: 10 }),
+      (a, b, c) => {
+        const store = createTestStore(100);
+        const code = `
+PROGRAM Test
+VAR
+  result1 : INT;
+  result2 : INT;
+END_VAR
+result1 := (${a} + ${b}) * ${c};
+result2 := ${a} * ${c} + ${b} * ${c};
+END_PROGRAM
+`;
+        initializeAndRun(code, store, 1);
+        // Distributive property
+        return store.getInt('result1') === store.getInt('result2');
+      }
+    ), { numRuns: 50 });
+  });
+
+  it('scan time affects timer elapsed time proportionally', () => {
+    fc.assert(fc.property(
+      fc.integer({ min: 10, max: 100 }),
+      fc.integer({ min: 1, max: 10 }),
+      (scanTime, numScans) => {
+        const store = createTestStore(scanTime);
+        const code = `
+PROGRAM Test
+VAR
+  input : BOOL := TRUE;
+  Timer1 : TON;
+END_VAR
+Timer1(IN := input, PT := T#10s);
+END_PROGRAM
+`;
+        initializeAndRun(code, store, numScans);
+        const timer = store.getTimer('Timer1');
+        const expectedET = Math.min(scanTime * numScans, 10000);
+        return timer?.ET === expectedET;
+      }
+    ), { numRuns: 30 });
+  });
+
+  it('comparison operators consistent at boundaries', () => {
+    fc.assert(fc.property(
+      fc.constantFrom(-32768, -1, 0, 1, 32767),
+      fc.constantFrom(-32768, -1, 0, 1, 32767),
+      (a, b) => {
+        const store = createTestStore(100);
+        const code = `
+PROGRAM Test
+VAR
+  lt : BOOL;
+  gt : BOOL;
+  eq : BOOL;
+END_VAR
+lt := ${a} < ${b};
+gt := ${a} > ${b};
+eq := ${a} = ${b};
+END_PROGRAM
+`;
+        initializeAndRun(code, store, 1);
+        const lt = store.getBool('lt');
+        const gt = store.getBool('gt');
+        const eq = store.getBool('eq');
+
+        // Trichotomy: exactly one must be true
+        const trueCount = [lt, gt, eq].filter(x => x).length;
+        return trueCount === 1;
+      }
+    ), { numRuns: 50 });
+  });
+});
