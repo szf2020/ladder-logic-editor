@@ -336,7 +336,7 @@ describe('Counter Properties', () => {
       fc.assert(fc.property(
         fc.integer({ min: 1, max: 10 }),  // PV
         fc.integer({ min: 0, max: 15 }),   // Number of pulses
-        (pv, numPulses) => {
+        (pv: number, numPulses: number) => {
           const store = createTestStore(100);
           store.initCounter('Counter1', pv);
 
@@ -356,7 +356,7 @@ describe('Counter Properties', () => {
       fc.assert(fc.property(
         fc.integer({ min: 1, max: 10 }),
         fc.integer({ min: 1, max: 20 }),
-        (pv, pulsesBeforeReset) => {
+        (pv: number, pulsesBeforeReset: number) => {
           const store = createTestStore(100);
           store.initCounter('Counter1', pv);
 
@@ -378,7 +378,7 @@ describe('Counter Properties', () => {
       fc.assert(fc.property(
         fc.integer({ min: 0, max: 10 }),   // Initial count
         fc.integer({ min: 0, max: 20 }),   // Number of count down pulses
-        (initialCount, downPulses) => {
+        (initialCount: number, downPulses: number) => {
           const store = createTestStore(100);
           store.initCounter('Counter1', 100);
 
@@ -409,7 +409,7 @@ describe('Edge Detection Properties', () => {
     it('R_TRIG: Q equals rising edges count', () => {
       fc.assert(fc.property(
         fc.array(fc.boolean(), { minLength: 2, maxLength: 30 }),
-        (sequence) => {
+        (sequence: boolean[]) => {
           const store = createTestStore(100);
           store.initEdgeDetector('RisingEdge');
 
@@ -430,7 +430,7 @@ describe('Edge Detection Properties', () => {
     it('R_TRIG: Q is never TRUE for two consecutive updates', () => {
       fc.assert(fc.property(
         fc.array(fc.boolean(), { minLength: 3, maxLength: 50 }),
-        (sequence) => {
+        (sequence: boolean[]) => {
           const store = createTestStore(100);
           store.initEdgeDetector('RisingEdge');
 
@@ -454,7 +454,7 @@ describe('Edge Detection Properties', () => {
     it('R_TRIG: Q is only TRUE when CLK transitions from FALSE to TRUE', () => {
       fc.assert(fc.property(
         fc.array(fc.boolean(), { minLength: 2, maxLength: 30 }),
-        (sequence) => {
+        (sequence: boolean[]) => {
           const store = createTestStore(100);
           store.initEdgeDetector('RisingEdge');
 
@@ -479,7 +479,7 @@ describe('Edge Detection Properties', () => {
     it('F_TRIG: Q equals falling edges count', () => {
       fc.assert(fc.property(
         fc.array(fc.boolean(), { minLength: 2, maxLength: 30 }),
-        (sequence) => {
+        (sequence: boolean[]) => {
           const store = createTestStore(100);
           store.initEdgeDetector('FallingEdge');
 
@@ -500,7 +500,7 @@ describe('Edge Detection Properties', () => {
     it('F_TRIG: Q is only TRUE when CLK transitions from TRUE to FALSE', () => {
       fc.assert(fc.property(
         fc.array(fc.boolean(), { minLength: 2, maxLength: 30 }),
-        (sequence) => {
+        (sequence: boolean[]) => {
           const store = createTestStore(100);
           store.initEdgeDetector('FallingEdge');
 
