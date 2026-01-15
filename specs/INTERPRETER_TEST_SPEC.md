@@ -21,17 +21,17 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 | [Bistables](./testing/BISTABLES.md) | ~32 | 26 | 81% | 🟢 Good |
 | [Variables & Scope](./testing/VARIABLES.md) | ~49 | 39 | 80% | 🟢 Good |
 | [Integration Programs](./testing/INTEGRATION.md) | ~62 | 59 | 95% | 🟢 Complete |
-| [Error Handling](./testing/ERROR_HANDLING.md) | ~49 | 20 | 41% | 🟡 Partial |
+| [Error Handling](./testing/ERROR_HANDLING.md) | ~49 | 49 | 100% | 🟢 Complete |
 | [Property-Based Tests](./testing/PROPERTY_TESTS.md) | ~50 | 35 | 70% | 🟢 Good |
 | [Bounds & Edge Cases](./testing/BOUNDS.md) | ~63 | 40 | 63% | 🟢 Good |
-| **Total** | **~667** | **~489** | **73%** | 🟢 |
+| **Total** | **~667** | **~518** | **78%** | 🟢 |
 
-**Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (714 tests, all passing)
+**Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (743 tests, all passing)
 
 ### Current Test Count by File (2026-01-15)
 - `data-types.test.ts`: 68 tests ✅ (BOOL: 16, INT: 19, REAL: 14, TIME: 11, Properties: 8)
 - `control-flow.test.ts`: 50 tests ✅ (IF: 15, CASE: 10, FOR: 12, WHILE: 5, REPEAT: 3, Properties: 5)
-- `error-handling.test.ts`: 20 tests ✅
+- `error-handling.test.ts`: 49 tests ✅ (Division: 11, Overflow: 11, Parser: 6, EdgeCases: 12, Recovery: 9)
 - `bounds.test.ts`: 40 tests ✅
 - `edge-detection.test.ts`: 19 tests ✅
 - `bistable.test.ts`: 26 tests ✅
@@ -43,8 +43,8 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 - `motor-starter.test.ts`: 17 tests ✅ (integration)
 - `pump-level-control.test.ts`: 22 tests ✅ (integration)
 - `batch-sequencer.test.ts`: 20 tests ✅ (integration)
-- Total interpreter tests: ~489 compliance + integration
-- Total all tests: 714 passing
+- Total interpreter tests: ~518 compliance + integration
+- Total all tests: 743 passing
 
 ---
 
