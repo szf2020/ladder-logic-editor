@@ -14,17 +14,17 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 |----------|-------|---------|----------|--------|
 | [Timers](./testing/TIMERS.md) | 47 | 47 | 100% | 🟢 Complete |
 | [Counters](./testing/COUNTERS.md) | 59 | 59 | 100% | 🟢 Complete |
-| [Data Types](./testing/DATA_TYPES.md) | ~102 | 110 | 100% | 🟢 Complete |
-| [Operators](./testing/OPERATORS.md) | ~98 | 98 | 100% | 🟢 Complete |
-| [Control Flow](./testing/CONTROL_FLOW.md) | ~96 | 116 | 100% | 🟢 Complete |
+| [Data Types](./testing/DATA_TYPES.md) | 110 | 110 | 100% | 🟢 Complete |
+| [Operators](./testing/OPERATORS.md) | 98 | 98 | 100% | 🟢 Complete |
+| [Control Flow](./testing/CONTROL_FLOW.md) | 116 | 116 | 100% | 🟢 Complete |
 | [Edge Detection](./testing/EDGE_DETECTION.md) | 35 | 35 | 100% | 🟢 Complete |
-| [Bistables](./testing/BISTABLES.md) | ~32 | 45 | 100% | 🟢 Complete |
-| [Variables & Scope](./testing/VARIABLES.md) | ~49 | 51 | 100% | 🟢 Complete |
+| [Bistables](./testing/BISTABLES.md) | 45 | 45 | 100% | 🟢 Complete |
+| [Variables & Scope](./testing/VARIABLES.md) | 51 | 51 | 100% | 🟢 Complete |
 | [Integration Programs](./testing/INTEGRATION.md) | 105 | 105 | 100% | 🟢 Complete |
-| [Error Handling](./testing/ERROR_HANDLING.md) | ~49 | 49 | 100% | 🟢 Complete |
-| [Property-Based Tests](./testing/PROPERTY_TESTS.md) | ~69 | 86 | 100% | 🟢 Complete |
+| [Error Handling](./testing/ERROR_HANDLING.md) | 49 | 49 | 100% | 🟢 Complete |
+| [Property-Based Tests](./testing/PROPERTY_TESTS.md) | 86 | 86 | 100% | 🟢 Complete |
 | [Bounds & Edge Cases](./testing/BOUNDS.md) | 69 | 69 | 100%* | 🟢 Complete |
-| **Total** | **878** | **978** | **100%** | 🟢 |
+| **Total** | **978** | **978** | **100%** | 🟢 |
 
 **Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (978 interpreter tests, 1063 total, all passing)
 

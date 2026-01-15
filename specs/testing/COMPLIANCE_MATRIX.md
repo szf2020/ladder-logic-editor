@@ -170,7 +170,7 @@ This document maps every relevant IEC 61131-3 section to our implementation, ser
 | FOR/TO/BY | ✅ | [CONTROL_FLOW](./CONTROL_FLOW.md) |
 | WHILE/DO | ✅ | [CONTROL_FLOW](./CONTROL_FLOW.md) |
 | REPEAT/UNTIL | ✅ | [CONTROL_FLOW](./CONTROL_FLOW.md) |
-| EXIT | ❌ | Not implemented |
+| EXIT | ✅ | [CONTROL_FLOW](./CONTROL_FLOW.md) |
 | CONTINUE | ❌ | Not in standard |
 
 ---
@@ -202,7 +202,7 @@ This document maps every relevant IEC 61131-3 section to our implementation, ser
 |------|---------|--------|
 | UINT, DINT types | 2.3 | ❌ Not implemented |
 | REPEAT loop | 3.5 | ✅ Complete |
-| EXIT statement | 3.5 | ❌ Not implemented |
+| EXIT statement | 3.5 | ✅ Complete |
 | CASE ranges | 3.4 | ✅ Complete |
 | Error flags | - | ✅ Implemented |
 
@@ -229,14 +229,14 @@ This document maps every relevant IEC 61131-3 section to our implementation, ser
 | [DATA_TYPES](./DATA_TYPES.md) | 2.3 | 90 | 90 | 90 | 100% |
 | [VARIABLES](./VARIABLES.md) | 2.4 | 51 | 51 | 51 | 100% |
 | [OPERATORS](./OPERATORS.md) | 3.3 | 70 | 70 | 70 | 100% |
-| [CONTROL_FLOW](./CONTROL_FLOW.md) | 3.4-3.5 | 94 | 94 | 94 | 100% |
+| [CONTROL_FLOW](./CONTROL_FLOW.md) | 3.4-3.5 | 116 | 116 | 116 | 100% |
 | [ERROR_HANDLING](./ERROR_HANDLING.md) | - | 49 | 49 | 49 | 100% |
 | [PROPERTY_TESTS](./PROPERTY_TESTS.md) | - | 86 | 86 | 86 | 100% |
 | [BOUNDS](./BOUNDS.md) | - | 69 | 69 | 69 | 100% |
 | [INTEGRATION](./INTEGRATION.md) | - | 105 | 105 | 105 | 100% |
-| **TOTAL** | | **~800** | **~800** | **~800** | **100%** |
+| **TOTAL** | | **~822** | **~822** | **~822** | **100%** |
 
-**Target:** 600+ tests, 95%+ passing ✅ ACHIEVED (993 total tests, 100% passing)
+**Target:** 600+ tests, 95%+ passing ✅ ACHIEVED (1063 total tests, 100% passing)
 
 ---
 
