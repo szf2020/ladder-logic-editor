@@ -1733,3 +1733,390 @@ END_PROGRAM
     ), { numRuns: 20 });
   });
 });
+
+// ============================================================================
+// EXIT Statement Tests (IEC 61131-3 Section 3.4.2)
+// ============================================================================
+
+describe('EXIT Statement (IEC 61131-3 Section 3.4.2)', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  describe('EXIT in FOR Loop', () => {
+    it('EXIT breaks out of FOR loop early', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT;
+  count : INT := 0;
+END_VAR
+FOR i := 1 TO 100 DO
+  count := count + 1;
+  IF i = 5 THEN
+    EXIT;
+  END_IF;
+END_FOR;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('count')).toBe(5);  // Only 5 iterations, not 100
+    });
+
+    it('loop variable retains value at EXIT', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT;
+  exitValue : INT := 0;
+END_VAR
+FOR i := 1 TO 100 DO
+  IF i = 42 THEN
+    exitValue := i;
+    EXIT;
+  END_IF;
+END_FOR;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('exitValue')).toBe(42);
+      expect(store.getInt('i')).toBe(42);  // Loop variable retains value
+    });
+
+    it('code after loop executes after EXIT', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT;
+  beforeLoop : INT := 0;
+  afterLoop : INT := 0;
+END_VAR
+beforeLoop := 1;
+FOR i := 1 TO 100 DO
+  IF i = 3 THEN
+    EXIT;
+  END_IF;
+END_FOR;
+afterLoop := 2;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('beforeLoop')).toBe(1);
+      expect(store.getInt('afterLoop')).toBe(2);  // Code after loop executed
+    });
+
+    it('EXIT with step value', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT;
+  sum : INT := 0;
+END_VAR
+FOR i := 0 TO 100 BY 10 DO
+  sum := sum + i;
+  IF i = 30 THEN
+    EXIT;
+  END_IF;
+END_FOR;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('sum')).toBe(60);  // 0 + 10 + 20 + 30
+    });
+  });
+
+  describe('EXIT in WHILE Loop', () => {
+    it('EXIT breaks out of WHILE loop', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT := 0;
+  count : INT := 0;
+END_VAR
+WHILE TRUE DO
+  i := i + 1;
+  count := count + 1;
+  IF i >= 5 THEN
+    EXIT;
+  END_IF;
+END_WHILE;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('count')).toBe(5);
+    });
+
+    it('EXIT in WHILE with complex condition', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT := 0;
+  found : BOOL := FALSE;
+END_VAR
+WHILE i < 100 DO
+  i := i + 1;
+  IF i MOD 7 = 0 AND i > 10 THEN
+    found := TRUE;
+    EXIT;
+  END_IF;
+END_WHILE;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getBool('found')).toBe(true);
+      expect(store.getInt('i')).toBe(14);  // First multiple of 7 > 10
+    });
+  });
+
+  describe('EXIT in REPEAT Loop', () => {
+    it('EXIT breaks out of REPEAT loop', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT := 0;
+  count : INT := 0;
+END_VAR
+REPEAT
+  i := i + 1;
+  count := count + 1;
+  IF i >= 3 THEN
+    EXIT;
+  END_IF;
+UNTIL FALSE
+END_REPEAT;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('count')).toBe(3);
+    });
+
+    it('EXIT before UNTIL condition checked', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT := 0;
+  exitedEarly : BOOL := FALSE;
+END_VAR
+REPEAT
+  i := i + 1;
+  IF i = 2 THEN
+    exitedEarly := TRUE;
+    EXIT;
+  END_IF;
+UNTIL i >= 10
+END_REPEAT;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('i')).toBe(2);
+      expect(store.getBool('exitedEarly')).toBe(true);
+    });
+  });
+
+  describe('EXIT in Nested Loops', () => {
+    it('EXIT only breaks innermost FOR loop', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT;
+  j : INT;
+  innerCount : INT := 0;
+  outerCount : INT := 0;
+END_VAR
+FOR i := 1 TO 3 DO
+  outerCount := outerCount + 1;
+  FOR j := 1 TO 100 DO
+    innerCount := innerCount + 1;
+    IF j = 2 THEN
+      EXIT;
+    END_IF;
+  END_FOR;
+END_FOR;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('outerCount')).toBe(3);  // Outer loop runs fully
+      expect(store.getInt('innerCount')).toBe(6);  // Inner loop: 2 iterations * 3 outer = 6
+    });
+
+    it('EXIT in nested WHILE loops breaks inner only', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT := 0;
+  j : INT;
+  totalInner : INT := 0;
+END_VAR
+WHILE i < 2 DO
+  i := i + 1;
+  j := 0;
+  WHILE TRUE DO
+    j := j + 1;
+    totalInner := totalInner + 1;
+    IF j >= 3 THEN
+      EXIT;
+    END_IF;
+  END_WHILE;
+END_WHILE;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('i')).toBe(2);
+      expect(store.getInt('totalInner')).toBe(6);  // 3 inner * 2 outer
+    });
+
+    it('EXIT in mixed nested loops (FOR inside WHILE)', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT := 0;
+  j : INT;
+  forCount : INT := 0;
+  whileCount : INT := 0;
+END_VAR
+WHILE i < 3 DO
+  i := i + 1;
+  whileCount := whileCount + 1;
+  FOR j := 1 TO 100 DO
+    forCount := forCount + 1;
+    IF j = 4 THEN
+      EXIT;
+    END_IF;
+  END_FOR;
+END_WHILE;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('whileCount')).toBe(3);  // WHILE completes
+      expect(store.getInt('forCount')).toBe(12);   // 4 FOR iterations * 3 WHILE = 12
+    });
+  });
+
+  describe('EXIT Edge Cases', () => {
+    it('EXIT on first iteration', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT;
+  count : INT := 0;
+END_VAR
+FOR i := 1 TO 100 DO
+  count := count + 1;
+  EXIT;
+END_FOR;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('count')).toBe(1);  // Only one iteration
+    });
+
+    it('EXIT in deeply nested control flow', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT;
+  result : INT := 0;
+END_VAR
+FOR i := 1 TO 100 DO
+  IF i > 5 THEN
+    IF i MOD 2 = 0 THEN
+      result := i;
+      EXIT;
+    END_IF;
+  END_IF;
+END_FOR;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      expect(store.getInt('result')).toBe(6);  // First even > 5
+    });
+
+    it('multiple EXIT statements with different conditions', () => {
+      const code = `
+PROGRAM Test
+VAR
+  i : INT;
+  exitReason : INT := 0;
+END_VAR
+FOR i := 1 TO 100 DO
+  IF i = 25 THEN
+    exitReason := 1;
+    EXIT;
+  END_IF;
+  IF i MOD 17 = 0 THEN
+    exitReason := 2;
+    EXIT;
+  END_IF;
+END_FOR;
+END_PROGRAM
+`;
+      initializeAndRun(code, store, 1);
+      // 17 comes before 25
+      expect(store.getInt('exitReason')).toBe(2);
+      expect(store.getInt('i')).toBe(17);
+    });
+  });
+
+  describe('EXIT Property-Based Tests', () => {
+    it('EXIT at any point terminates loop correctly', () => {
+      fc.assert(fc.property(
+        fc.integer({ min: 1, max: 50 }),
+        (exitPoint) => {
+          const store = createTestStore(100);
+          const code = `
+PROGRAM Test
+VAR
+  i : INT;
+  count : INT := 0;
+END_VAR
+FOR i := 1 TO 100 DO
+  count := count + 1;
+  IF i = ${exitPoint} THEN
+    EXIT;
+  END_IF;
+END_FOR;
+END_PROGRAM
+`;
+          initializeAndRun(code, store, 1);
+          return store.getInt('count') === exitPoint;
+        }
+      ), { numRuns: 30 });
+    });
+
+    it('nested EXIT preserves outer loop state', () => {
+      fc.assert(fc.property(
+        fc.integer({ min: 1, max: 5 }),
+        fc.integer({ min: 1, max: 10 }),
+        (outerLimit, innerExit) => {
+          const store = createTestStore(100);
+          const code = `
+PROGRAM Test
+VAR
+  i : INT;
+  j : INT;
+  outerCount : INT := 0;
+  innerTotal : INT := 0;
+END_VAR
+FOR i := 1 TO ${outerLimit} DO
+  outerCount := outerCount + 1;
+  FOR j := 1 TO 100 DO
+    innerTotal := innerTotal + 1;
+    IF j = ${innerExit} THEN
+      EXIT;
+    END_IF;
+  END_FOR;
+END_FOR;
+END_PROGRAM
+`;
+          initializeAndRun(code, store, 1);
+          // Outer loop should complete fully
+          // Inner loop should run innerExit iterations each time
+          return store.getInt('outerCount') === outerLimit &&
+                 store.getInt('innerTotal') === outerLimit * innerExit;
+        }
+      ), { numRuns: 20 });
+    });
+  });
+});

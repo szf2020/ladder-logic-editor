@@ -1,9 +1,9 @@
 # Control Flow Compliance Tests
 
 **IEC 61131-3 Section:** 3.4
-**Status:** 🟢 Complete (94 tests, 100%)
+**Status:** 🟢 Complete (110 tests, 100%)
 **Test Files:**
-- `src/interpreter/compliance/control-flow.test.ts` (74 tests)
+- `src/interpreter/compliance/control-flow.test.ts` (90 tests)
 - `src/interpreter/property/control-flow-properties.test.ts` (20 tests)
 
 ---
@@ -241,19 +241,32 @@ END_FOR;
 ```
 
 #### Test Cases
-- [ ] EXIT breaks out of FOR loop
-- [ ] Loop variable retains value at EXIT
-- [ ] Code after loop executes
+- [x] EXIT breaks out of FOR loop
+- [x] Loop variable retains value at EXIT
+- [x] Code after loop executes
+- [x] EXIT with step value (BY clause)
 
 ### EXIT in WHILE
-- [ ] EXIT breaks out of WHILE loop
+- [x] EXIT breaks out of WHILE loop
+- [x] EXIT in WHILE with complex condition
 
 ### EXIT in REPEAT
-- [ ] EXIT breaks out of REPEAT loop
+- [x] EXIT breaks out of REPEAT loop
+- [x] EXIT before UNTIL condition checked
 
 ### Nested Loops
-- [ ] EXIT only breaks innermost loop
-- [ ] Multiple EXITs for multiple loop levels (workaround)
+- [x] EXIT only breaks innermost loop
+- [x] EXIT in nested WHILE loops breaks inner only
+- [x] EXIT in mixed nested loops (FOR inside WHILE)
+
+### Edge Cases
+- [x] EXIT on first iteration
+- [x] EXIT in deeply nested control flow
+- [x] Multiple EXIT statements with different conditions
+
+### Property-Based Tests
+- [x] EXIT at any point terminates loop correctly
+- [x] Nested EXIT preserves outer loop state
 
 ---
 
@@ -330,11 +343,12 @@ fc.assert(fc.property(
 
 | Test File | Tests | Status |
 |-----------|-------|--------|
-| `control-flow.test.ts` | 74 | ✅ Complete |
+| `control-flow.test.ts` | 90 | ✅ Complete |
 | `control-flow-properties.test.ts` | 20 | ✅ Complete |
-| **Total** | **94** | ✅ |
+| **Total** | **110** | ✅ |
 
-**Note:** EXIT and CONTINUE statements are not implemented in the interpreter.
+**Note:** EXIT statement is fully implemented and tested (16 tests).
+CONTINUE statement is not part of IEC 61131-3 and is not implemented.
 RETURN is not applicable as user-defined functions are not supported yet.
 
 ---
