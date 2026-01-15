@@ -1,7 +1,7 @@
 /**
  * Function Block Handler
  *
- * Handles execution of timer and counter function blocks.
+ * Handles execution of timer, counter, edge detection, and bistable function blocks.
  * Manages edge detection for counter pulse inputs.
  */
 
@@ -29,6 +29,18 @@ export interface FunctionBlockStore {
   pulseCountDown: (name: string) => void;
   resetCounter: (name: string) => void;
   getCounter: (name: string) => { CU: boolean; CD: boolean; R: boolean; LD: boolean; PV: number; QU: boolean; QD: boolean; CV: number } | undefined;
+
+  // Edge detector operations (R_TRIG, F_TRIG)
+  initEdgeDetector?: (name: string) => void;
+  getEdgeDetector?: (name: string) => { CLK: boolean; Q: boolean; M: boolean } | undefined;
+  updateRTrig?: (name: string, clk: boolean) => void;
+  updateFTrig?: (name: string, clk: boolean) => void;
+
+  // Bistable operations (SR, RS)
+  initBistable?: (name: string) => void;
+  getBistable?: (name: string) => { Q1: boolean } | undefined;
+  updateSR?: (name: string, s1: boolean, r: boolean) => void;
+  updateRS?: (name: string, s: boolean, r1: boolean) => void;
 
   // Variable access for expression evaluation
   getBool: (name: string) => boolean;
@@ -108,7 +120,7 @@ export function createFunctionBlockContext(
 // ============================================================================
 
 /**
- * Handle a function block call (timer or counter).
+ * Handle a function block call (timer, counter, edge detector, or bistable).
  *
  * @param call - The function block call AST node
  * @param context - The function block context
@@ -123,15 +135,40 @@ export function handleFunctionBlockCall(call: STFunctionBlockCall, context: Func
   const hasCU = findArg(args, 'CU') !== undefined;
   const hasCD = findArg(args, 'CD') !== undefined;
   const hasPV = findArg(args, 'PV') !== undefined;
+  const hasCLK = findArg(args, 'CLK') !== undefined;
+  const hasS1 = findArg(args, 'S1') !== undefined;
+  const hasR1 = findArg(args, 'R1') !== undefined;
+  const hasS = findArg(args, 'S') !== undefined;
+  const hasR = findArg(args, 'R') !== undefined;
+
+  // Edge detector (R_TRIG, F_TRIG) - has CLK
+  if (hasCLK) {
+    handleEdgeDetector(instanceName, args, context);
+    return;
+  }
+
+  // SR Bistable - has S1 and R
+  if (hasS1 && hasR) {
+    handleSRBistable(instanceName, args, context);
+    return;
+  }
+
+  // RS Bistable - has S and R1
+  if (hasS && hasR1) {
+    handleRSBistable(instanceName, args, context);
+    return;
+  }
 
   // Timer (TON, TOF, TP) - has IN and PT
   if (hasIN || hasPT) {
     handleTimer(instanceName, args, context);
+    return;
   }
 
   // Counter (CTU, CTD, CTUD) - has CU, CD, or PV
   if (hasCU || hasCD || hasPV) {
     handleCounter(instanceName, args, context);
+    return;
   }
 }
 
@@ -204,6 +241,81 @@ function handleCounter(instanceName: string, args: STNamedArgument[], context: F
     store.pulseCountDown(instanceName);
   }
   previousInputs[`${instanceName}.CD`] = cdValue;
+}
+
+// ============================================================================
+// Edge Detector Handling (R_TRIG, F_TRIG)
+// ============================================================================
+
+function handleEdgeDetector(instanceName: string, args: STNamedArgument[], context: FunctionBlockContext): void {
+  const { store, previousInputs } = context;
+
+  // Get CLK value
+  const clkArg = findArg(args, 'CLK');
+  const clkValue = clkArg ? toBoolean(evaluateExpression(clkArg.expression, context)) : false;
+
+  // Edge detection requires knowing the type (R_TRIG vs F_TRIG)
+  // We detect this by tracking the previous value and using the store methods
+  // The store's updateRTrig/updateFTrig will handle the actual edge detection logic
+
+  // For now, we use the previousInputs to track which type was used
+  // Default to R_TRIG if store methods are available
+  if (store.updateRTrig) {
+    // Default behavior - rising edge detection
+    // Note: The actual type differentiation would need to come from variable declarations
+    // For now, we'll use a heuristic based on the instance name
+    const isRTrig = !instanceName.toUpperCase().includes('FTRIG') &&
+                    !instanceName.toUpperCase().startsWith('F_');
+
+    if (isRTrig) {
+      store.updateRTrig(instanceName, clkValue);
+    } else if (store.updateFTrig) {
+      store.updateFTrig(instanceName, clkValue);
+    }
+  } else {
+    // Fallback: manual edge detection using previousInputs
+    // Note: Without proper store support, edge detector Q output cannot be accessed
+    // The store's updateRTrig/updateFTrig methods are the recommended approach
+    previousInputs[`${instanceName}.CLK`] = clkValue;
+  }
+}
+
+// ============================================================================
+// SR Bistable Handling (Set Dominant)
+// ============================================================================
+
+function handleSRBistable(instanceName: string, args: STNamedArgument[], context: FunctionBlockContext): void {
+  const { store } = context;
+
+  // Get S1 and R values
+  const s1Arg = findArg(args, 'S1');
+  const rArg = findArg(args, 'R');
+
+  const s1Value = s1Arg ? toBoolean(evaluateExpression(s1Arg.expression, context)) : false;
+  const rValue = rArg ? toBoolean(evaluateExpression(rArg.expression, context)) : false;
+
+  if (store.updateSR) {
+    store.updateSR(instanceName, s1Value, rValue);
+  }
+}
+
+// ============================================================================
+// RS Bistable Handling (Reset Dominant)
+// ============================================================================
+
+function handleRSBistable(instanceName: string, args: STNamedArgument[], context: FunctionBlockContext): void {
+  const { store } = context;
+
+  // Get S and R1 values
+  const sArg = findArg(args, 'S');
+  const r1Arg = findArg(args, 'R1');
+
+  const sValue = sArg ? toBoolean(evaluateExpression(sArg.expression, context)) : false;
+  const r1Value = r1Arg ? toBoolean(evaluateExpression(r1Arg.expression, context)) : false;
+
+  if (store.updateRS) {
+    store.updateRS(instanceName, sValue, r1Value);
+  }
 }
 
 // ============================================================================

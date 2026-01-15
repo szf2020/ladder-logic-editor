@@ -53,6 +53,20 @@ export interface SimulationStoreInterface extends FunctionBlockStore {
   resetCounter: (name: string) => void;
   getCounter: (name: string) => { CU: boolean; CD: boolean; R: boolean; LD: boolean; PV: number; QU: boolean; QD: boolean; CV: number } | undefined;
 
+  // Edge detector operations (R_TRIG, F_TRIG)
+  edgeDetectors: Record<string, { CLK: boolean; Q: boolean; M: boolean }>;
+  initEdgeDetector: (name: string) => void;
+  getEdgeDetector: (name: string) => { CLK: boolean; Q: boolean; M: boolean } | undefined;
+  updateRTrig: (name: string, clk: boolean) => void;
+  updateFTrig: (name: string, clk: boolean) => void;
+
+  // Bistable operations (SR, RS)
+  bistables: Record<string, { Q1: boolean }>;
+  initBistable: (name: string) => void;
+  getBistable: (name: string) => { Q1: boolean } | undefined;
+  updateSR: (name: string, s1: boolean, r: boolean) => void;
+  updateRS: (name: string, s: boolean, r1: boolean) => void;
+
   // Simulation state
   scanTime: number;
   timers: Record<string, { IN: boolean; PT: number; Q: boolean; ET: number; running: boolean }>;
@@ -136,6 +150,28 @@ export function createExecutionContext(
         case 'CU': return counter.CU;
         case 'CD': return counter.CD;
         default: return 0;
+      }
+    },
+
+    getEdgeDetectorField: (name: string, field: string) => {
+      const ed = store.getEdgeDetector(name);
+      if (!ed) return field === 'Q' ? false : 0;
+
+      switch (field.toUpperCase()) {
+        case 'Q': return ed.Q;
+        case 'CLK': return ed.CLK;
+        case 'M': return ed.M;
+        default: return false;
+      }
+    },
+
+    getBistableField: (name: string, field: string) => {
+      const bs = store.getBistable(name);
+      if (!bs) return false;
+
+      switch (field.toUpperCase()) {
+        case 'Q1': return bs.Q1;
+        default: return false;
       }
     },
 

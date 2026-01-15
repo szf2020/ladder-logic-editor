@@ -36,6 +36,24 @@ export interface CounterState {
 }
 
 // ============================================================================
+// Edge Detector State (IEC 61131-3 Section 2.5.3)
+// ============================================================================
+
+export interface EdgeDetectorState {
+  CLK: boolean;     // Current input
+  Q: boolean;       // Output (single-scan pulse)
+  M: boolean;       // Memory (previous CLK value)
+}
+
+// ============================================================================
+// Bistable State (IEC 61131-3 Section 2.5.4)
+// ============================================================================
+
+export interface BistableState {
+  Q1: boolean;      // Output state
+}
+
+// ============================================================================
 // Simulation State
 // ============================================================================
 
@@ -59,6 +77,12 @@ interface SimulationState {
 
   // Counter instances
   counters: Record<string, CounterState>;
+
+  // Edge detector instances (R_TRIG, F_TRIG)
+  edgeDetectors: Record<string, EdgeDetectorState>;
+
+  // Bistable instances (SR, RS)
+  bistables: Record<string, BistableState>;
 
   // Actions
   start: () => void;
@@ -90,6 +114,18 @@ interface SimulationState {
   pulseCountUp: (name: string) => void;
   pulseCountDown: (name: string) => void;
   resetCounter: (name: string) => void;
+
+  // Edge detector operations (R_TRIG, F_TRIG)
+  initEdgeDetector: (name: string) => void;
+  getEdgeDetector: (name: string) => EdgeDetectorState | undefined;
+  updateRTrig: (name: string, clk: boolean) => void;
+  updateFTrig: (name: string, clk: boolean) => void;
+
+  // Bistable operations (SR, RS)
+  initBistable: (name: string) => void;
+  getBistable: (name: string) => BistableState | undefined;
+  updateSR: (name: string, s1: boolean, r: boolean) => void;
+  updateRS: (name: string, s: boolean, r1: boolean) => void;
 
   // Bulk operations
   setVariables: (vars: Record<string, boolean | number>) => void;
@@ -128,6 +164,28 @@ function createDefaultCounterState(pv: number): CounterState {
 }
 
 // ============================================================================
+// Default Edge Detector State
+// ============================================================================
+
+function createDefaultEdgeDetectorState(): EdgeDetectorState {
+  return {
+    CLK: false,
+    Q: false,
+    M: false,
+  };
+}
+
+// ============================================================================
+// Default Bistable State
+// ============================================================================
+
+function createDefaultBistableState(): BistableState {
+  return {
+    Q1: false,
+  };
+}
+
+// ============================================================================
 // Store Implementation
 // ============================================================================
 
@@ -145,6 +203,8 @@ export const useSimulationStore = create<SimulationState>()(
     times: {},
     timers: {},
     counters: {},
+    edgeDetectors: {},
+    bistables: {},
 
     // Control actions
     start: () => set({ status: 'running' }),
@@ -162,6 +222,8 @@ export const useSimulationStore = create<SimulationState>()(
         times: {},
         timers: {},
         counters: {},
+        edgeDetectors: {},
+        bistables: {},
       });
     },
 
@@ -375,6 +437,134 @@ export const useSimulationStore = create<SimulationState>()(
       }));
     },
 
+    // Edge detector operations (R_TRIG, F_TRIG)
+    initEdgeDetector: (name: string) => {
+      set((state) => ({
+        edgeDetectors: {
+          ...state.edgeDetectors,
+          [name]: createDefaultEdgeDetectorState(),
+        },
+      }));
+    },
+
+    getEdgeDetector: (name: string) => {
+      return get().edgeDetectors[name];
+    },
+
+    updateRTrig: (name: string, clk: boolean) => {
+      const state = get();
+      let ed = state.edgeDetectors[name];
+
+      // Initialize if not exists
+      if (!ed) {
+        ed = createDefaultEdgeDetectorState();
+      }
+
+      // R_TRIG: Q = CLK AND NOT M (rising edge: current TRUE and previous FALSE)
+      const newQ = clk && !ed.M;
+
+      set((s) => ({
+        edgeDetectors: {
+          ...s.edgeDetectors,
+          [name]: {
+            CLK: clk,
+            Q: newQ,
+            M: clk,  // Remember current state for next scan
+          },
+        },
+      }));
+    },
+
+    updateFTrig: (name: string, clk: boolean) => {
+      const state = get();
+      let ed = state.edgeDetectors[name];
+
+      // Initialize if not exists
+      if (!ed) {
+        ed = createDefaultEdgeDetectorState();
+      }
+
+      // F_TRIG: Q = NOT CLK AND M (falling edge: current FALSE and previous TRUE)
+      const newQ = !clk && ed.M;
+
+      set((s) => ({
+        edgeDetectors: {
+          ...s.edgeDetectors,
+          [name]: {
+            CLK: clk,
+            Q: newQ,
+            M: clk,  // Remember current state for next scan
+          },
+        },
+      }));
+    },
+
+    // Bistable operations (SR, RS)
+    initBistable: (name: string) => {
+      set((state) => ({
+        bistables: {
+          ...state.bistables,
+          [name]: createDefaultBistableState(),
+        },
+      }));
+    },
+
+    getBistable: (name: string) => {
+      return get().bistables[name];
+    },
+
+    updateSR: (name: string, s1: boolean, r: boolean) => {
+      const state = get();
+      let bs = state.bistables[name];
+
+      // Initialize if not exists
+      if (!bs) {
+        bs = createDefaultBistableState();
+      }
+
+      // SR (Set Dominant): S1 wins if both active
+      let newQ1 = bs.Q1;
+      if (s1) {
+        newQ1 = true;
+      } else if (r) {
+        newQ1 = false;
+      }
+      // else: maintain current state
+
+      set((s) => ({
+        bistables: {
+          ...s.bistables,
+          [name]: { Q1: newQ1 },
+        },
+      }));
+    },
+
+    updateRS: (name: string, s: boolean, r1: boolean) => {
+      const state = get();
+      let bs = state.bistables[name];
+
+      // Initialize if not exists
+      if (!bs) {
+        bs = createDefaultBistableState();
+      }
+
+      // RS (Reset Dominant): R1 wins if both active
+      let newQ1 = bs.Q1;
+      if (r1) {
+        newQ1 = false;
+      } else if (s) {
+        newQ1 = true;
+      }
+      // else: maintain current state
+
+      set((s) => ({
+        bistables: {
+          ...s.bistables,
+          [name]: { Q1: newQ1 },
+        },
+      }));
+    },
+
     // Bulk operations
     setVariables: (vars: Record<string, boolean | number>) => {
       const state = get();
@@ -407,6 +597,8 @@ export const useSimulationStore = create<SimulationState>()(
         times: {},
         timers: {},
         counters: {},
+        edgeDetectors: {},
+        bistables: {},
       });
     },
   }))
