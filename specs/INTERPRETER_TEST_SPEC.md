@@ -12,8 +12,8 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 
 | Sub-Spec | Tests | Passing | Coverage | Status |
 |----------|-------|---------|----------|--------|
-| [Timers](./testing/TIMERS.md) | ~58 | 10 | 17% | 🟡 In Progress |
-| [Counters](./testing/COUNTERS.md) | ~61 | ~15 | 25% | 🟡 Partial |
+| [Timers](./testing/TIMERS.md) | ~58 | 41 | 71% | 🟢 Good |
+| [Counters](./testing/COUNTERS.md) | ~61 | 34 | 56% | 🟢 Good |
 | [Data Types](./testing/DATA_TYPES.md) | ~82 | ~30 | 37% | 🟡 Partial |
 | [Operators](./testing/OPERATORS.md) | ~50 | 23+35=58 | 100% | 🟢 Complete |
 | [Control Flow](./testing/CONTROL_FLOW.md) | ~40 | ~35 | 85% | 🟢 Good |
@@ -24,7 +24,7 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 | [Error Handling](./testing/ERROR_HANDLING.md) | ~49 | 20 | 41% | 🟡 Partial |
 | [Property-Based Tests](./testing/PROPERTY_TESTS.md) | ~50 | 35 | 70% | 🟢 Good |
 | [Bounds & Edge Cases](./testing/BOUNDS.md) | ~63 | 40 | 63% | 🟢 Good |
-| **Total** | **~621** | **~340** | **55%** | 🟡 |
+| **Total** | **~621** | **~397** | **64%** | 🟢 |
 
 **Target for Industrial Simulation:** 600+ tests, 95%+ passing
 
@@ -34,11 +34,12 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 - `edge-detection.test.ts`: 19 tests ✅
 - `bistable.test.ts`: 26 tests ✅
 - `variables.test.ts`: 39 tests ✅
-- `timer-compliance.test.ts`: 10 tests ✅
+- `timer-compliance.test.ts`: 41 tests ✅ (TON: 24, TOF: 9, TP: 8)
+- `counter-compliance.test.ts`: 34 tests ✅ (CTU: 14, CTD: 4, CTUD: 7, Edge: 5, Properties: 4)
 - `operator-precedence.test.ts`: 23 tests ✅
 - `arithmetic-properties.test.ts`: 35 tests ✅
-- Total interpreter tests: ~340 passing
-- Total all tests: 472 passing
+- Total interpreter tests: ~397 passing
+- Total all tests: 537 passing
 
 ---
 

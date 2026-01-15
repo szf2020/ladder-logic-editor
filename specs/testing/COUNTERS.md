@@ -1,7 +1,7 @@
 # Counter Compliance Tests
 
 **IEC 61131-3 Section:** 2.5.2
-**Status:** 🟡 Partial
+**Status:** 🟢 Good (34 tests, 56% coverage)
 **Test File:** `src/interpreter/compliance/counter-compliance.test.ts`
 
 ---
