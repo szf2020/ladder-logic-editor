@@ -377,3 +377,424 @@ describe('Timer with Dynamic PT', () => {
     expect(timer?.PT).toBe(200); // PT should be updated
   });
 });
+
+// ============================================================================
+// Additional TON Tests - Full IEC 61131-3 Compliance
+// ============================================================================
+
+describe('TON Extended Compliance', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  describe('ET Increment Behavior', () => {
+    it('ET increments by scanTime each scan while IN is TRUE', () => {
+      const ast = parseSTToAST(`
+        PROGRAM ETIncrement
+        VAR
+          Input : BOOL := FALSE;
+          Timer1 : TON;
+        END_VAR
+        Timer1(IN := Input, PT := T#1000ms);
+        END_PROGRAM
+      `);
+
+      initializeVariables(ast, store);
+      const runtimeState = createRuntimeState(ast);
+
+      store.setBool('Input', true);
+
+      runScanCycle(ast, store, runtimeState);
+      expect(store.getTimer('Timer1')?.ET).toBe(100);
+
+      runScanCycle(ast, store, runtimeState);
+      expect(store.getTimer('Timer1')?.ET).toBe(200);
+
+      runScanCycle(ast, store, runtimeState);
+      expect(store.getTimer('Timer1')?.ET).toBe(300);
+    });
+
+    it('Q stays FALSE while ET < PT', () => {
+      const ast = parseSTToAST(`
+        PROGRAM QStaysFalse
+        VAR
+          Input : BOOL := FALSE;
+          Timer1 : TON;
+        END_VAR
+        Timer1(IN := Input, PT := T#500ms);
+        END_PROGRAM
+      `);
+
+      initializeVariables(ast, store);
+      const runtimeState = createRuntimeState(ast);
+
+      store.setBool('Input', true);
+
+      // Run 4 scans (400ms < 500ms PT)
+      for (let i = 0; i < 4; i++) {
+        runScanCycle(ast, store, runtimeState);
+        expect(store.getTimer('Timer1')?.Q).toBe(false);
+      }
+    });
+  });
+
+  describe('Reset Behavior', () => {
+    it('ET resets to 0 on falling edge of IN', () => {
+      const ast = parseSTToAST(`
+        PROGRAM ETReset
+        VAR
+          Input : BOOL := FALSE;
+          Timer1 : TON;
+        END_VAR
+        Timer1(IN := Input, PT := T#1000ms);
+        END_PROGRAM
+      `);
+
+      initializeVariables(ast, store);
+      const runtimeState = createRuntimeState(ast);
+
+      // Start timing
+      store.setBool('Input', true);
+      runScans(5, ast, store, runtimeState); // ET = 500ms
+      expect(store.getTimer('Timer1')?.ET).toBe(500);
+
+      // Turn off - should reset
+      store.setBool('Input', false);
+      runScanCycle(ast, store, runtimeState);
+      expect(store.getTimer('Timer1')?.ET).toBe(0);
+    });
+
+    it('rising edge on IN restarts timing from ET=0', () => {
+      const ast = parseSTToAST(`
+        PROGRAM RisingEdgeRestart
+        VAR
+          Input : BOOL := FALSE;
+          Timer1 : TON;
+        END_VAR
+        Timer1(IN := Input, PT := T#500ms);
+        END_PROGRAM
+      `);
+
+      initializeVariables(ast, store);
+      const runtimeState = createRuntimeState(ast);
+
+      // First cycle
+      store.setBool('Input', true);
+      runScans(3, ast, store, runtimeState);
+      expect(store.getTimer('Timer1')?.ET).toBe(300);
+
+      // Reset cycle
+      store.setBool('Input', false);
+      runScanCycle(ast, store, runtimeState);
+
+      // New rising edge
+      store.setBool('Input', true);
+      runScanCycle(ast, store, runtimeState);
+      expect(store.getTimer('Timer1')?.ET).toBe(100); // Fresh start
+    });
+  });
+
+  describe('TON Bounds Tests', () => {
+    it('PT = T#0ms: Q immediate TRUE when IN TRUE', () => {
+      const ast = parseSTToAST(`
+        PROGRAM ZeroPT
+        VAR
+          Input : BOOL := FALSE;
+          Timer1 : TON;
+        END_VAR
+        Timer1(IN := Input, PT := T#0ms);
+        END_PROGRAM
+      `);
+
+      initializeVariables(ast, store);
+      const runtimeState = createRuntimeState(ast);
+
+      store.setBool('Input', true);
+      runScanCycle(ast, store, runtimeState);
+
+      expect(store.getTimer('Timer1')?.Q).toBe(true);
+    });
+
+    it('PT = T#1ms works correctly (minimum practical delay)', () => {
+      // Use 1ms scan time to test minimum delay
+      const smallScanStore = createTestStore(1);
+
+      const ast = parseSTToAST(`
+        PROGRAM MinPT
+        VAR
+          Input : BOOL := FALSE;
+          Timer1 : TON;
+        END_VAR
+        Timer1(IN := Input, PT := T#1ms);
+        END_PROGRAM
+      `);
+
+      initializeVariables(ast, smallScanStore);
+      const runtimeState = createRuntimeState(ast);
+
+      smallScanStore.setBool('Input', true);
+      runScanCycle(ast, smallScanStore, runtimeState);
+
+      expect(smallScanStore.getTimer('Timer1')?.Q).toBe(true);
+    });
+
+    it('very large PT (T#24h) does not overflow', () => {
+      const ast = parseSTToAST(`
+        PROGRAM LargePT
+        VAR
+          Input : BOOL := FALSE;
+          Timer1 : TON;
+        END_VAR
+        Timer1(IN := Input, PT := T#24h);
+        END_PROGRAM
+      `);
+
+      initializeVariables(ast, store);
+      const runtimeState = createRuntimeState(ast);
+
+      store.setBool('Input', true);
+      runScans(10, ast, store, runtimeState);
+
+      const timer = store.getTimer('Timer1');
+      expect(timer?.PT).toBe(86400000); // 24h in ms
+      expect(timer?.ET).toBe(1000); // 10 scans * 100ms
+      expect(timer?.Q).toBe(false); // Not yet reached
+    });
+
+    it('scanTime > PT: Q on first scan after IN', () => {
+      // 200ms scan time, 100ms PT
+      const largeScanStore = createTestStore(200);
+
+      const ast = parseSTToAST(`
+        PROGRAM LargeScan
+        VAR
+          Input : BOOL := FALSE;
+          Timer1 : TON;
+        END_VAR
+        Timer1(IN := Input, PT := T#100ms);
+        END_PROGRAM
+      `);
+
+      initializeVariables(ast, largeScanStore);
+      const runtimeState = createRuntimeState(ast);
+
+      largeScanStore.setBool('Input', true);
+      runScanCycle(ast, largeScanStore, runtimeState);
+
+      // Single scan is 200ms > 100ms PT, so Q should be true
+      expect(largeScanStore.getTimer('Timer1')?.Q).toBe(true);
+    });
+  });
+
+  describe('TON with Rapid Toggling', () => {
+    it('rapid IN toggling does not corrupt state', () => {
+      const ast = parseSTToAST(`
+        PROGRAM RapidToggle
+        VAR
+          Input : BOOL := FALSE;
+          Timer1 : TON;
+        END_VAR
+        Timer1(IN := Input, PT := T#500ms);
+        END_PROGRAM
+      `);
+
+      initializeVariables(ast, store);
+      const runtimeState = createRuntimeState(ast);
+
+      // Rapid toggling
+      for (let i = 0; i < 20; i++) {
+        store.setBool('Input', i % 2 === 0);
+        runScanCycle(ast, store, runtimeState);
+      }
+
+      // Timer state should be valid
+      const timer = store.getTimer('Timer1');
+      expect(timer).toBeDefined();
+      expect(timer?.ET).toBeGreaterThanOrEqual(0);
+      expect(timer?.ET).toBeLessThanOrEqual(timer!.PT);
+    });
+  });
+});
+
+// ============================================================================
+// TON Property-Based Tests (using fast-check patterns)
+// ============================================================================
+
+describe('TON Property-Based Tests', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  it('ET never exceeds PT regardless of scan count', () => {
+    const ptValues = [0, 100, 500, 1000, 5000];
+    const scanCounts = [1, 5, 10, 50, 100];
+
+    for (const pt of ptValues) {
+      for (const scanCount of scanCounts) {
+        const localStore = createTestStore(100);
+        const ast = parseSTToAST(`
+          PROGRAM ETNeverExceedsPT
+          VAR
+            Input : BOOL := FALSE;
+            Timer1 : TON;
+          END_VAR
+          Timer1(IN := Input, PT := T#${pt}ms);
+          END_PROGRAM
+        `);
+
+        initializeVariables(ast, localStore);
+        const runtimeState = createRuntimeState(ast);
+
+        localStore.setBool('Input', true);
+        runScans(scanCount, ast, localStore, runtimeState);
+
+        const timer = localStore.getTimer('Timer1');
+        expect(timer?.ET).toBeLessThanOrEqual(pt);
+      }
+    }
+  });
+
+  it('Q is TRUE if and only if ET >= PT and IN is TRUE', () => {
+    const ast = parseSTToAST(`
+      PROGRAM QIffET
+      VAR
+        Input : BOOL := FALSE;
+        Timer1 : TON;
+      END_VAR
+      Timer1(IN := Input, PT := T#300ms);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    const runtimeState = createRuntimeState(ast);
+
+    store.setBool('Input', true);
+
+    // Check over multiple scans
+    for (let i = 0; i < 10; i++) {
+      runScanCycle(ast, store, runtimeState);
+      const timer = store.getTimer('Timer1');
+
+      if (timer?.ET! >= timer?.PT!) {
+        expect(timer?.Q).toBe(true);
+      } else {
+        expect(timer?.Q).toBe(false);
+      }
+    }
+  });
+
+  it('Q is always FALSE when IN is FALSE (after one scan)', () => {
+    const ast = parseSTToAST(`
+      PROGRAM QFalseWhenINFalse
+      VAR
+        Input : BOOL := FALSE;
+        Timer1 : TON;
+      END_VAR
+      Timer1(IN := Input, PT := T#200ms);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    const runtimeState = createRuntimeState(ast);
+
+    // Complete the timer
+    store.setBool('Input', true);
+    runScans(5, ast, store, runtimeState);
+    expect(store.getTimer('Timer1')?.Q).toBe(true);
+
+    // Turn off IN
+    store.setBool('Input', false);
+    runScanCycle(ast, store, runtimeState);
+    runScanCycle(ast, store, runtimeState); // Second scan ensures Q is FALSE
+
+    expect(store.getTimer('Timer1')?.Q).toBe(false);
+  });
+});
+
+// ============================================================================
+// Multiple Timer Instances
+// ============================================================================
+
+describe('Multiple TON Instances', () => {
+  let store: SimulationStoreInterface;
+
+  beforeEach(() => {
+    store = createTestStore(100);
+  });
+
+  it('multiple timers maintain independent state', () => {
+    const ast = parseSTToAST(`
+      PROGRAM MultiTimer
+      VAR
+        Input1 : BOOL := FALSE;
+        Input2 : BOOL := FALSE;
+        Timer1 : TON;
+        Timer2 : TON;
+      END_VAR
+      Timer1(IN := Input1, PT := T#300ms);
+      Timer2(IN := Input2, PT := T#500ms);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    const runtimeState = createRuntimeState(ast);
+
+    // Start Timer1 only
+    store.setBool('Input1', true);
+    runScans(4, ast, store, runtimeState); // 400ms
+
+    expect(store.getTimer('Timer1')?.Q).toBe(true);  // 400 >= 300
+    expect(store.getTimer('Timer2')?.Q).toBe(false); // Not started
+
+    // Now start Timer2
+    store.setBool('Input2', true);
+    runScans(3, ast, store, runtimeState); // 300ms more
+
+    expect(store.getTimer('Timer1')?.Q).toBe(true);  // Still done
+    expect(store.getTimer('Timer2')?.Q).toBe(false); // 300 < 500
+
+    runScans(3, ast, store, runtimeState); // 300ms more (600ms total for Timer2)
+    expect(store.getTimer('Timer2')?.Q).toBe(true);  // Now done
+  });
+
+  it('timers with same PT but different start times complete at different times', () => {
+    const ast = parseSTToAST(`
+      PROGRAM StaggeredTimers
+      VAR
+        Input1 : BOOL := FALSE;
+        Input2 : BOOL := FALSE;
+        Timer1 : TON;
+        Timer2 : TON;
+      END_VAR
+      Timer1(IN := Input1, PT := T#200ms);
+      Timer2(IN := Input2, PT := T#200ms);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    const runtimeState = createRuntimeState(ast);
+
+    // Start Timer1
+    store.setBool('Input1', true);
+    runScanCycle(ast, store, runtimeState);
+
+    // Start Timer2 one scan later
+    store.setBool('Input2', true);
+    runScanCycle(ast, store, runtimeState);
+
+    expect(store.getTimer('Timer1')?.ET).toBe(200);
+    expect(store.getTimer('Timer2')?.ET).toBe(100);
+
+    // Timer1 should complete first
+    expect(store.getTimer('Timer1')?.Q).toBe(true);
+    expect(store.getTimer('Timer2')?.Q).toBe(false);
+
+    // One more scan - Timer2 completes
+    runScanCycle(ast, store, runtimeState);
+    expect(store.getTimer('Timer2')?.Q).toBe(true);
+  });
+});

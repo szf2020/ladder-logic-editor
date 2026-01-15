@@ -25,6 +25,7 @@ export interface FunctionBlockStore {
 
   // Counter operations
   initCounter: (name: string, pv: number) => void;
+  setCounterPV?: (name: string, pv: number) => void;  // Optional: update PV dynamically
   pulseCountUp: (name: string) => void;
   pulseCountDown: (name: string) => void;
   resetCounter: (name: string) => void;
@@ -221,6 +222,11 @@ function handleCounter(instanceName: string, args: STNamedArgument[], context: F
   // Initialize counter if not exists
   if (!store.getCounter(instanceName)) {
     store.initCounter(instanceName, pvValue);
+  }
+
+  // Always update PV (it can change dynamically in IEC 61131-3)
+  if (pvArg && store.setCounterPV) {
+    store.setCounterPV(instanceName, pvValue);
   }
 
   // Handle reset

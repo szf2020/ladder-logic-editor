@@ -7,7 +7,7 @@ set -e
 # Defaults
 PROMPT_FILE="prompt.md"
 MAX_ITERATIONS=0  # 0 = infinite
-DONE_PATTERN="RALPH_DONE"  # Use a unique marker unlikely to appear accidentally
+DONE_PATTERN="RALPH_DONE_SECRET"  # Use a unique marker unlikely to appear accidentally
 
 usage() {
     cat <<EOF

@@ -111,6 +111,7 @@ interface SimulationState {
   // Counter operations
   initCounter: (name: string, pv: number) => void;
   getCounter: (name: string) => CounterState | undefined;
+  setCounterPV: (name: string, pv: number) => void;
   pulseCountUp: (name: string) => void;
   pulseCountDown: (name: string) => void;
   resetCounter: (name: string) => void;
@@ -381,6 +382,19 @@ export const useSimulationStore = create<SimulationState>()(
 
     getCounter: (name: string) => {
       return get().counters[name];
+    },
+
+    setCounterPV: (name: string, pv: number) => {
+      const state = get();
+      const counter = state.counters[name];
+      if (!counter) return;
+
+      set((s) => ({
+        counters: {
+          ...s.counters,
+          [name]: { ...counter, PV: pv },
+        },
+      }));
     },
 
     pulseCountUp: (name: string) => {
