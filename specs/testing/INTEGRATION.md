@@ -1,6 +1,6 @@
 # Integration Program Tests
 
-**Status:** 🟢 Complete (82 tests)
+**Status:** 🟢 Complete (105 tests)
 **Last Updated:** 2026-01-16
 **Test File:** `src/interpreter/integration/`
 
@@ -311,32 +311,41 @@ END_PROGRAM
 
 ---
 
-## Conveyor with Multiple Sensors (Not Yet Implemented)
+## Conveyor with Multiple Sensors
 
-Material handling with position tracking.
+Material handling with position tracking and item counting.
+**Test File:** `src/interpreter/integration/conveyor-control.test.ts`
+**Tests:** 23
 
 ### Program Structure
 ```st
 PROGRAM ConveyorControl
-VAR
+VAR_INPUT
   RunCmd : BOOL;
-  Sensor1, Sensor2, Sensor3 : BOOL;
-
+  Sensor1 : BOOL;          (* Entry sensor *)
+  Sensor2 : BOOL;          (* Middle sensor *)
+  Sensor3 : BOOL;          (* Exit sensor *)
+  ResetCount : BOOL;       (* Reset item counter *)
+END_VAR
+VAR_OUTPUT
   ConveyorRunning : BOOL;
   ItemCount : INT;
+  ItemAtPos1 : BOOL;
+  ItemAtPos2 : BOOL;
+  ItemAtPos3 : BOOL;
+  CountReached : BOOL;     (* Target count reached *)
+END_VAR
+VAR
   ItemCounter : CTU;
-
-  (* Position tracking *)
-  ItemAtPos1, ItemAtPos2, ItemAtPos3 : BOOL;
+  TargetCount : INT := 10;
 END_VAR
 
 ConveyorRunning := RunCmd;
 
-(* Count items entering *)
-ItemCounter(CU := Sensor1, R := FALSE, PV := 999);
+ItemCounter(CU := Sensor1, R := ResetCount, PV := TargetCount);
 ItemCount := ItemCounter.CV;
+CountReached := ItemCounter.QU;
 
-(* Position detection *)
 ItemAtPos1 := Sensor1;
 ItemAtPos2 := Sensor2;
 ItemAtPos3 := Sensor3;
@@ -344,19 +353,43 @@ END_PROGRAM
 ```
 
 ### Test Cases
-- [ ] Items counted at entry sensor
-- [ ] Position tracking updates correctly
-- [ ] Multiple items tracked simultaneously
-- [ ] Counter handles many items
 
----
+#### Basic Operation
+- [x] Conveyor starts running when RunCmd is TRUE
+- [x] Conveyor stops running when RunCmd is FALSE
+- [x] Initial item count is zero
 
-## Timing Requirements
+#### Item Counting
+- [x] Items counted at entry sensor (rising edge)
+- [x] Sustained sensor does not increment count
+- [x] Counter reaches target count (QU = TRUE)
+- [x] Counter continues counting past target
+- [x] Counter resets to zero on ResetCount
+- [x] Counter handles many items (stress test)
 
-### Scan Time Consistency
-- [ ] 100ms scan time produces predictable timing
-- [ ] Timer durations accurate to ±1 scan
-- [ ] Counter edges detected reliably
+#### Position Tracking
+- [x] Position tracking updates correctly
+- [x] Multiple items tracked simultaneously
+- [x] No items at any position when sensors off
+
+#### Edge Detection
+- [x] Only rising edge triggers count
+- [x] Rapid sensor pulses count correctly
+
+#### Property-Based Tests
+- [x] Item count equals number of rising edges
+- [x] Position state matches sensor state
+- [x] Count never decreases unless reset
+
+#### Edge Cases
+- [x] Counting works when conveyor is stopped
+- [x] Reset while sensor is high does not create false count
+- [x] Simultaneous sensor activation
+
+#### Timing Requirements
+- [x] 100ms scan time produces predictable timing
+- [x] Counter edges detected reliably over many scans
+- [x] Counter values stable after many scans
 
 ### Long-Running Tests
 - [ ] 1000 scan cycles without state corruption
@@ -403,8 +436,8 @@ fc.assert(fc.property(
 | Motor Starter | 17 | ✅ Complete |
 | Pump Level Control | 22 | ✅ Complete |
 | Batch Sequencer | 20 | ✅ Complete |
-| Conveyor | - | Future |
-| **Total** | **82** | ✅ |
+| Conveyor Control | 23 | ✅ Complete |
+| **Total** | **105** | ✅ |
 
 ---
 
