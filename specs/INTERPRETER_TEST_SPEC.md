@@ -23,17 +23,17 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 | [Integration Programs](./testing/INTEGRATION.md) | ~62 | 59 | 95% | 🟢 Complete |
 | [Error Handling](./testing/ERROR_HANDLING.md) | ~49 | 49 | 100% | 🟢 Complete |
 | [Property-Based Tests](./testing/PROPERTY_TESTS.md) | ~69 | 86 | 100% | 🟢 Complete |
-| [Bounds & Edge Cases](./testing/BOUNDS.md) | ~63 | 58 | 92% | 🟢 Complete |
-| **Total** | **~686** | **~710** | **98%** | 🟢 |
+| [Bounds & Edge Cases](./testing/BOUNDS.md) | ~63 | 69 | 97% | 🟢 Complete |
+| **Total** | **~686** | **~721** | **99%** | 🟢 |
 
-**Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (935 tests, all passing)
+**Target for Industrial Simulation:** 600+ tests, 95%+ passing ✅ (946 tests, all passing)
 
 ### Current Test Count by File (2026-01-16)
 - `data-types.test.ts`: 90 tests ✅ (BOOL: 20, INT: 22, REAL: 20, TIME: 18, Properties: 10)
 - `control-flow.test.ts`: 74 tests ✅ (IF: 15, CASE: 10, FOR: 12, WHILE: 5, REPEAT: 3, Properties: 5, Complex: 24)
 - `control-flow-properties.test.ts`: 20 tests ✅ (FOR: 5, IF: 5, CASE: 3, WHILE: 3, REPEAT: 2, Combined: 2)
 - `error-handling.test.ts`: 49 tests ✅ (Division: 11, Overflow: 11, Parser: 6, EdgeCases: 12, Recovery: 9)
-- `bounds.test.ts`: 58 tests ✅ (Depth: 8, ScanCycle: 5, Overflow: 4, Properties: 6, Other: 35)
+- `bounds.test.ts`: 69 tests ✅ (Depth: 8, ScanCycle: 5, Overflow: 4, Properties: 6, REAL: 7, CTD: 3, Other: 36)
 - `edge-detection.test.ts`: 35 tests ✅ (R_TRIG: 11, F_TRIG: 8, Combined: 4, Properties: 5, Integration: 7)
 - `bistable.test.ts`: 45 tests ✅ (SR: 12, RS: 12, Industrial: 8, State: 4, EdgeCases: 7, Properties: 4)
 - `variables.test.ts`: 51 tests ✅ (Defaults: 4, Init: 10, Assignment: 7, Persistence: 3, Naming: 6, FB: 2, Properties: 4, EdgeCases: 4, TypeConv: 6, MultiVar: 2, ExprInit: 4)
@@ -45,8 +45,8 @@ Master specification for PLC interpreter IEC 61131-3 compliance testing.
 - `motor-starter.test.ts`: 17 tests ✅ (integration)
 - `pump-level-control.test.ts`: 22 tests ✅ (integration)
 - `batch-sequencer.test.ts`: 20 tests ✅ (integration)
-- Total interpreter tests: ~710 compliance + integration
-- Total all tests: 935 passing
+- Total interpreter tests: ~721 compliance + integration
+- Total all tests: 946 passing
 
 ---
 
