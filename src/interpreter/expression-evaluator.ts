@@ -377,6 +377,279 @@ function evaluateFunctionCall(expr: STFunctionCall, context: EvaluationContext):
       const replacePos = Math.max(1, toNumber(args[3])) - 1; // Convert to 0-based
       return replaceStr.substring(0, replacePos) + replaceVal + replaceStr.substring(replacePos + replaceLen);
 
+    // ========================================================================
+    // Type Conversion Functions (IEC 61131-3 §6.6.2.5.1)
+    // ========================================================================
+
+    // TRUNC - Truncate toward zero
+    case 'TRUNC':
+      return Math.trunc(toNumber(args[0]));
+
+    // BOOL_TO_* conversions
+    case 'BOOL_TO_INT':
+    case 'BOOL_TO_SINT':
+    case 'BOOL_TO_DINT':
+    case 'BOOL_TO_LINT':
+    case 'BOOL_TO_USINT':
+    case 'BOOL_TO_UINT':
+    case 'BOOL_TO_UDINT':
+    case 'BOOL_TO_ULINT':
+    case 'BOOL_TO_BYTE':
+    case 'BOOL_TO_WORD':
+    case 'BOOL_TO_DWORD':
+    case 'BOOL_TO_LWORD':
+      return toBoolean(args[0]) ? 1 : 0;
+
+    case 'BOOL_TO_REAL':
+    case 'BOOL_TO_LREAL':
+      return toBoolean(args[0]) ? 1.0 : 0.0;
+
+    case 'BOOL_TO_STRING':
+    case 'BOOL_TO_WSTRING':
+      return toBoolean(args[0]) ? 'TRUE' : 'FALSE';
+
+    case 'BOOL_TO_TIME':
+      return toBoolean(args[0]) ? 1 : 0;
+
+    // INT_TO_* conversions (works for all integer types)
+    case 'INT_TO_REAL':
+    case 'INT_TO_LREAL':
+    case 'SINT_TO_REAL':
+    case 'SINT_TO_LREAL':
+    case 'DINT_TO_REAL':
+    case 'DINT_TO_LREAL':
+    case 'LINT_TO_REAL':
+    case 'LINT_TO_LREAL':
+    case 'USINT_TO_REAL':
+    case 'USINT_TO_LREAL':
+    case 'UINT_TO_REAL':
+    case 'UINT_TO_LREAL':
+    case 'UDINT_TO_REAL':
+    case 'UDINT_TO_LREAL':
+    case 'ULINT_TO_REAL':
+    case 'ULINT_TO_LREAL':
+    case 'BYTE_TO_REAL':
+    case 'WORD_TO_REAL':
+    case 'DWORD_TO_REAL':
+    case 'LWORD_TO_REAL':
+      return toNumber(args[0]);
+
+    case 'INT_TO_BOOL':
+    case 'SINT_TO_BOOL':
+    case 'DINT_TO_BOOL':
+    case 'LINT_TO_BOOL':
+    case 'USINT_TO_BOOL':
+    case 'UINT_TO_BOOL':
+    case 'UDINT_TO_BOOL':
+    case 'ULINT_TO_BOOL':
+    case 'BYTE_TO_BOOL':
+    case 'WORD_TO_BOOL':
+    case 'DWORD_TO_BOOL':
+    case 'LWORD_TO_BOOL':
+      return toNumber(args[0]) !== 0;
+
+    case 'INT_TO_STRING':
+    case 'INT_TO_WSTRING':
+    case 'SINT_TO_STRING':
+    case 'DINT_TO_STRING':
+    case 'LINT_TO_STRING':
+    case 'USINT_TO_STRING':
+    case 'UINT_TO_STRING':
+    case 'UDINT_TO_STRING':
+    case 'ULINT_TO_STRING':
+    case 'BYTE_TO_STRING':
+    case 'WORD_TO_STRING':
+    case 'DWORD_TO_STRING':
+    case 'LWORD_TO_STRING':
+      return String(Math.trunc(toNumber(args[0])));
+
+    case 'INT_TO_TIME':
+    case 'SINT_TO_TIME':
+    case 'DINT_TO_TIME':
+    case 'LINT_TO_TIME':
+    case 'USINT_TO_TIME':
+    case 'UINT_TO_TIME':
+    case 'UDINT_TO_TIME':
+    case 'ULINT_TO_TIME':
+      return Math.trunc(toNumber(args[0]));
+
+    // Cross-integer conversions (just truncate and pass through for simulation)
+    case 'INT_TO_SINT':
+    case 'INT_TO_DINT':
+    case 'INT_TO_LINT':
+    case 'INT_TO_USINT':
+    case 'INT_TO_UINT':
+    case 'INT_TO_UDINT':
+    case 'INT_TO_ULINT':
+    case 'INT_TO_BYTE':
+    case 'INT_TO_WORD':
+    case 'INT_TO_DWORD':
+    case 'INT_TO_LWORD':
+    case 'SINT_TO_INT':
+    case 'SINT_TO_DINT':
+    case 'SINT_TO_LINT':
+    case 'DINT_TO_INT':
+    case 'DINT_TO_SINT':
+    case 'DINT_TO_LINT':
+    case 'LINT_TO_INT':
+    case 'LINT_TO_SINT':
+    case 'LINT_TO_DINT':
+    case 'USINT_TO_INT':
+    case 'USINT_TO_UINT':
+    case 'USINT_TO_UDINT':
+    case 'USINT_TO_ULINT':
+    case 'UINT_TO_INT':
+    case 'UINT_TO_USINT':
+    case 'UINT_TO_UDINT':
+    case 'UINT_TO_ULINT':
+    case 'UDINT_TO_INT':
+    case 'UDINT_TO_UINT':
+    case 'UDINT_TO_ULINT':
+    case 'ULINT_TO_INT':
+    case 'ULINT_TO_UINT':
+    case 'ULINT_TO_UDINT':
+    case 'BYTE_TO_INT':
+    case 'BYTE_TO_WORD':
+    case 'BYTE_TO_DWORD':
+    case 'BYTE_TO_LWORD':
+    case 'WORD_TO_INT':
+    case 'WORD_TO_BYTE':
+    case 'WORD_TO_DWORD':
+    case 'WORD_TO_LWORD':
+    case 'DWORD_TO_INT':
+    case 'DWORD_TO_BYTE':
+    case 'DWORD_TO_WORD':
+    case 'DWORD_TO_LWORD':
+    case 'LWORD_TO_INT':
+    case 'LWORD_TO_BYTE':
+    case 'LWORD_TO_WORD':
+    case 'LWORD_TO_DWORD':
+      return Math.trunc(toNumber(args[0]));
+
+    // REAL_TO_* conversions
+    case 'REAL_TO_INT':
+    case 'REAL_TO_SINT':
+    case 'REAL_TO_DINT':
+    case 'REAL_TO_LINT':
+    case 'REAL_TO_USINT':
+    case 'REAL_TO_UINT':
+    case 'REAL_TO_UDINT':
+    case 'REAL_TO_ULINT':
+    case 'REAL_TO_BYTE':
+    case 'REAL_TO_WORD':
+    case 'REAL_TO_DWORD':
+    case 'REAL_TO_LWORD':
+    case 'LREAL_TO_INT':
+    case 'LREAL_TO_SINT':
+    case 'LREAL_TO_DINT':
+    case 'LREAL_TO_LINT':
+    case 'LREAL_TO_USINT':
+    case 'LREAL_TO_UINT':
+    case 'LREAL_TO_UDINT':
+    case 'LREAL_TO_ULINT':
+    case 'LREAL_TO_BYTE':
+    case 'LREAL_TO_WORD':
+    case 'LREAL_TO_DWORD':
+    case 'LREAL_TO_LWORD':
+      return Math.trunc(toNumber(args[0]));
+
+    case 'REAL_TO_BOOL':
+    case 'LREAL_TO_BOOL':
+      return toNumber(args[0]) !== 0;
+
+    case 'REAL_TO_STRING':
+    case 'REAL_TO_WSTRING':
+    case 'LREAL_TO_STRING':
+    case 'LREAL_TO_WSTRING':
+      return String(toNumber(args[0]));
+
+    case 'REAL_TO_LREAL':
+    case 'LREAL_TO_REAL':
+      return toNumber(args[0]);
+
+    case 'REAL_TO_TIME':
+    case 'LREAL_TO_TIME':
+      return Math.trunc(toNumber(args[0]));
+
+    // TIME_TO_* conversions
+    case 'TIME_TO_INT':
+    case 'TIME_TO_SINT':
+    case 'TIME_TO_DINT':
+    case 'TIME_TO_LINT':
+    case 'TIME_TO_USINT':
+    case 'TIME_TO_UINT':
+    case 'TIME_TO_UDINT':
+    case 'TIME_TO_ULINT':
+      return Math.trunc(toNumber(args[0]));
+
+    case 'TIME_TO_REAL':
+    case 'TIME_TO_LREAL':
+      return toNumber(args[0]);
+
+    case 'TIME_TO_BOOL':
+      return toNumber(args[0]) !== 0;
+
+    case 'TIME_TO_STRING':
+    case 'TIME_TO_WSTRING':
+      return String(toNumber(args[0]));
+
+    // STRING_TO_* conversions
+    case 'STRING_TO_INT':
+    case 'STRING_TO_SINT':
+    case 'STRING_TO_DINT':
+    case 'STRING_TO_LINT':
+    case 'STRING_TO_USINT':
+    case 'STRING_TO_UINT':
+    case 'STRING_TO_UDINT':
+    case 'STRING_TO_ULINT':
+    case 'STRING_TO_BYTE':
+    case 'STRING_TO_WORD':
+    case 'STRING_TO_DWORD':
+    case 'STRING_TO_LWORD':
+    case 'WSTRING_TO_INT':
+    case 'WSTRING_TO_SINT':
+    case 'WSTRING_TO_DINT':
+    case 'WSTRING_TO_LINT': {
+      const strVal = toString(args[0]);
+      const parsed = parseInt(strVal, 10);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+
+    case 'STRING_TO_REAL':
+    case 'STRING_TO_LREAL':
+    case 'WSTRING_TO_REAL':
+    case 'WSTRING_TO_LREAL': {
+      const strVal = toString(args[0]);
+      const parsed = parseFloat(strVal);
+      return isNaN(parsed) ? 0.0 : parsed;
+    }
+
+    case 'STRING_TO_BOOL':
+    case 'WSTRING_TO_BOOL': {
+      const strVal = toString(args[0]).toUpperCase().trim();
+      if (strVal === 'TRUE' || strVal === '1') return true;
+      if (strVal === 'FALSE' || strVal === '0') return false;
+      // Non-empty string is truthy
+      return strVal.length > 0;
+    }
+
+    case 'STRING_TO_TIME':
+    case 'WSTRING_TO_TIME': {
+      const strVal = toString(args[0]);
+      // Check for TIME literal format
+      if (strVal.match(/^(T#|TIME#)/i)) {
+        return toNumber(strVal);
+      }
+      // Otherwise try to parse as number (milliseconds)
+      const parsed = parseInt(strVal, 10);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+
+    // STRING to STRING (identity for completeness)
+    case 'STRING_TO_WSTRING':
+    case 'WSTRING_TO_STRING':
+      return toString(args[0]);
+
     default:
       // Try user-defined function if available
       if (context.invokeUserFunction) {

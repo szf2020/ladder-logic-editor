@@ -184,7 +184,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 | Category | Reference | Status | Notes |
 |----------|-----------|--------|-------|
-| Type conversion | §8.1 | ⚠️ | Implicit only |
+| Type conversion | §8.1 | ✅ | Full *_TO_* functions (BOOL_TO_INT, INT_TO_REAL, REAL_TO_INT, etc.) and TRUNC |
 | ABS | §8.2 | ✅ | Absolute value (INT, REAL) |
 | SQRT | §8.2 | ✅ | Square root (REAL) |
 | MIN | §8.3 | ✅ | Minimum of two values |
@@ -239,7 +239,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | User Function Blocks | 18 | ✅ 100% |
 | STRING Types | 35 | ✅ 100% |
 | VAR_IN_OUT | 19 | ✅ 100% |
-| **Total** | **1534** | ✅ 100% |
+| Type Conversion | 50 | ✅ 100% |
+| **Total** | **1584** | ✅ 100% |
 
 ---
 
@@ -256,7 +257,6 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 - Multi-dimensional ARRAY support
 - STRUCT support
 - DATE/TIME_OF_DAY/DATE_AND_TIME types
-- Explicit type conversion functions (INT_TO_REAL, etc.)
 
 ---
 
@@ -264,6 +264,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 | Date | Change |
 |------|--------|
+| 2026-01-16 | Added explicit type conversion functions (*_TO_*) - BOOL_TO_INT, INT_TO_REAL, REAL_TO_INT, STRING_TO_INT, etc., plus TRUNC function - 50 new tests |
 | 2026-01-16 | Added VAR_IN_OUT (pass-by-reference) support in function blocks - 19 new tests, variables now 60% |
 | 2026-01-16 | Fixed TIME literal parsing in statement executor (toNumber wasn't handling TIME literals) |
 | 2026-01-16 | Added STRING and WSTRING data types with full string function support (CONCAT, LEN, LEFT, RIGHT, MID, FIND, INSERT, DELETE, REPLACE), string comparison operators, type registry - 35 new tests, data types now 90% |
