@@ -10,11 +10,10 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useOnboardingStore } from '../../store/onboarding-store';
 import { BugReportModal } from '../bug-report';
 import './MobileNavMenu.css';
-
-const DOCS_URL_BASE = import.meta.env.BASE_URL || '/';
 
 interface NavAction {
   id: string;
@@ -28,6 +27,7 @@ export function MobileNavMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [showBugReport, setShowBugReport] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const resetOnboarding = useOnboardingStore((state) => state.resetOnboarding);
 
   // Close menu on outside click
@@ -103,9 +103,7 @@ export function MobileNavMenu() {
           <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
         </svg>
       ),
-      handler: () => {
-        window.location.href = `${DOCS_URL_BASE}docs`;
-      },
+      handler: () => navigate('/docs'),
     },
     {
       id: 'bug',
