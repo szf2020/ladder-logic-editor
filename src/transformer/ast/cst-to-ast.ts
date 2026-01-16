@@ -95,6 +95,9 @@ export function parseSTToAST(source: string): STAST {
         case 'ExitStatement':
           topLevelStatements.push({ type: 'ExitStatement', loc });
           break;
+        case 'ContinueStatement':
+          topLevelStatements.push({ type: 'ContinueStatement', loc });
+          break;
         // Skip whitespace, comments, and error nodes handled elsewhere
         case '⚠':
         case 'LineComment':
@@ -174,6 +177,9 @@ function parseProgramDecl(
         break;
       case 'ExitStatement':
         statements.push({ type: 'ExitStatement', loc: { start: child.from, end: child.to } });
+        break;
+      case 'ContinueStatement':
+        statements.push({ type: 'ContinueStatement', loc: { start: child.from, end: child.to } });
         break;
     }
     child = child.nextSibling;
@@ -440,6 +446,7 @@ function parseIfStatement(node: SyntaxNode, source: string): STIfStatement {
       case 'RepeatStatement':
       case 'ReturnStatement':
       case 'ExitStatement':
+      case 'ContinueStatement':
         if (inThen) {
           thenBranch.push(parseStatementNode(child, source));
         }
@@ -488,6 +495,7 @@ function parseElsifClause(node: SyntaxNode, source: string): STElsifClause {
       case 'RepeatStatement':
       case 'ReturnStatement':
       case 'ExitStatement':
+      case 'ContinueStatement':
         if (inThen) {
           statements.push(parseStatementNode(child, source));
         }
@@ -555,6 +563,7 @@ function parseCaseClause(node: SyntaxNode, source: string): STCaseClause {
       case 'RepeatStatement':
       case 'ReturnStatement':
       case 'ExitStatement':
+      case 'ContinueStatement':
         statements.push(parseStatementNode(child, source));
         break;
     }
@@ -623,6 +632,7 @@ function parseForStatement(node: SyntaxNode, source: string): STForStatement {
       case 'RepeatStatement':
       case 'ReturnStatement':
       case 'ExitStatement':
+      case 'ContinueStatement':
         if (inDo) {
           body.push(parseStatementNode(child, source));
         }
@@ -660,6 +670,7 @@ function parseWhileStatement(node: SyntaxNode, source: string): STWhileStatement
       case 'RepeatStatement':
       case 'ReturnStatement':
       case 'ExitStatement':
+      case 'ContinueStatement':
         if (inDo) {
           body.push(parseStatementNode(child, source));
         }
@@ -689,6 +700,7 @@ function parseRepeatStatement(node: SyntaxNode, source: string): STRepeatStateme
       case 'RepeatStatement':
       case 'ReturnStatement':
       case 'ExitStatement':
+      case 'ContinueStatement':
         if (!inUntil) {
           body.push(parseStatementNode(child, source));
         }
@@ -719,6 +731,7 @@ function isStatementNode(name: string): boolean {
     'RepeatStatement',
     'ReturnStatement',
     'ExitStatement',
+    'ContinueStatement',
   ].includes(name);
 }
 
@@ -743,6 +756,8 @@ function parseStatementNode(node: SyntaxNode, source: string): STStatement {
       return { type: 'ReturnStatement', loc };
     case 'ExitStatement':
       return { type: 'ExitStatement', loc };
+    case 'ContinueStatement':
+      return { type: 'ContinueStatement', loc };
     default:
       // Return a dummy statement for unknown types
       return { type: 'ReturnStatement', loc };

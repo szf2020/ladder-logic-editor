@@ -34,6 +34,17 @@ export class ExitSignal extends Error {
   }
 }
 
+/**
+ * Signal thrown by CONTINUE statement to skip to the next iteration.
+ * Caught by loop executors (FOR, WHILE, REPEAT).
+ */
+export class ContinueSignal extends Error {
+  constructor() {
+    super('CONTINUE');
+    this.name = 'ContinueSignal';
+  }
+}
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -111,6 +122,10 @@ export function executeStatement(stmt: STStatement, context: ExecutionContext): 
     case 'ExitStatement':
       // EXIT statement breaks out of the innermost enclosing loop
       throw new ExitSignal();
+
+    case 'ContinueStatement':
+      // CONTINUE statement skips to the next iteration of the innermost loop
+      throw new ContinueSignal();
 
     default:
       console.warn(`Unknown statement type: ${(stmt as STStatement).type}`);
@@ -286,81 +301,113 @@ function executeForStatement(stmt: STForStatement, context: ExecutionContext): v
   }
 
   let iterations = 0;
-  try {
-    if (stepVal > 0) {
-      for (let i = startVal; i <= endVal && iterations < MAX_ITERATIONS; i += stepVal) {
-        context.setInt(stmt.variable, i);
+  if (stepVal > 0) {
+    for (let i = startVal; i <= endVal && iterations < MAX_ITERATIONS; i += stepVal) {
+      context.setInt(stmt.variable, i);
+      try {
         executeStatements(stmt.body, context);
-        iterations++;
+      } catch (e) {
+        if (e instanceof ExitSignal) {
+          // EXIT statement - break out of loop
+          return;
+        }
+        if (e instanceof ContinueSignal) {
+          // CONTINUE statement - skip to next iteration
+          iterations++;
+          continue;
+        }
+        throw e; // Re-throw other errors
       }
-    } else {
-      for (let i = startVal; i >= endVal && iterations < MAX_ITERATIONS; i += stepVal) {
-        context.setInt(stmt.variable, i);
-        executeStatements(stmt.body, context);
-        iterations++;
-      }
+      iterations++;
     }
+  } else {
+    for (let i = startVal; i >= endVal && iterations < MAX_ITERATIONS; i += stepVal) {
+      context.setInt(stmt.variable, i);
+      try {
+        executeStatements(stmt.body, context);
+      } catch (e) {
+        if (e instanceof ExitSignal) {
+          // EXIT statement - break out of loop
+          return;
+        }
+        if (e instanceof ContinueSignal) {
+          // CONTINUE statement - skip to next iteration
+          iterations++;
+          continue;
+        }
+        throw e; // Re-throw other errors
+      }
+      iterations++;
+    }
+  }
 
-    if (iterations >= MAX_ITERATIONS) {
-      console.warn(`FOR loop exceeded maximum iterations (${MAX_ITERATIONS})`);
-    }
-  } catch (e) {
-    if (e instanceof ExitSignal) {
-      // EXIT statement - break out of loop normally
-      return;
-    }
-    throw e; // Re-throw other errors
+  if (iterations >= MAX_ITERATIONS) {
+    console.warn(`FOR loop exceeded maximum iterations (${MAX_ITERATIONS})`);
   }
 }
 
 function executeWhileStatement(stmt: STWhileStatement, context: ExecutionContext): void {
   let iterations = 0;
 
-  try {
-    while (iterations < MAX_ITERATIONS) {
-      const conditionValue = evaluateExpression(stmt.condition, context);
-      if (!toBoolean(conditionValue)) {
-        break;
-      }
+  while (iterations < MAX_ITERATIONS) {
+    const conditionValue = evaluateExpression(stmt.condition, context);
+    if (!toBoolean(conditionValue)) {
+      break;
+    }
+    try {
       executeStatements(stmt.body, context);
-      iterations++;
+    } catch (e) {
+      if (e instanceof ExitSignal) {
+        // EXIT statement - break out of loop
+        return;
+      }
+      if (e instanceof ContinueSignal) {
+        // CONTINUE statement - skip to next iteration
+        iterations++;
+        continue;
+      }
+      throw e; // Re-throw other errors
     }
+    iterations++;
+  }
 
-    if (iterations >= MAX_ITERATIONS) {
-      console.warn(`WHILE loop exceeded maximum iterations (${MAX_ITERATIONS})`);
-    }
-  } catch (e) {
-    if (e instanceof ExitSignal) {
-      // EXIT statement - break out of loop normally
-      return;
-    }
-    throw e; // Re-throw other errors
+  if (iterations >= MAX_ITERATIONS) {
+    console.warn(`WHILE loop exceeded maximum iterations (${MAX_ITERATIONS})`);
   }
 }
 
 function executeRepeatStatement(stmt: STRepeatStatement, context: ExecutionContext): void {
   let iterations = 0;
 
-  try {
-    do {
+  do {
+    try {
       executeStatements(stmt.body, context);
-      iterations++;
-
-      const conditionValue = evaluateExpression(stmt.condition, context);
-      if (toBoolean(conditionValue)) {
-        break; // REPEAT exits when condition becomes TRUE
+    } catch (e) {
+      if (e instanceof ExitSignal) {
+        // EXIT statement - break out of loop
+        return;
       }
-    } while (iterations < MAX_ITERATIONS);
+      if (e instanceof ContinueSignal) {
+        // CONTINUE statement - skip to condition check
+        iterations++;
+        const conditionValue = evaluateExpression(stmt.condition, context);
+        if (toBoolean(conditionValue)) {
+          return; // Exit when condition becomes TRUE
+        }
+        continue;
+      }
+      throw e; // Re-throw other errors
+    }
+    iterations++;
 
-    if (iterations >= MAX_ITERATIONS) {
-      console.warn(`REPEAT loop exceeded maximum iterations (${MAX_ITERATIONS})`);
+    const conditionValue = evaluateExpression(stmt.condition, context);
+    if (toBoolean(conditionValue)) {
+      break; // REPEAT exits when condition becomes TRUE
     }
-  } catch (e) {
-    if (e instanceof ExitSignal) {
-      // EXIT statement - break out of loop normally
-      return;
-    }
-    throw e; // Re-throw other errors
+  } while (iterations < MAX_ITERATIONS);
+
+  if (iterations >= MAX_ITERATIONS) {
+    console.warn(`REPEAT loop exceeded maximum iterations (${MAX_ITERATIONS})`);
   }
 }
 

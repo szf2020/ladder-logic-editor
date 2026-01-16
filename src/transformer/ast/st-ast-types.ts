@@ -139,7 +139,8 @@ export type STStatement =
   | STWhileStatement
   | STRepeatStatement
   | STReturnStatement
-  | STExitStatement;
+  | STExitStatement
+  | STContinueStatement;
 
 export interface STAssignment extends ASTNode {
   type: 'Assignment';
@@ -217,6 +218,10 @@ export interface STReturnStatement extends ASTNode {
 
 export interface STExitStatement extends ASTNode {
   type: 'ExitStatement';
+}
+
+export interface STContinueStatement extends ASTNode {
+  type: 'ContinueStatement';
 }
 
 // ============================================================================

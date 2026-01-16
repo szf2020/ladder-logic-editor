@@ -13,7 +13,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Data Types | 16 | 21 | 76% |
 | Variables | 3 | 10 | 30% |
 | Operators | 16 | 17 | 94% |
-| Control Flow | 6 | 7 | 86% |
+| Control Flow | 7 | 7 | 100% |
 | Standard FBs | 10 | 10+ | 100%* |
 | POUs | 1 | 3 | 33% |
 
@@ -130,8 +130,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | WHILE/DO | §5.3.2 | ✅ | 5 | |
 | REPEAT/UNTIL | §5.3.3 | ✅ | 3 | |
 | EXIT | §5.3.4 | ✅ | 16 | |
-| CONTINUE | §5.3.5 | ❌ | - | Edition 3 feature |
-| RETURN | §5.3.6 | ❌ | - | Requires user functions |
+| CONTINUE | §5.3.5 | ✅ | 15 | Edition 3 feature |
+| RETURN | §5.3.6 | ⚠️ | - | Parsed, no-op (requires user functions) |
 
 ---
 
@@ -223,7 +223,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Additional | 50 | ✅ 100% |
 | Std Functions | 106 | ✅ 100% |
 | Bit String Types | 37 | ✅ 100% |
-| **Total** | **1357** | ✅ 100% |
+| Continue Statement | 15 | ✅ 100% |
+| **Total** | **1372** | ✅ 100% |
 
 ---
 
@@ -231,8 +232,9 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 ### Next Priorities
 
-1. **RETURN statement** - For completeness (requires user function support)
-2. **CONTINUE statement** - Edition 3 feature
+1. **RETURN statement** - Meaningful execution (requires user function support)
+2. **User-defined FUNCTIONs** - Enable reusable computation blocks
+3. **ARRAY support** - Parser supports, interpreter needs implementation
 
 ### Future Consideration
 
@@ -248,6 +250,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 | Date | Change |
 |------|--------|
+| 2026-01-16 | Added CONTINUE statement for loops (FOR, WHILE, REPEAT) - 15 new tests, control flow now 100% |
 | 2026-01-16 | Added bit string types (BYTE, WORD, DWORD, LWORD) with hex (16#FF) and binary (2#1010) literal support - 37 new tests |
 | 2026-01-16 | Added selection functions (SEL, MUX, LIMIT) with 19 new tests |
 | 2026-01-16 | Added additional integer types (SINT, DINT, LINT, USINT, UINT, UDINT, ULINT) and LREAL with 30 new tests |

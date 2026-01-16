@@ -21,7 +21,8 @@ statement {
   RepeatStatement |
   FunctionBlockCall |
   ReturnStatement |
-  ExitStatement
+  ExitStatement |
+  ContinueStatement
 }
 
 // ============================================================================
@@ -180,6 +181,10 @@ ReturnStatement {
 
 ExitStatement {
   kw<"EXIT"> ";"
+}
+
+ContinueStatement {
+  kw<"CONTINUE"> ";"
 }
 
 // ============================================================================
