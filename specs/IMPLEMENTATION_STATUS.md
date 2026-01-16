@@ -56,7 +56,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 |------|-----------|--------|-------|-------|
 | ARRAY | §2.2.1 | ✅ | 42 | Single and multi-dimensional (2D, 3D), all element types |
 | STRUCT | §2.2.2 | ✅ | 16 | User-defined structured types with field access (varname.field) |
-| Enumeration | §2.2.3 | ✅ | 16 | TYPE name : (val1, val2 := n); END_TYPE syntax, auto-increment, stored as INT |
+| Enumeration | §2.2.3 | ✅ | 17 | TYPE name : (val1, val2 := n); END_TYPE syntax, auto-increment, qualified syntax (Type#Value) |
 
 ---
 
@@ -242,7 +242,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | VAR_IN_OUT | 19 | ✅ 100% |
 | VAR_TEMP | 11 | ✅ 100% |
 | STRUCT Types | 16 | ✅ 100% |
-| Enumeration Types | 16 | ✅ 100% |
+| Enumeration Types | 17 | ✅ 100% |
 | Type Conversion | 50 | ✅ 100% |
 | DATE/TIME_OF_DAY/DT | 28 | ✅ 100% |
 | VAR_EXTERNAL | 15 | ✅ 100% |
