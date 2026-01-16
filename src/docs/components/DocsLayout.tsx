@@ -11,6 +11,7 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { DocsSidebar } from './DocsSidebar';
 import { CodeExample } from './CodeExample';
+import { Logo } from '../../components/Logo';
 import { DOCS_CONTENT, type DocPage } from '../content';
 import './DocsLayout.css';
 
@@ -116,12 +117,15 @@ export function DocsLayout() {
           onClick={() => setSidebarOpen(!sidebarOpen)}
           aria-label="Toggle navigation"
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="3" y1="5" x2="17" y2="5" />
+            <line x1="3" y1="10" x2="17" y2="10" />
+            <line x1="3" y1="15" x2="17" y2="15" />
           </svg>
         </button>
         <Link to="/docs" className="docs-header__title">
-          Ladder Logic Editor Docs
+          <Logo size={20} />
+          <span>Ladder Logic Editor</span>
         </Link>
         <Link to="/" className="docs-header__back">
           Back to Editor

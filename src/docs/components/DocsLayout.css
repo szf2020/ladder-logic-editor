@@ -39,6 +39,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 32px;
   height: 32px;
   padding: 0;
@@ -49,16 +50,25 @@
   cursor: pointer;
 }
 
+.docs-header__menu-btn svg {
+  display: block;
+}
+
 .docs-header__menu-btn:hover {
   background: #3d3d3d;
 }
 
 .docs-header__title {
   flex: 1;
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 600;
-  color: #d4d4d4;
+  font-family: 'IBM Plex Mono', 'SF Mono', 'Consolas', monospace;
+  color: #FF9500;
   text-decoration: none;
+  letter-spacing: -0.01em;
 }
 
 .docs-header__back {
