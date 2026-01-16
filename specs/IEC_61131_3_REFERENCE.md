@@ -483,33 +483,35 @@ Reference: IEC 61131-3 §6.6.3.6.7
 
 Reference: IEC 61131-3 §6.6.3.6.8
 
-### 7.4 Bistables
+### 7.4 Bistables (Table 43)
 
 #### 7.4.1 SR (Set-Reset, Set Dominant)
 | Parameter | Direction | Type | Description |
 |-----------|-----------|------|-------------|
-| S1 | Input | BOOL | Set (dominant) |
-| R | Input | BOOL | Reset |
+| S1 / SET1 | Input | BOOL | Set (dominant) |
+| R / RESET | Input | BOOL | Reset |
 | Q1 | Output | BOOL | Output |
 
 **Behavior:**
 - Q1 := S1 OR (NOT R AND Q1)
 - When S1=TRUE and R=TRUE, output is TRUE (set dominant)
+- Initial value of Q1 is FALSE
 
-Reference: IEC 61131-3 §6.6.3.6.9
+Reference: IEC 61131-3 Table 43.1a/43.1b, §6.6.3.6.9
 
 #### 7.4.2 RS (Reset-Set, Reset Dominant)
 | Parameter | Direction | Type | Description |
 |-----------|-----------|------|-------------|
-| S | Input | BOOL | Set |
-| R1 | Input | BOOL | Reset (dominant) |
+| S / SET | Input | BOOL | Set |
+| R1 / RESET1 | Input | BOOL | Reset (dominant) |
 | Q1 | Output | BOOL | Output |
 
 **Behavior:**
 - Q1 := NOT R1 AND (S OR Q1)
 - When S=TRUE and R1=TRUE, output is FALSE (reset dominant)
+- Initial value of Q1 is FALSE
 
-Reference: IEC 61131-3 §6.6.3.6.10
+Reference: IEC 61131-3 Table 43.2a/43.2b, §6.6.3.6.10
 
 ---
 
