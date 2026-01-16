@@ -264,6 +264,26 @@ function evaluateFunctionCall(expr: STFunctionCall, context: EvaluationContext):
     case 'EXP':
       return Math.exp(toNumber(args[0])); // e^x
 
+    // Selection functions (IEC 61131-3 §6.6.2.5.4)
+    case 'SEL':
+      // SEL(G, IN0, IN1) returns IN0 if G is FALSE, IN1 if G is TRUE
+      return toBoolean(args[0]) ? args[2] : args[1];
+    case 'MUX':
+      // MUX(K, IN0, IN1, ..., INn) selects INk based on integer K
+      const muxIndex = Math.floor(toNumber(args[0]));
+      if (muxIndex < 0 || muxIndex >= args.length - 1) {
+        return args[1]; // Default to first input on out-of-bounds
+      }
+      return args[muxIndex + 1];
+
+    // Limit function (IEC 61131-3 §6.6.2.5.4)
+    case 'LIMIT':
+      // LIMIT(MN, IN, MX) returns IN clamped to [MN, MX]
+      const mn = toNumber(args[0]);
+      const inVal = toNumber(args[1]);
+      const mx = toNumber(args[2]);
+      return Math.max(mn, Math.min(inVal, mx));
+
     default:
       // Unknown function - return 0 as fallback
       console.warn(`Unknown function: ${expr.name}`);

@@ -197,7 +197,9 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | LN | §8.2 | ✅ | Natural logarithm (base e) |
 | LOG | §8.2 | ✅ | Common logarithm (base 10) |
 | EXP | §8.2 | ✅ | Exponential (e^x) |
-| SEL | §8.3 | ❌ | Selection function |
+| SEL | §8.3 | ✅ | Binary selection (G, IN0, IN1) |
+| MUX | §8.3 | ✅ | Multiplexer (K, IN0...INn) |
+| LIMIT | §8.3 | ✅ | Value clamping (MN, IN, MX) |
 | String (LEN, LEFT, etc.) | §8.4 | ❌ | |
 
 ---
@@ -219,8 +221,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Bounds | 71 | ✅ 100% |
 | Integration | 105 | ✅ 100% |
 | Additional | 50 | ✅ 100% |
-| Std Functions | 87 | ✅ 100% |
-| **Total** | **1211** | ✅ 100% |
+| Std Functions | 106 | ✅ 100% |
+| **Total** | **1230** | ✅ 100% |
 
 ---
 
@@ -245,6 +247,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 | Date | Change |
 |------|--------|
+| 2026-01-16 | Added selection functions (SEL, MUX, LIMIT) with 19 new tests |
 | 2026-01-16 | Added additional integer types (SINT, DINT, LINT, USINT, UINT, UDINT, ULINT) and LREAL with 30 new tests |
 | 2026-01-16 | Added trigonometric (SIN, COS, TAN, ASIN, ACOS, ATAN) and logarithmic (LN, LOG, EXP) functions with 49 new tests |
 | 2026-01-16 | Added standard function tests (ABS, SQRT, MIN, MAX) with 38 tests |

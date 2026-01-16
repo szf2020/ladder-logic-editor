@@ -1707,3 +1707,355 @@ describe('Logarithmic Identities', () => {
     expect(store.getReal('lhs')).toBeCloseTo(store.getReal('rhs'), 10);
   });
 });
+
+// ============================================================================
+// SEL Function Tests (IEC 61131-3 §6.6.2.5.4)
+// ============================================================================
+
+describe('SEL Function', () => {
+  it('SEL(FALSE, a, b) returns a (first input)', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : INT;
+      END_VAR
+      Result := SEL(FALSE, 10, 20);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(10);
+  });
+
+  it('SEL(TRUE, a, b) returns b (second input)', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : INT;
+      END_VAR
+      Result := SEL(TRUE, 10, 20);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(20);
+  });
+
+  it('SEL with variable condition', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        cond : BOOL := TRUE;
+        Result : INT;
+      END_VAR
+      Result := SEL(cond, 100, 200);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(200);
+  });
+
+  it('SEL with REAL values', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := SEL(TRUE, 3.14, 2.718);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(2.718, 5);
+  });
+
+  it('SEL with comparison as condition', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        x : INT := 5;
+        Result : INT;
+      END_VAR
+      Result := SEL(x > 3, 1, 2);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(2); // x > 3 is TRUE, so returns second input
+  });
+
+  it('SEL in conditional logic pattern', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        mode : INT := 1;
+        speed : INT;
+      END_VAR
+      speed := SEL(mode = 0, 100, 200);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    // mode = 0 is FALSE (mode is 1), so returns first input (100)
+    expect(store.getInt('speed')).toBe(100);
+  });
+});
+
+// ============================================================================
+// MUX Function Tests (IEC 61131-3 §6.6.2.5.4)
+// ============================================================================
+
+describe('MUX Function', () => {
+  it('MUX(0, a, b, c) returns first input', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : INT;
+      END_VAR
+      Result := MUX(0, 10, 20, 30);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(10);
+  });
+
+  it('MUX(1, a, b, c) returns second input', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : INT;
+      END_VAR
+      Result := MUX(1, 10, 20, 30);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(20);
+  });
+
+  it('MUX(2, a, b, c) returns third input', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : INT;
+      END_VAR
+      Result := MUX(2, 10, 20, 30);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(30);
+  });
+
+  it('MUX with variable index', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        idx : INT := 1;
+        Result : INT;
+      END_VAR
+      Result := MUX(idx, 100, 200, 300);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(200);
+  });
+
+  it('MUX with out-of-bounds index defaults to first', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : INT;
+      END_VAR
+      Result := MUX(10, 100, 200, 300);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(100); // Defaults to first on out-of-bounds
+  });
+
+  it('MUX with negative index defaults to first', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : INT;
+      END_VAR
+      Result := MUX(-1, 100, 200, 300);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(100); // Defaults to first on negative
+  });
+});
+
+// ============================================================================
+// LIMIT Function Tests (IEC 61131-3 §6.6.2.5.4)
+// ============================================================================
+
+describe('LIMIT Function', () => {
+  it('LIMIT(mn, in, mx) returns in when within bounds', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : INT;
+      END_VAR
+      Result := LIMIT(0, 50, 100);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(50);
+  });
+
+  it('LIMIT clamps to minimum when below', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : INT;
+      END_VAR
+      Result := LIMIT(10, 5, 100);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(10);
+  });
+
+  it('LIMIT clamps to maximum when above', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : INT;
+      END_VAR
+      Result := LIMIT(0, 150, 100);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(100);
+  });
+
+  it('LIMIT with REAL values', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := LIMIT(0.0, 1.5, 1.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.0, 5);
+  });
+
+  it('LIMIT with negative bounds', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : INT;
+      END_VAR
+      Result := LIMIT(-100, -150, 0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(-100);
+  });
+
+  it('LIMIT with variable inputs', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        minVal : INT := 0;
+        maxVal : INT := 255;
+        value : INT := 300;
+        Result : INT;
+      END_VAR
+      Result := LIMIT(minVal, value, maxVal);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('Result')).toBe(255);
+  });
+
+  it('LIMIT at exact boundary values', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        atMin : INT;
+        atMax : INT;
+      END_VAR
+      atMin := LIMIT(10, 10, 100);
+      atMax := LIMIT(10, 100, 100);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getInt('atMin')).toBe(10);
+    expect(store.getInt('atMax')).toBe(100);
+  });
+});

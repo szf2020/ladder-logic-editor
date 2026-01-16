@@ -17,4 +17,5 @@ Choose property and unit tests as are appropriate
 - Given you're in a loop, make a logical amount of progress per iteration
 - Only report RALPH_DONE when all phases are complete, and there are no workarounds or skipped tests left
 
+Commit and push before finishing.
 Create PR when ready
