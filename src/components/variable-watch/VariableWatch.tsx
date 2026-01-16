@@ -3,7 +3,7 @@
  *
  * Displays and allows editing of simulation variables.
  * Shows boolean, integer, real, timer, and counter states.
- * Also includes Properties tab for selected node details.
+ * Properties tab is only shown when selectedNode is provided (mobile layout).
  */
 
 import { memo, useCallback, useState } from 'react';
@@ -24,6 +24,8 @@ export const VariableWatch = memo(function VariableWatch({
   onToggleCollapse,
   selectedNode = null,
 }: VariableWatchProps) {
+  // Only show properties tab when selectedNode prop is explicitly provided (mobile layout)
+  const showPropertiesTab = selectedNode !== undefined && selectedNode !== null;
   const [activeTab, setActiveTab] = useState<'booleans' | 'numbers' | 'timers' | 'counters' | 'properties'>('booleans');
 
   // Simulation state
@@ -98,15 +100,17 @@ export const VariableWatch = memo(function VariableWatch({
         >
           CTR
         </button>
-        <button
-          className={`watch-tab watch-tab--props ${activeTab === 'properties' ? 'active' : ''} ${selectedNode ? 'watch-tab--has-selection' : ''}`}
-          onClick={() => setActiveTab('properties')}
-          title="Selected Element Properties"
-        >
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M4 2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-3-4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
-          </svg>
-        </button>
+        {showPropertiesTab && (
+          <button
+            className={`watch-tab watch-tab--props ${activeTab === 'properties' ? 'active' : ''} ${selectedNode ? 'watch-tab--has-selection' : ''}`}
+            onClick={() => setActiveTab('properties')}
+            title="Selected Element Properties"
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4 2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-3-4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
+            </svg>
+          </button>
+        )}
       </div>
 
       <div className="watch-content">
@@ -138,7 +142,7 @@ export const VariableWatch = memo(function VariableWatch({
             onReset={resetCounter}
           />
         )}
-        {activeTab === 'properties' && (
+        {showPropertiesTab && activeTab === 'properties' && (
           <PropertiesContent selectedNode={selectedNode} />
         )}
       </div>

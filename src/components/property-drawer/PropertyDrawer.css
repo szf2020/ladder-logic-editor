@@ -1,0 +1,397 @@
+/**
+ * Property Drawer Styles
+ *
+ * Industrial/technical aesthetic inspired by control panels and circuit diagrams.
+ * Slides in from the right edge with smooth animations.
+ */
+
+/* =============================================================================
+   CSS Variables
+   ============================================================================= */
+
+.property-drawer {
+  --drawer-width: 260px;
+  --drawer-bg: #1a1d24;
+  --drawer-border: #2a3140;
+  --drawer-accent: #4da6ff;
+  --drawer-accent-dim: rgba(77, 166, 255, 0.15);
+  --drawer-text: #c8cdd5;
+  --drawer-text-dim: #6b7280;
+  --drawer-surface: #232830;
+  --drawer-glow: rgba(77, 166, 255, 0.08);
+
+  /* Transition timing */
+  --drawer-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =============================================================================
+   Backdrop
+   ============================================================================= */
+
+.property-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: transparent;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--drawer-transition);
+}
+
+.property-drawer-backdrop.visible {
+  pointer-events: auto;
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* =============================================================================
+   Drawer Panel
+   ============================================================================= */
+
+.property-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--drawer-width);
+  z-index: 100;
+
+  display: flex;
+  flex-direction: column;
+
+  background: var(--drawer-bg);
+  border-left: 1px solid var(--drawer-border);
+  box-shadow:
+    -4px 0 20px rgba(0, 0, 0, 0.25),
+    -1px 0 0 var(--drawer-border);
+
+  transform: translateX(100%);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    transform var(--drawer-transition),
+    opacity var(--drawer-transition),
+    visibility 0ms linear var(--drawer-transition);
+
+  /* Subtle inner glow at top */
+  background-image: linear-gradient(
+    180deg,
+    var(--drawer-glow) 0%,
+    transparent 120px
+  );
+
+  overflow: hidden;
+}
+
+.property-drawer.open {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    transform var(--drawer-transition),
+    opacity var(--drawer-transition),
+    visibility 0ms linear 0ms;
+}
+
+/* =============================================================================
+   Header
+   ============================================================================= */
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--drawer-border);
+  background: var(--drawer-surface);
+  flex-shrink: 0;
+}
+
+.drawer-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.drawer-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--drawer-accent-dim);
+  border-radius: 4px;
+  color: var(--drawer-accent);
+}
+
+.drawer-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--drawer-text);
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+}
+
+.drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--drawer-text-dim);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.drawer-close:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--drawer-border);
+  color: var(--drawer-text);
+}
+
+.drawer-close:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* =============================================================================
+   Content
+   ============================================================================= */
+
+.drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+}
+
+.drawer-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: var(--drawer-text-dim);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* =============================================================================
+   Property Content
+   ============================================================================= */
+
+.property-content {
+  animation: fadeSlideIn 200ms ease-out;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Type Section */
+.property-type-section {
+  margin-bottom: 16px;
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--drawer-surface);
+  border: 1px solid var(--drawer-border);
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.type-badge-icon {
+  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--drawer-accent);
+  letter-spacing: -1px;
+}
+
+.type-badge-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--drawer-text);
+}
+
+/* Property List */
+.property-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.property-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 12px;
+  margin: 0 -12px;
+  gap: 12px;
+  border-radius: 4px;
+  transition: background-color 100ms ease;
+}
+
+.property-row:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.property-row.dimmed {
+  opacity: 0.6;
+}
+
+.property-row.dimmed:hover {
+  opacity: 0.8;
+}
+
+.property-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--drawer-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.property-value {
+  font-size: 13px;
+  color: var(--drawer-text);
+  text-align: right;
+  word-break: break-word;
+  margin: 0;
+}
+
+.property-value.mono {
+  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  font-size: 12px;
+  letter-spacing: -0.25px;
+}
+
+.property-value.accent {
+  color: var(--drawer-accent);
+  font-weight: 500;
+}
+
+/* =============================================================================
+   Decorative Circuit Lines
+   ============================================================================= */
+
+.drawer-circuit-lines {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.4;
+}
+
+.circuit-line {
+  position: absolute;
+  background: var(--drawer-border);
+}
+
+.circuit-line--1 {
+  left: 16px;
+  bottom: 20px;
+  width: 40px;
+  height: 1px;
+}
+
+.circuit-line--1::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -3px;
+  width: 1px;
+  height: 7px;
+  background: var(--drawer-border);
+}
+
+.circuit-line--1::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  height: 25px;
+  background: var(--drawer-border);
+}
+
+.circuit-line--2 {
+  left: 70px;
+  bottom: 45px;
+  width: 30px;
+  height: 1px;
+}
+
+.circuit-line--2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 1px;
+  height: 17px;
+  background: var(--drawer-border);
+}
+
+.circuit-line--3 {
+  right: 40px;
+  bottom: 30px;
+  width: 50px;
+  height: 1px;
+}
+
+.circuit-line--3::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -15px;
+  width: 1px;
+  height: 16px;
+  background: var(--drawer-border);
+}
+
+/* =============================================================================
+   Mobile Styles - Hide drawer on mobile (uses MobileLayout's tab system)
+   ============================================================================= */
+
+@media (max-width: 767px) {
+  .property-drawer,
+  .property-drawer-backdrop {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   Reduced Motion
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .property-drawer,
+  .property-drawer-backdrop {
+    transition: none;
+  }
+
+  .property-content {
+    animation: none;
+  }
+}
