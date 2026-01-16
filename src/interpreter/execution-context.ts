@@ -786,6 +786,23 @@ function getOutputVariables(fb: STProgram): Array<{ name: string; typeName: stri
 }
 
 /**
+ * Get VAR_IN_OUT declarations from a function block.
+ */
+function getInOutParameters(fb: STProgram): Array<{ name: string; typeName: string }> {
+  const inOuts: Array<{ name: string; typeName: string }> = [];
+  for (const varBlock of fb.varBlocks) {
+    if (varBlock.scope === 'VAR_IN_OUT') {
+      for (const decl of varBlock.declarations) {
+        for (const varName of decl.names) {
+          inOuts.push({ name: varName, typeName: decl.dataType.typeName });
+        }
+      }
+    }
+  }
+  return inOuts;
+}
+
+/**
  * Invoke a user-defined function block.
  *
  * @param instanceName - The FB instance name
@@ -858,10 +875,28 @@ function invokeUserFunctionBlock(
     }
   }
 
+  // Handle VAR_IN_OUT parameters - map FB param name to caller variable name
+  // VAR_IN_OUT requires pass-by-reference: writes go back to caller's variable
+  const inOutParams = getInOutParameters(fb);
+  const inOutBindings: Record<string, string> = {}; // FB param name -> caller variable name
+
+  for (const arg of args) {
+    const inOutParam = inOutParams.find(p => p.name.toUpperCase() === arg.name.toUpperCase());
+    if (inOutParam) {
+      // The expression should be a simple variable reference
+      if (arg.expression.type === 'Variable' && arg.expression.accessPath.length === 1) {
+        inOutBindings[inOutParam.name] = arg.expression.accessPath[0];
+      }
+    }
+  }
+
   // Build local type registry for the FB execution
   const localTypeRegistry: TypeRegistry = {};
   for (const param of inputParams) {
     localTypeRegistry[param.name] = mapTypeName(param.typeName);
+  }
+  for (const inOut of inOutParams) {
+    localTypeRegistry[inOut.name] = mapTypeName(inOut.typeName);
   }
   const localVars = getLocalVariables(fb);
   for (const local of localVars) {
@@ -873,41 +908,83 @@ function invokeUserFunctionBlock(
   }
 
   // Create FB execution context that reads/writes to instance state
+  // VAR_IN_OUT variables read/write to caller's variable (pass-by-reference)
   const fbExecContext: ExecutionContext = {
-    // Variable setters (write to instance state)
+    // Variable setters (write to instance state, except VAR_IN_OUT which writes to caller)
     setBool: (varName: string, value: boolean) => {
+      // Check if this is a VAR_IN_OUT parameter - write to caller's variable
+      if (varName in inOutBindings) {
+        store.setBool(inOutBindings[varName], value);
+        return;
+      }
       instanceState.booleans[varName] = value;
     },
     setInt: (varName: string, value: number) => {
+      // Check if this is a VAR_IN_OUT parameter - write to caller's variable
+      if (varName in inOutBindings) {
+        store.setInt(inOutBindings[varName], Math.trunc(value));
+        return;
+      }
       instanceState.integers[varName] = Math.trunc(value);
     },
     setReal: (varName: string, value: number) => {
+      // Check if this is a VAR_IN_OUT parameter - write to caller's variable
+      if (varName in inOutBindings) {
+        store.setReal(inOutBindings[varName], value);
+        return;
+      }
       instanceState.reals[varName] = value;
     },
     setTime: (varName: string, value: number) => {
+      // Check if this is a VAR_IN_OUT parameter - write to caller's variable
+      if (varName in inOutBindings) {
+        store.setTime(inOutBindings[varName], Math.trunc(value));
+        return;
+      }
       instanceState.times[varName] = Math.trunc(value);
     },
     setString: (varName: string, value: string) => {
+      // Check if this is a VAR_IN_OUT parameter - write to caller's variable
+      if (varName in inOutBindings) {
+        store.setString(inOutBindings[varName], value);
+        return;
+      }
       instanceState.strings[varName] = value;
     },
 
-    // Variable getters (read from inputs first, then instance state, then global)
+    // Variable getters (VAR_IN_OUT reads from caller, then inputs, then instance state, then global)
     getBool: (varName: string) => {
+      // Check if this is a VAR_IN_OUT parameter - read from caller's variable
+      if (varName in inOutBindings) {
+        return store.getBool(inOutBindings[varName]);
+      }
       if (varName in localInputs) return Boolean(localInputs[varName]);
       if (varName in instanceState.booleans) return instanceState.booleans[varName];
       return store.getBool(varName);
     },
     getInt: (varName: string) => {
+      // Check if this is a VAR_IN_OUT parameter - read from caller's variable
+      if (varName in inOutBindings) {
+        return store.getInt(inOutBindings[varName]);
+      }
       if (varName in localInputs) return Math.trunc(Number(localInputs[varName]));
       if (varName in instanceState.integers) return instanceState.integers[varName];
       return store.getInt(varName);
     },
     getReal: (varName: string) => {
+      // Check if this is a VAR_IN_OUT parameter - read from caller's variable
+      if (varName in inOutBindings) {
+        return store.getReal(inOutBindings[varName]);
+      }
       if (varName in localInputs) return Number(localInputs[varName]);
       if (varName in instanceState.reals) return instanceState.reals[varName];
       return store.getReal(varName);
     },
     getString: (varName: string) => {
+      // Check if this is a VAR_IN_OUT parameter - read from caller's variable
+      if (varName in inOutBindings) {
+        return store.getString(inOutBindings[varName]);
+      }
       if (varName in localInputs) return String(localInputs[varName]);
       if (varName in instanceState.strings) return instanceState.strings[varName];
       return store.getString(varName);
@@ -927,7 +1004,18 @@ function invokeUserFunctionBlock(
 
     // Expression evaluation context
     getVariable: (varName: string) => {
-      // Check local inputs first
+      // Check VAR_IN_OUT first - these read from caller's variable
+      if (varName in inOutBindings) {
+        const callerVar = inOutBindings[varName];
+        if (callerVar in store.booleans) return store.booleans[callerVar];
+        if (callerVar in store.integers) return store.integers[callerVar];
+        if (callerVar in store.reals) return store.reals[callerVar];
+        if (callerVar in store.times) return store.times[callerVar];
+        if (callerVar in store.strings) return store.strings[callerVar];
+        return false;
+      }
+
+      // Check local inputs
       if (varName in localInputs) return localInputs[varName];
 
       // Check instance state

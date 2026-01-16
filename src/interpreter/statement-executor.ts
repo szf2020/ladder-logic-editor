@@ -18,6 +18,7 @@ import type {
 } from '../transformer/ast/st-ast-types';
 import { evaluateExpression, type Value, type EvaluationContext } from './expression-evaluator';
 import type { DeclaredType } from './variable-initializer';
+import { parseTimeLiteral, timeValueToMs } from '../models/plc-types';
 
 // ============================================================================
 // Exit Signal (for EXIT statement support)
@@ -483,6 +484,11 @@ function toNumber(value: Value): number {
     return value ? 1 : 0;
   }
   if (typeof value === 'string') {
+    // Check for TIME literal (e.g., "T#5s", "TIME#100ms", "T#1h30m")
+    if (value.match(/^(T#|TIME#)/i)) {
+      const timeValue = parseTimeLiteral(value);
+      return timeValueToMs(timeValue);
+    }
     const parsed = parseFloat(value);
     return isNaN(parsed) ? 0 : parsed;
   }

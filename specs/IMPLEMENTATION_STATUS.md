@@ -11,7 +11,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Category | Implemented | Total | Coverage |
 |----------|-------------|-------|----------|
 | Data Types | 19 | 21 | 90% |
-| Variables | 5 | 10 | 50% |
+| Variables | 6 | 10 | 60% |
 | Operators | 16 | 17 | 94% |
 | Control Flow | 7 | 7 | 100% |
 | Standard FBs | 10 | 10+ | 100%* |
@@ -67,7 +67,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | VAR / END_VAR | §3.1 | ✅ | 59 | Full support |
 | VAR_INPUT | §3.1 | ✅ | 22 | Full support (in FUNCTIONs and FUNCTION_BLOCKs) |
 | VAR_OUTPUT | §3.1 | ✅ | 18 | Full support (in FUNCTION_BLOCKs) |
-| VAR_IN_OUT | §3.1 | ❌ | - | |
+| VAR_IN_OUT | §3.1 | ✅ | 19 | Pass-by-reference in function blocks |
 | VAR_GLOBAL | §3.1 | ✅ | - | Works across programs |
 | VAR_EXTERNAL | §3.1 | ❌ | - | |
 | VAR_TEMP | §3.1 | ❌ | - | |
@@ -238,7 +238,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | User Functions | 22 | ✅ 100% |
 | User Function Blocks | 18 | ✅ 100% |
 | STRING Types | 35 | ✅ 100% |
-| **Total** | **1515** | ✅ 100% |
+| VAR_IN_OUT | 19 | ✅ 100% |
+| **Total** | **1534** | ✅ 100% |
 
 ---
 
@@ -248,7 +249,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 1. **Multi-dimensional ARRAYs** - Currently single-dimensional only
 2. **STRUCT support** - User-defined structured types
-3. **VAR_IN_OUT** - Pass by reference parameters
+3. **VAR_EXTERNAL** - External variable references
 
 ### Future Consideration
 
@@ -263,6 +264,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 | Date | Change |
 |------|--------|
+| 2026-01-16 | Added VAR_IN_OUT (pass-by-reference) support in function blocks - 19 new tests, variables now 60% |
+| 2026-01-16 | Fixed TIME literal parsing in statement executor (toNumber wasn't handling TIME literals) |
 | 2026-01-16 | Added STRING and WSTRING data types with full string function support (CONCAT, LEN, LEFT, RIGHT, MID, FIND, INSERT, DELETE, REPLACE), string comparison operators, type registry - 35 new tests, data types now 90% |
 | 2026-01-16 | Added user-defined FUNCTION_BLOCK support with VAR_INPUT, VAR_OUTPUT, VAR internal state, state persistence across scan cycles, multiple instances - 18 new tests, POUs now 100% |
 | 2026-01-16 | Added user-defined FUNCTION support with VAR_INPUT, VAR local variables, RETURN statement - 22 new tests, POUs now 67% |
