@@ -10,6 +10,7 @@ import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'reac
 import { LadderCanvas } from '../ladder-editor/LadderCanvas';
 import { STEditor } from '../st-editor/STEditor';
 import { VariableWatch } from '../variable-watch/VariableWatch';
+import { PropertyDrawer } from '../property-drawer';
 import { ProgramSelector } from '../program-selector';
 import { ErrorPanel } from '../error-panel';
 import { TutorialLightbulb } from '../onboarding';
@@ -385,13 +386,18 @@ export function MainLayout() {
           </PanelGroup>
         </div>
 
-        {/* Variable Watch Panel (includes Properties tab) */}
+        {/* Variable Watch Panel */}
         <VariableWatch
           collapsed={watchPanelCollapsed}
           onToggleCollapse={() => setWatchPanelCollapsed(!watchPanelCollapsed)}
-          selectedNode={selectedNode}
         />
       </div>
+
+      {/* Property Drawer - slides in when a node is selected */}
+      <PropertyDrawer
+        selectedNode={selectedNode}
+        onClose={() => setSelectedNode(null)}
+      />
 
       {/* Error Panel */}
       <ErrorPanel
