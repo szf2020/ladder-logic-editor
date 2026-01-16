@@ -229,6 +229,7 @@ function evaluateFunctionCall(expr: STFunctionCall, context: EvaluationContext):
   const args = expr.arguments.map((arg) => evaluateExpression(arg, context));
 
   switch (expr.name.toUpperCase()) {
+    // Numeric functions
     case 'ABS':
       return Math.abs(toNumber(args[0]));
     case 'SQRT':
@@ -237,6 +238,32 @@ function evaluateFunctionCall(expr: STFunctionCall, context: EvaluationContext):
       return Math.min(toNumber(args[0]), toNumber(args[1]));
     case 'MAX':
       return Math.max(toNumber(args[0]), toNumber(args[1]));
+
+    // Trigonometric functions (IEC 61131-3 §6.6.2.5.3)
+    // Input: radians, Output: REAL
+    case 'SIN':
+      return Math.sin(toNumber(args[0]));
+    case 'COS':
+      return Math.cos(toNumber(args[0]));
+    case 'TAN':
+      return Math.tan(toNumber(args[0]));
+    case 'ASIN':
+      return Math.asin(toNumber(args[0]));
+    case 'ACOS':
+      return Math.acos(toNumber(args[0]));
+    case 'ATAN':
+      return Math.atan(toNumber(args[0]));
+    case 'ATAN2':
+      return Math.atan2(toNumber(args[0]), toNumber(args[1]));
+
+    // Logarithmic functions (IEC 61131-3 §6.6.2.5.3)
+    case 'LN':
+      return Math.log(toNumber(args[0])); // Natural logarithm (base e)
+    case 'LOG':
+      return Math.log10(toNumber(args[0])); // Common logarithm (base 10)
+    case 'EXP':
+      return Math.exp(toNumber(args[0])); // e^x
+
     default:
       // Unknown function - return 0 as fallback
       console.warn(`Unknown function: ${expr.name}`);

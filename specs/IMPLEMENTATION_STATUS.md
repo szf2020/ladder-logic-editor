@@ -188,7 +188,15 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | SQRT | §8.2 | ✅ | Square root (REAL) |
 | MIN | §8.3 | ✅ | Minimum of two values |
 | MAX | §8.3 | ✅ | Maximum of two values |
-| Other Numeric | §8.2 | ❌ | SIN, COS, TAN, LN, LOG, EXP not implemented |
+| SIN | §8.2 | ✅ | Sine (radians) |
+| COS | §8.2 | ✅ | Cosine (radians) |
+| TAN | §8.2 | ✅ | Tangent (radians) |
+| ASIN | §8.2 | ✅ | Arc sine (radians) |
+| ACOS | §8.2 | ✅ | Arc cosine (radians) |
+| ATAN | §8.2 | ✅ | Arc tangent (radians) |
+| LN | §8.2 | ✅ | Natural logarithm (base e) |
+| LOG | §8.2 | ✅ | Common logarithm (base 10) |
+| EXP | §8.2 | ✅ | Exponential (e^x) |
 | SEL | §8.3 | ❌ | Selection function |
 | String (LEN, LEFT, etc.) | §8.4 | ❌ | |
 
@@ -211,8 +219,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Bounds | 71 | ✅ 100% |
 | Integration | 105 | ✅ 100% |
 | Additional | 50 | ✅ 100% |
-| Std Functions | 38 | ✅ 100% |
-| **Total** | **1132** | ✅ 100% |
+| Std Functions | 87 | ✅ 100% |
+| **Total** | **1181** | ✅ 100% |
 
 ---
 
@@ -222,8 +230,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 1. **Additional integer types** - SINT, DINT, UINT, UDINT (infrastructure exists, needs range validation)
 2. **RETURN statement** - For completeness
-3. **Additional numeric functions** - SIN, COS, TAN, LN, LOG, EXP
-4. **CONTINUE statement** - Edition 3 feature
+3. **CONTINUE statement** - Edition 3 feature
 
 ### Future Consideration
 
@@ -239,6 +246,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 | Date | Change |
 |------|--------|
+| 2026-01-16 | Added trigonometric (SIN, COS, TAN, ASIN, ACOS, ATAN) and logarithmic (LN, LOG, EXP) functions with 49 new tests |
 | 2026-01-16 | Added standard function tests (ABS, SQRT, MIN, MAX) with 38 tests |
 | 2026-01-16 | Added exponentiation operator (**) with 19 tests |
 | 2026-01-16 | Initial creation, extracted from COMPLIANCE_MATRIX.md |

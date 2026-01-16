@@ -6,6 +6,11 @@
  * - SQRT: Square root
  * - MIN: Minimum of two values
  * - MAX: Maximum of two values
+ * - SIN, COS, TAN: Trigonometric functions (radians)
+ * - ASIN, ACOS, ATAN: Inverse trigonometric functions
+ * - LN: Natural logarithm (base e)
+ * - LOG: Common logarithm (base 10)
+ * - EXP: Exponential (e^x)
  */
 
 import { describe, it, expect } from 'vitest';
@@ -779,5 +784,926 @@ describe('Functions in Expressions', () => {
     runScanCycle(ast, store, createRuntimeState(ast));
 
     expect(store.getBool('Result')).toBe(true);
+  });
+});
+
+// ============================================================================
+// SIN Function Tests (IEC 61131-3 §6.6.2.5.3)
+// ============================================================================
+
+describe('SIN Function', () => {
+  it('SIN(0) = 0', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := SIN(0.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.0, 10);
+  });
+
+  it('SIN(PI/2) = 1', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := SIN(1.5707963267948966);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.0, 10);
+  });
+
+  it('SIN(PI) ≈ 0', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := SIN(3.141592653589793);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.0, 10);
+  });
+
+  it('SIN(-PI/2) = -1', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := SIN(-1.5707963267948966);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(-1.0, 10);
+  });
+
+  it('SIN with variable', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        angle : REAL := 0.5235987755982988;
+        Result : REAL;
+      END_VAR
+      Result := SIN(angle);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.5, 5); // SIN(PI/6) = 0.5
+  });
+});
+
+// ============================================================================
+// COS Function Tests (IEC 61131-3 §6.6.2.5.3)
+// ============================================================================
+
+describe('COS Function', () => {
+  it('COS(0) = 1', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := COS(0.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.0, 10);
+  });
+
+  it('COS(PI/2) ≈ 0', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := COS(1.5707963267948966);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.0, 10);
+  });
+
+  it('COS(PI) = -1', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := COS(3.141592653589793);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(-1.0, 10);
+  });
+
+  it('COS(PI/3) = 0.5', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := COS(1.0471975511965976);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.5, 5);
+  });
+});
+
+// ============================================================================
+// TAN Function Tests (IEC 61131-3 §6.6.2.5.3)
+// ============================================================================
+
+describe('TAN Function', () => {
+  it('TAN(0) = 0', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := TAN(0.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.0, 10);
+  });
+
+  it('TAN(PI/4) = 1', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := TAN(0.7853981633974483);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.0, 10);
+  });
+
+  it('TAN(-PI/4) = -1', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := TAN(-0.7853981633974483);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(-1.0, 10);
+  });
+
+  it('TAN(PI/6) ≈ 0.577', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := TAN(0.5235987755982988);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.5773502691896257, 5);
+  });
+});
+
+// ============================================================================
+// ASIN Function Tests (IEC 61131-3 §6.6.2.5.3)
+// ============================================================================
+
+describe('ASIN Function', () => {
+  it('ASIN(0) = 0', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ASIN(0.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.0, 10);
+  });
+
+  it('ASIN(1) = PI/2', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ASIN(1.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.5707963267948966, 10);
+  });
+
+  it('ASIN(-1) = -PI/2', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ASIN(-1.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(-1.5707963267948966, 10);
+  });
+
+  it('ASIN(0.5) = PI/6', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ASIN(0.5);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.5235987755982988, 10);
+  });
+
+  it('ASIN(value > 1) returns NaN', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ASIN(1.5);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeNaN();
+  });
+});
+
+// ============================================================================
+// ACOS Function Tests (IEC 61131-3 §6.6.2.5.3)
+// ============================================================================
+
+describe('ACOS Function', () => {
+  it('ACOS(1) = 0', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ACOS(1.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.0, 10);
+  });
+
+  it('ACOS(0) = PI/2', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ACOS(0.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.5707963267948966, 10);
+  });
+
+  it('ACOS(-1) = PI', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ACOS(-1.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(3.141592653589793, 10);
+  });
+
+  it('ACOS(0.5) = PI/3', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ACOS(0.5);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.0471975511965976, 10);
+  });
+});
+
+// ============================================================================
+// ATAN Function Tests (IEC 61131-3 §6.6.2.5.3)
+// ============================================================================
+
+describe('ATAN Function', () => {
+  it('ATAN(0) = 0', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ATAN(0.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.0, 10);
+  });
+
+  it('ATAN(1) = PI/4', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ATAN(1.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.7853981633974483, 10);
+  });
+
+  it('ATAN(-1) = -PI/4', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ATAN(-1.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(-0.7853981633974483, 10);
+  });
+
+  it('ATAN(large value) approaches PI/2', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := ATAN(1000000.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.5707963267948966, 5);
+  });
+});
+
+// ============================================================================
+// LN Function Tests (IEC 61131-3 §6.6.2.5.3)
+// ============================================================================
+
+describe('LN Function', () => {
+  it('LN(1) = 0', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := LN(1.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.0, 10);
+  });
+
+  it('LN(e) = 1', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := LN(2.718281828459045);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.0, 10);
+  });
+
+  it('LN(e^2) = 2', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := LN(7.38905609893065);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(2.0, 10);
+  });
+
+  it('LN(0) = -Infinity', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := LN(0.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBe(-Infinity);
+  });
+
+  it('LN(negative) = NaN', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := LN(-1.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeNaN();
+  });
+});
+
+// ============================================================================
+// LOG Function Tests (IEC 61131-3 §6.6.2.5.3)
+// ============================================================================
+
+describe('LOG Function', () => {
+  it('LOG(1) = 0', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := LOG(1.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.0, 10);
+  });
+
+  it('LOG(10) = 1', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := LOG(10.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.0, 10);
+  });
+
+  it('LOG(100) = 2', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := LOG(100.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(2.0, 10);
+  });
+
+  it('LOG(1000) = 3', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := LOG(1000.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(3.0, 10);
+  });
+
+  it('LOG(0.1) = -1', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := LOG(0.1);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(-1.0, 10);
+  });
+});
+
+// ============================================================================
+// EXP Function Tests (IEC 61131-3 §6.6.2.5.3)
+// ============================================================================
+
+describe('EXP Function', () => {
+  it('EXP(0) = 1', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := EXP(0.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.0, 10);
+  });
+
+  it('EXP(1) = e', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := EXP(1.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(2.718281828459045, 10);
+  });
+
+  it('EXP(2) = e^2', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := EXP(2.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(7.38905609893065, 10);
+  });
+
+  it('EXP(-1) = 1/e', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        Result : REAL;
+      END_VAR
+      Result := EXP(-1.0);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.36787944117144233, 10);
+  });
+
+  it('EXP(LN(x)) = x (inverse property)', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        x : REAL := 5.0;
+        Result : REAL;
+      END_VAR
+      Result := EXP(LN(x));
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(5.0, 10);
+  });
+});
+
+// ============================================================================
+// Trigonometric Identity Tests
+// ============================================================================
+
+describe('Trigonometric Identities', () => {
+  it('SIN^2(x) + COS^2(x) = 1 (Pythagorean identity)', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        x : REAL := 0.7;
+        sinVal : REAL;
+        cosVal : REAL;
+        Result : REAL;
+      END_VAR
+      sinVal := SIN(x);
+      cosVal := COS(x);
+      Result := sinVal * sinVal + cosVal * cosVal;
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.0, 10);
+  });
+
+  it('TAN(x) = SIN(x) / COS(x)', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        x : REAL := 0.5;
+        tanVal : REAL;
+        Result : REAL;
+      END_VAR
+      tanVal := TAN(x);
+      Result := SIN(x) / COS(x);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    const tanVal = Math.tan(0.5);
+    expect(store.getReal('Result')).toBeCloseTo(tanVal, 10);
+  });
+
+  it('ASIN(SIN(x)) = x for x in [-PI/2, PI/2]', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        x : REAL := 0.3;
+        Result : REAL;
+      END_VAR
+      Result := ASIN(SIN(x));
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.3, 10);
+  });
+
+  it('ACOS(COS(x)) = x for x in [0, PI]', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        x : REAL := 1.2;
+        Result : REAL;
+      END_VAR
+      Result := ACOS(COS(x));
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(1.2, 10);
+  });
+
+  it('ATAN(TAN(x)) = x for x in (-PI/2, PI/2)', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        x : REAL := 0.8;
+        Result : REAL;
+      END_VAR
+      Result := ATAN(TAN(x));
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(0.8, 10);
+  });
+});
+
+// ============================================================================
+// Logarithmic Identity Tests
+// ============================================================================
+
+describe('Logarithmic Identities', () => {
+  it('LN(EXP(x)) = x (inverse property)', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        x : REAL := 3.5;
+        Result : REAL;
+      END_VAR
+      Result := LN(EXP(x));
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(3.5, 10);
+  });
+
+  it('LOG(10^x) = x', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        x : REAL := 2.5;
+        powerOfTen : REAL;
+        Result : REAL;
+      END_VAR
+      powerOfTen := 10.0 ** x;
+      Result := LOG(powerOfTen);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('Result')).toBeCloseTo(2.5, 10);
+  });
+
+  it('LN(a * b) = LN(a) + LN(b) (product rule)', () => {
+    const store = createTestStore();
+    const ast = parseSTToAST(`
+      PROGRAM Test
+      VAR
+        a : REAL := 3.0;
+        b : REAL := 4.0;
+        lhs : REAL;
+        rhs : REAL;
+      END_VAR
+      lhs := LN(a * b);
+      rhs := LN(a) + LN(b);
+      END_PROGRAM
+    `);
+
+    initializeVariables(ast, store);
+    runScanCycle(ast, store, createRuntimeState(ast));
+
+    expect(store.getReal('lhs')).toBeCloseTo(store.getReal('rhs'), 10);
   });
 });
