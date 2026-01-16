@@ -18,6 +18,8 @@
   background: #252526;
   border-bottom: 1px solid #3c3c3c;
   font-size: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .ladder-canvas-title {

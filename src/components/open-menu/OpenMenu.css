@@ -1,0 +1,103 @@
+/**
+ * Open Menu Styles
+ */
+
+.open-menu {
+  position: relative;
+  z-index: 9999;
+}
+
+.open-menu .toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.open-menu .dropdown-caret {
+  font-size: 8px;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+.open-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  min-width: 260px;
+  background: var(--bg-secondary, #2d2d2d);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+  overflow: hidden;
+}
+
+.open-menu-section {
+  padding: 4px 0;
+}
+
+.open-menu-header {
+  padding: 8px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.open-menu-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.open-menu-option:hover {
+  background: var(--bg-hover);
+}
+
+.open-menu-option:active {
+  background: var(--bg-active);
+}
+
+.open-menu-option .option-icon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.open-menu-option .option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.open-menu-option .option-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.open-menu-option .option-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.open-menu-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 4px 0;
+}

@@ -23,6 +23,8 @@
   background: #333333;
   border-bottom: 1px solid #252526;
   gap: 4px;
+  position: relative;
+  z-index: 1000;
 }
 
 .toolbar-group {
@@ -162,6 +164,8 @@
   display: flex;
   flex-direction: row;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .workspace-main {
