@@ -2,7 +2,7 @@
 
 **Goal:** Generate app documentation from real markdown files instead of hardcoded TypeScript strings.
 
-**Status:** Planning
+**Status:** Complete
 
 **Scope:**
 - App docs (tutorials, guides, examples) → Migrate to `.md` files
