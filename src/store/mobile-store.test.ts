@@ -163,7 +163,7 @@ describe('mobile-store', () => {
     });
 
     it('cycles through all view types', () => {
-      const views: Array<'ladder' | 'editor' | 'debug' | 'properties'> = ['ladder', 'editor', 'debug', 'properties'];
+      const views: Array<'ladder' | 'editor' | 'debug'> = ['ladder', 'editor', 'debug'];
 
       views.forEach((view) => {
         useMobileStore.getState().setActiveView(view);
@@ -236,12 +236,11 @@ describe('mobile-store', () => {
     it('handles rapid view switches', () => {
       useMobileStore.getState().setActiveView('editor');
       useMobileStore.getState().setActiveView('debug');
-      useMobileStore.getState().setActiveView('properties');
       useMobileStore.getState().setActiveView('ladder');
 
       const state = useMobileStore.getState();
       expect(state.activeView).toBe('ladder');
-      expect(state.previousView).toBe('properties');
+      expect(state.previousView).toBe('debug');
     });
 
     it('handles viewport changes while keyboard is visible', () => {

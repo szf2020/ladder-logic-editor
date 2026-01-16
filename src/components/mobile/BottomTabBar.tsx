@@ -36,12 +36,6 @@ const TABS: TabConfig[] = [
     icon: '▶',
     ariaLabel: 'Debug and Simulation View',
   },
-  {
-    id: 'properties',
-    label: 'Props',
-    icon: '⚙',
-    ariaLabel: 'Properties Panel View',
-  },
 ];
 
 export function BottomTabBar() {
