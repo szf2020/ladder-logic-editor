@@ -70,6 +70,8 @@ export interface ExecutionContext extends EvaluationContext {
   getReal: (name: string) => number;
   /** Get the declared type of a variable */
   getVariableType: (name: string) => DeclaredType | undefined;
+  /** Check if a variable is declared as CONSTANT */
+  isConstant: (name: string) => boolean;
   /** Handle function block calls (timers, counters) */
   handleFunctionBlockCall: (call: STFunctionBlockCall, ctx: ExecutionContext) => void;
 }
@@ -146,8 +148,15 @@ export function executeStatements(stmts: STStatement[], context: ExecutionContex
 // ============================================================================
 
 function executeAssignment(stmt: STAssignment, context: ExecutionContext): void {
-  const value = evaluateExpression(stmt.expression, context);
   const targetName = stmt.target.name;
+
+  // Check if the target variable is CONSTANT
+  if (context.isConstant(targetName)) {
+    console.warn(`Cannot assign to CONSTANT variable '${targetName}'`);
+    return; // Silently skip assignment to constants (per IEC 61131-3)
+  }
+
+  const value = evaluateExpression(stmt.expression, context);
 
   // Get the declared type of the target variable
   const declaredType = context.getVariableType(targetName);

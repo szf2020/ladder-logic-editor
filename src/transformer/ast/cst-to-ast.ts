@@ -31,6 +31,7 @@ import type {
   STLiteral,
   STFunctionCall,
   VariableScopeKind,
+  VariableQualifier,
   BinaryOperator,
   ProgramType,
   ParseError,
@@ -195,6 +196,7 @@ function parseProgramDecl(
 function parseVarBlock(node: SyntaxNode, source: string): STVarBlock {
   const loc = { start: node.from, end: node.to };
   let scope: VariableScopeKind = 'VAR';
+  let qualifier: VariableQualifier | undefined;
   const declarations: STVariableDecl[] = [];
 
   let child = node.firstChild;
@@ -203,6 +205,9 @@ function parseVarBlock(node: SyntaxNode, source: string): STVarBlock {
       case 'VarKeyword':
         scope = parseVarKeyword(child, source);
         break;
+      case 'VarQualifier':
+        qualifier = parseVarQualifier(child, source);
+        break;
       case 'VariableDecl':
         declarations.push(parseVariableDecl(child, source));
         break;
@@ -210,7 +215,14 @@ function parseVarBlock(node: SyntaxNode, source: string): STVarBlock {
     child = child.nextSibling;
   }
 
-  return { type: 'VarBlock', scope, declarations, loc };
+  return { type: 'VarBlock', scope, qualifier, declarations, loc };
+}
+
+function parseVarQualifier(node: SyntaxNode, source: string): VariableQualifier | undefined {
+  const text = source.slice(node.from, node.to).toUpperCase().trim();
+  if (text === 'CONSTANT') return 'CONSTANT';
+  if (text === 'RETAIN') return 'RETAIN';
+  return undefined;
 }
 
 function parseVarKeyword(node: SyntaxNode, source: string): VariableScopeKind {

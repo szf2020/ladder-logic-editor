@@ -132,6 +132,7 @@ describe('executeStatement', () => {
       getReal: vi.fn().mockReturnValue(0),
       getVariable,
       getVariableType: vi.fn().mockReturnValue(undefined),  // Default: no type info
+      isConstant: vi.fn().mockReturnValue(false),  // Default: not constant
       getTimerField: vi.fn().mockReturnValue(false),
       getCounterField: vi.fn().mockReturnValue(0),
       handleFunctionBlockCall: handleFunctionBlock,

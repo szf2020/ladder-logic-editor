@@ -23,6 +23,12 @@ export type DeclaredType = 'BOOL' | 'INT' | 'REAL' | 'TIME' | 'TIMER' | 'COUNTER
  */
 export type TypeRegistry = Record<string, DeclaredType>;
 
+/**
+ * Set of variable names that are declared as CONSTANT.
+ * These variables cannot be modified after initialization.
+ */
+export type ConstantRegistry = Set<string>;
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -389,4 +395,47 @@ function categorizeType(typeName: string): DeclaredType {
   }
 
   return 'UNKNOWN';
+}
+
+// ============================================================================
+// Constant Registry Builder
+// ============================================================================
+
+/**
+ * Build a registry of constant variables from AST variable declarations.
+ *
+ * Variables declared in a VAR CONSTANT block cannot be modified after
+ * initialization (per IEC 61131-3 Section 2.4.3).
+ *
+ * @param ast - The parsed ST AST
+ * @returns ConstantRegistry containing names of constant variables
+ */
+export function buildConstantRegistry(ast: STAST): ConstantRegistry {
+  const constants = new Set<string>();
+
+  // Process programs
+  for (const program of ast.programs) {
+    for (const varBlock of program.varBlocks) {
+      if (varBlock.qualifier === 'CONSTANT') {
+        for (const decl of varBlock.declarations) {
+          for (const name of decl.names) {
+            constants.add(name);
+          }
+        }
+      }
+    }
+  }
+
+  // Process top-level var blocks
+  for (const varBlock of ast.topLevelVarBlocks) {
+    if (varBlock.qualifier === 'CONSTANT') {
+      for (const decl of varBlock.declarations) {
+        for (const name of decl.names) {
+          constants.add(name);
+        }
+      }
+    }
+  }
+
+  return constants;
 }

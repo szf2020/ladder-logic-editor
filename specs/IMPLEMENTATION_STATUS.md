@@ -11,7 +11,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Category | Implemented | Total | Coverage |
 |----------|-------------|-------|----------|
 | Data Types | 16 | 21 | 76% |
-| Variables | 3 | 10 | 30% |
+| Variables | 4 | 10 | 40% |
 | Operators | 16 | 17 | 94% |
 | Control Flow | 7 | 7 | 100% |
 | Standard FBs | 10 | 10+ | 100%* |
@@ -70,8 +70,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | VAR_GLOBAL | §3.1 | ❌ | - | |
 | VAR_EXTERNAL | §3.1 | ❌ | - | |
 | VAR_TEMP | §3.1 | ❌ | - | |
-| RETAIN | §3.2 | ❌ | - | |
-| CONSTANT | §3.2 | ❌ | - | |
+| RETAIN | §3.2 | ⚠️ | - | Parsed, no persistence |
+| CONSTANT | §3.2 | ✅ | 20 | Read-only enforcement |
 | AT addressing | §3.2 | ❌ | - | |
 | Initial values | §3.3 | ✅ | ✓ | Full support |
 
@@ -224,7 +224,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Std Functions | 106 | ✅ 100% |
 | Bit String Types | 37 | ✅ 100% |
 | Continue Statement | 15 | ✅ 100% |
-| **Total** | **1372** | ✅ 100% |
+| CONSTANT Variables | 20 | ✅ 100% |
+| **Total** | **1402** | ✅ 100% |
 
 ---
 
@@ -250,6 +251,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 | Date | Change |
 |------|--------|
+| 2026-01-16 | Added CONSTANT variable qualifier with read-only enforcement - 20 new tests, variables coverage now 40% |
 | 2026-01-16 | Added CONTINUE statement for loops (FOR, WHILE, REPEAT) - 15 new tests, control flow now 100% |
 | 2026-01-16 | Added bit string types (BYTE, WORD, DWORD, LWORD) with hex (16#FF) and binary (2#1010) literal support - 37 new tests |
 | 2026-01-16 | Added selection functions (SEL, MUX, LIMIT) with 19 new tests |

@@ -46,7 +46,7 @@ FunctionBlockDecl {
 // ============================================================================
 
 VarBlock {
-  VarKeyword
+  VarKeyword VarQualifier?
   VariableDecl*
   kw<"END_VAR">
 }
@@ -58,6 +58,11 @@ VarKeyword {
   kw<"VAR_IN_OUT"> |
   kw<"VAR_TEMP"> |
   kw<"VAR_GLOBAL">
+}
+
+VarQualifier {
+  kw<"CONSTANT"> |
+  kw<"RETAIN">
 }
 
 VariableDecl {

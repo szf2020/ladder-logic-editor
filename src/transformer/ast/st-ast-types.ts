@@ -36,6 +36,8 @@ export type VariableScopeKind =
   | 'VAR_TEMP'
   | 'VAR_GLOBAL';
 
+export type VariableQualifier = 'CONSTANT' | 'RETAIN';
+
 export interface STTypeSpec extends ASTNode {
   type: 'TypeSpec';
   typeName: string;
@@ -53,6 +55,7 @@ export interface STVariableDecl extends ASTNode {
 export interface STVarBlock extends ASTNode {
   type: 'VarBlock';
   scope: VariableScopeKind;
+  qualifier?: VariableQualifier;
   declarations: STVariableDecl[];
 }
 
