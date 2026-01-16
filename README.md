@@ -19,6 +19,8 @@
 <p align="center">
   <a href="https://cdilga.github.io/ladder-logic-editor/"><b>⚡ Live Demo</b></a>
   &nbsp;•&nbsp;
+  <a href="https://cdilga.github.io/ladder-logic-editor/#/docs"><b>📚 Documentation</b></a>
+  &nbsp;•&nbsp;
   <a href="#-quick-start">Quick Start</a>
   &nbsp;•&nbsp;
   <a href="#-features">Features</a>
@@ -35,6 +37,10 @@
 <p align="center">
   <a href="https://cdilga.github.io/ladder-logic-editor/">
     <img src="https://img.shields.io/badge/▶_TRY_THE_LIVE_DEMO-00875A?style=for-the-badge&logoColor=white" alt="Try the Live Demo" height="50"/>
+  </a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://cdilga.github.io/ladder-logic-editor/#/docs">
+    <img src="https://img.shields.io/badge/📚_READ_THE_DOCS-FF9500?style=for-the-badge&logoColor=white" alt="Read the Documentation" height="50"/>
   </a>
 </p>
 

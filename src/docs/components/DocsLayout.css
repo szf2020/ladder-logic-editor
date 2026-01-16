@@ -39,6 +39,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 32px;
   height: 32px;
   padding: 0;
@@ -47,6 +48,10 @@
   color: #d4d4d4;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.docs-header__menu-btn svg {
+  display: block;
 }
 
 .docs-header__menu-btn:hover {
