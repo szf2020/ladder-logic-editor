@@ -11,6 +11,7 @@
  */
 
 import { useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useOnboardingStore } from '../../store/onboarding-store';
 import { useMobileStore } from '../../store/mobile-store';
 import { useProjectStore } from '../../store/project-store';
@@ -35,6 +36,7 @@ Motor := StartDelay.Q AND NOT StopButton;
 `;
 
 export function OnboardingManager() {
+  const navigate = useNavigate();
   const {
     isActive,
     currentStep,
@@ -99,7 +101,7 @@ export function OnboardingManager() {
           break;
         case 'open-docs':
           // Navigate to docs route
-          window.location.href = '#/docs';
+          navigate('/docs');
           handleDismiss();
           break;
         default:

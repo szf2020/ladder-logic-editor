@@ -61,10 +61,9 @@ export function CodeExample({ code, title }: CodeExampleProps) {
     state.setCurrentProgram(newProgram.id);
 
     // Save immediately so it persists before navigation
-    // (MainLayout loads from localStorage on mount)
     const updatedProject = useProjectStore.getState().project;
     if (updatedProject) {
-      saveToLocalStorage(updatedProject);
+      saveToLocalStorage(updatedProject, newProgram.id);
     }
 
     // Navigate to the editor
