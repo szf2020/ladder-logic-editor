@@ -184,6 +184,8 @@ function applyBinaryOperator(operator: BinaryOperator, left: Value, right: Value
       return toNumber(left) / toNumber(right);
     case 'MOD':
       return toNumber(left) % toNumber(right);
+    case '**':
+      return Math.pow(toNumber(left), toNumber(right));
 
     default:
       throw new Error(`Unknown binary operator: ${operator}`);

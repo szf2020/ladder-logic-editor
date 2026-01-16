@@ -12,7 +12,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 |----------|-------------|-------|----------|
 | Data Types | 4 | 21 | 19% |
 | Variables | 3 | 10 | 30% |
-| Operators | 15 | 17 | 88% |
+| Operators | 16 | 17 | 94% |
 | Control Flow | 6 | 7 | 86% |
 | Standard FBs | 10 | 10+ | 100%* |
 | POUs | 1 | 3 | 33% |
@@ -88,7 +88,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | * | §4.1 | ✅ | |
 | / | §4.1 | ✅ | |
 | MOD | §4.1 | ✅ | |
-| ** | §4.1 | ❌ | Exponentiation not implemented |
+| ** | §4.1 | ✅ | Left-to-right associativity per IEC 61131-3 |
 
 ### Comparison
 
@@ -200,14 +200,14 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Bistables | 45 | ✅ 100% |
 | Data Types | 110 | ✅ 100% |
 | Variables | 59 | ✅ 100% |
-| Operators | 101 | ✅ 100% |
+| Operators | 120 | ✅ 100% |
 | Control Flow | 116 | ✅ 100% |
 | Error Handling | 55 | ✅ 100% |
 | Property Tests | 86 | ✅ 100% |
 | Bounds | 71 | ✅ 100% |
 | Integration | 105 | ✅ 100% |
 | Additional | 50 | ✅ 100% |
-| **Total** | **1047** | ✅ 100% |
+| **Total** | **1094** | ✅ 100% |
 
 ---
 
@@ -215,10 +215,10 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 ### Next Priorities
 
-1. **Exponentiation operator (**)** - Required by standard
-2. **Additional integer types** - SINT, DINT, UINT, UDINT
-3. **RETURN statement** - For completeness
-4. **Standard functions** - ABS, SQRT, MIN, MAX
+1. **Additional integer types** - SINT, DINT, UINT, UDINT
+2. **RETURN statement** - For completeness
+3. **Standard functions** - ABS, SQRT, MIN, MAX (partially implemented)
+4. **CONTINUE statement** - Edition 3 feature
 
 ### Future Consideration
 
@@ -234,4 +234,5 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 | Date | Change |
 |------|--------|
+| 2026-01-16 | Added exponentiation operator (**) with 19 tests |
 | 2026-01-16 | Initial creation, extracted from COMPLIANCE_MATRIX.md |

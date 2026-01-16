@@ -82,7 +82,8 @@ export type BinaryOperator =
   | '-'
   | '*'
   | '/'
-  | 'MOD';
+  | 'MOD'
+  | '**';
 
 export interface STBinaryExpr extends ASTNode {
   type: 'BinaryExpr';
@@ -288,5 +289,5 @@ export function isComparisonOperator(op: BinaryOperator): boolean {
 }
 
 export function isArithmeticOperator(op: BinaryOperator): boolean {
-  return op === '+' || op === '-' || op === '*' || op === '/' || op === 'MOD';
+  return op === '+' || op === '-' || op === '*' || op === '/' || op === 'MOD' || op === '**';
 }

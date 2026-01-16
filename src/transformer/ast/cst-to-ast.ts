@@ -881,7 +881,7 @@ function parseMulExpression(node: SyntaxNode, source: string): STExpression {
 function parseUnaryExpression(node: SyntaxNode, source: string): STExpression {
   const loc = { start: node.from, end: node.to };
   const unaryOps: Array<'NOT' | '-'> = [];
-  let primary: STExpression | null = null;
+  let powerExpr: STExpression | null = null;
 
   let child = node.firstChild;
   while (child) {
@@ -890,15 +890,15 @@ function parseUnaryExpression(node: SyntaxNode, source: string): STExpression {
       unaryOps.push('NOT');
     } else if (text === '-') {
       unaryOps.push('-');
-    } else if (child.name === 'PrimaryExpression') {
-      primary = parsePrimaryExpression(child, source);
+    } else if (child.name === 'PowerExpression') {
+      powerExpr = parsePowerExpression(child, source);
     }
     child = child.nextSibling;
   }
 
-  if (primary) {
+  if (powerExpr) {
     // Apply unary operators in reverse order (innermost first)
-    let result = primary;
+    let result = powerExpr;
     for (let i = unaryOps.length - 1; i >= 0; i--) {
       result = {
         type: 'UnaryExpr',
@@ -911,6 +911,29 @@ function parseUnaryExpression(node: SyntaxNode, source: string): STExpression {
   }
 
   return { type: 'Literal', value: false, literalType: 'BOOL', rawValue: 'FALSE', loc };
+}
+
+function parsePowerExpression(node: SyntaxNode, source: string): STExpression {
+  const loc = { start: node.from, end: node.to };
+  const parts: { expr: STExpression; op?: BinaryOperator }[] = [];
+
+  let child = node.firstChild;
+  while (child) {
+    if (child.name === 'PrimaryExpression') {
+      parts.push({ expr: parsePrimaryExpression(child, source) });
+    } else {
+      const text = source.slice(child.from, child.to);
+      if (text === '**') {
+        if (parts.length > 0) {
+          parts[parts.length - 1].op = '**';
+        }
+      }
+    }
+    child = child.nextSibling;
+  }
+
+  // IEC 61131-3 specifies left-to-right associativity for **
+  return buildLeftAssociativeExpr(parts, loc);
 }
 
 function parsePrimaryExpression(node: SyntaxNode, source: string): STExpression {
@@ -1129,6 +1152,8 @@ function parseExpressionNode(node: SyntaxNode, source: string): STExpression {
       return parseAddExpression(node, source);
     case 'MulExpression':
       return parseMulExpression(node, source);
+    case 'PowerExpression':
+      return parsePowerExpression(node, source);
     case 'UnaryExpression':
       return parseUnaryExpression(node, source);
     case 'PrimaryExpression':

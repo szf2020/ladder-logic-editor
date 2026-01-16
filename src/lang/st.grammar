@@ -225,7 +225,11 @@ MulExpression {
 }
 
 UnaryExpression {
-  ("-" | kw<"NOT">)* PrimaryExpression
+  ("-" | kw<"NOT">)* PowerExpression
+}
+
+PowerExpression {
+  PrimaryExpression ("**" PrimaryExpression)*
 }
 
 PrimaryExpression {
@@ -285,7 +289,7 @@ Literal {
   space { $[ \t\n\r]+ }
 
   "(" ")" "[" "]" "{" "}" ";" ":" ":=" "," ".." "."
-  "+" "-" "*" "/" "=" "<>" "<" ">" "<=" ">="
+  "+" "-" "*" "/" "**" "=" "<>" "<" ">" "<=" ">="
 
   @precedence { TimeLiteral, Boolean, Number, Identifier, LineComment, "/" }
 }

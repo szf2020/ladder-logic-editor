@@ -64,11 +64,11 @@ CODESYS/Beckhoff show exponentiation above unary. This table follows CODESYS/Bec
 - [x] MOD by zero behavior (tested in error-handling.test.ts)
 
 ### Exponentiation (**)
-- [ ] INT ** INT
-- [ ] REAL ** REAL
-- [ ] Negative base
-- [ ] Fractional exponent
-- [ ] 0 ** 0 behavior
+- [x] INT ** INT
+- [x] REAL ** REAL
+- [x] Negative base
+- [x] Fractional exponent
+- [x] 0 ** 0 behavior
 
 ### Unary Negation (-)
 - [x] -INT
@@ -178,7 +178,7 @@ Result := a > b AND c < d;
 
 ### Associativity Tests
 **Note:** IEC 61131-3 specifies left-to-right for `**` (unlike most languages which use right-to-left).
-- [ ] `2 ** 3 ** 2 = 64` (IEC left-to-right: (2 ** 3) ** 2 = 8 ** 2) - Exponentiation not implemented
+- [x] `2 ** 3 ** 2 = 64` (IEC left-to-right: (2 ** 3) ** 2 = 8 ** 2)
 - [x] `NOT NOT TRUE = TRUE` (unary operators are right-to-left)
 - [x] `NOT NOT FALSE = FALSE`
 
@@ -222,7 +222,7 @@ fc.assert(fc.property(fc.boolean(), fc.boolean(), (a, b) => {
 
 ## Known Issues
 
-1. **Exponentiation** (`**`) is not implemented (parser/interpreter support missing)
+1. ~~**Exponentiation** (`**`) is not implemented~~ ✅ Implemented with left-to-right associativity per IEC 61131-3
 2. **Short-circuit evaluation** - NOT implemented; both operands always evaluated (documented)
 3. **Type coercion** in mixed expressions needs verification
 
