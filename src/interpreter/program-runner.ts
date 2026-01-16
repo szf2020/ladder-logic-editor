@@ -31,10 +31,10 @@ export function runScanCycle(
   // Create execution context
   const context = createExecutionContext(store, runtimeState);
 
-  // Execute each program's statements (skip FUNCTION definitions - they're invoked on demand)
+  // Execute each program's statements (skip FUNCTION and FUNCTION_BLOCK definitions - they're invoked on demand)
   for (const program of ast.programs) {
-    if (program.programType === 'FUNCTION') {
-      continue; // Functions are invoked, not executed in scan cycle
+    if (program.programType === 'FUNCTION' || program.programType === 'FUNCTION_BLOCK') {
+      continue; // Functions and function blocks are invoked, not executed in scan cycle
     }
     try {
       executeStatements(program.statements, context);

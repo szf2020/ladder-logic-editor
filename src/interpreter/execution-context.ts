@@ -92,6 +92,23 @@ export interface SimulationStoreInterface extends FunctionBlockStore {
 }
 
 /**
+ * User-defined function block instance state.
+ * Stores all internal variables and outputs for a FB instance.
+ */
+export interface UserFBInstanceState {
+  /** The FB type name (matches FUNCTION_BLOCK declaration name) */
+  fbTypeName: string;
+  /** Boolean variables (VAR, VAR_OUTPUT) */
+  booleans: Record<string, boolean>;
+  /** Integer variables (VAR, VAR_OUTPUT) */
+  integers: Record<string, number>;
+  /** Real variables (VAR, VAR_OUTPUT) */
+  reals: Record<string, number>;
+  /** Time variables (VAR, VAR_OUTPUT) */
+  times: Record<string, number>;
+}
+
+/**
  * Runtime state that persists across scan cycles.
  */
 export interface RuntimeState {
@@ -103,6 +120,10 @@ export interface RuntimeState {
   typeRegistry: TypeRegistry;
   /** Set of variable names declared as CONSTANT */
   constantRegistry: ConstantRegistry;
+  /** User-defined function block instance states (persisted across scan cycles) */
+  userFBInstances: Record<string, UserFBInstanceState>;
+  /** Maps instance name to its FB type name */
+  userFBTypeMap: Record<string, string>;
 }
 
 // ============================================================================
@@ -203,6 +224,21 @@ export function createExecutionContext(
       }
     },
 
+    // User-defined function block field access (instance.Output)
+    // Returns undefined if the instance doesn't exist (to allow fallthrough to standard FBs)
+    getUserFBField: (instanceName: string, field: string) => {
+      const instance = runtimeState.userFBInstances[instanceName];
+      if (!instance) return undefined;
+
+      if (field in instance.booleans) return instance.booleans[field];
+      if (field in instance.integers) return instance.integers[field];
+      if (field in instance.reals) return instance.reals[field];
+      if (field in instance.times) return instance.times[field];
+
+      // Field not found in instance - return 0 as default (it's a valid user FB but unknown field)
+      return 0;
+    },
+
     // Array element access
     getArrayElement: store.getArrayElement
       ? (name: string, index: number) => {
@@ -219,7 +255,13 @@ export function createExecutionContext(
 
     // Function block handling
     handleFunctionBlockCall: (call, _ctx) => {
-      handleFunctionBlockCall(call, fbContext);
+      // Check if this is a user-defined function block call
+      const instanceName = call.instanceName;
+      if (instanceName in runtimeState.userFBInstances) {
+        invokeUserFunctionBlock(instanceName, call.arguments, runtimeState, store, fbContext);
+      } else {
+        handleFunctionBlockCall(call, fbContext);
+      }
     },
 
     // User-defined function invocation
@@ -236,12 +278,103 @@ export function createExecutionContext(
  * @returns Fresh runtime state
  */
 export function createRuntimeState(ast: STAST): RuntimeState {
+  const typeRegistry = buildTypeRegistry(ast);
+  const userFBTypeMap = buildUserFBTypeMap(ast);
+  const userFBInstances = initializeUserFBInstances(ast, userFBTypeMap);
+
   return {
     previousInputs: {},
     ast,
-    typeRegistry: buildTypeRegistry(ast),
+    typeRegistry,
     constantRegistry: buildConstantRegistry(ast),
+    userFBInstances,
+    userFBTypeMap,
   };
+}
+
+/**
+ * Build a map of instance names to their user-defined FB type names.
+ */
+function buildUserFBTypeMap(ast: STAST): Record<string, string> {
+  const map: Record<string, string> = {};
+  const userFBNames = new Set(
+    ast.programs
+      .filter(p => p.programType === 'FUNCTION_BLOCK')
+      .map(p => p.name)
+  );
+
+  for (const program of ast.programs) {
+    if (program.programType === 'PROGRAM') {
+      for (const varBlock of program.varBlocks) {
+        for (const decl of varBlock.declarations) {
+          const typeName = decl.dataType.typeName;
+          if (userFBNames.has(typeName)) {
+            for (const name of decl.names) {
+              map[name] = typeName;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return map;
+}
+
+/**
+ * Initialize user-defined FB instances from declarations.
+ */
+function initializeUserFBInstances(
+  ast: STAST,
+  userFBTypeMap: Record<string, string>
+): Record<string, UserFBInstanceState> {
+  const instances: Record<string, UserFBInstanceState> = {};
+
+  for (const [instanceName, fbTypeName] of Object.entries(userFBTypeMap)) {
+    const fbDef = ast.programs.find(
+      p => p.programType === 'FUNCTION_BLOCK' && p.name === fbTypeName
+    );
+    if (!fbDef) continue;
+
+    // Initialize instance state with default values for all VAR and VAR_OUTPUT variables
+    const state: UserFBInstanceState = {
+      fbTypeName,
+      booleans: {},
+      integers: {},
+      reals: {},
+      times: {},
+    };
+
+    for (const varBlock of fbDef.varBlocks) {
+      // Initialize VAR (internal state) and VAR_OUTPUT (outputs)
+      if (varBlock.scope === 'VAR' || varBlock.scope === 'VAR_OUTPUT') {
+        for (const decl of varBlock.declarations) {
+          const typeName = decl.dataType.typeName.toUpperCase();
+          for (const varName of decl.names) {
+            switch (typeName) {
+              case 'BOOL':
+                state.booleans[varName] = false;
+                break;
+              case 'REAL':
+              case 'LREAL':
+                state.reals[varName] = 0.0;
+                break;
+              case 'TIME':
+                state.times[varName] = 0;
+                break;
+              default:
+                state.integers[varName] = 0;
+                break;
+            }
+          }
+        }
+      }
+    }
+
+    instances[instanceName] = state;
+  }
+
+  return instances;
 }
 
 // ============================================================================
@@ -574,6 +707,258 @@ function invokeUserFunction(
   }
 
   return returnValue;
+}
+
+// ============================================================================
+// User-Defined Function Block Invocation
+// ============================================================================
+
+import type { STNamedArgument } from '../transformer/ast/st-ast-types';
+import { evaluateExpression } from './expression-evaluator';
+
+/**
+ * Find a user-defined FUNCTION_BLOCK by name in the AST.
+ */
+function findFunctionBlock(ast: STAST, name: string): STProgram | undefined {
+  return ast.programs.find(
+    (prog) => prog.programType === 'FUNCTION_BLOCK' && prog.name === name
+  );
+}
+
+/**
+ * Get VAR_OUTPUT declarations from a function block.
+ */
+function getOutputVariables(fb: STProgram): Array<{ name: string; typeName: string }> {
+  const outputs: Array<{ name: string; typeName: string }> = [];
+  for (const varBlock of fb.varBlocks) {
+    if (varBlock.scope === 'VAR_OUTPUT') {
+      for (const decl of varBlock.declarations) {
+        for (const varName of decl.names) {
+          outputs.push({ name: varName, typeName: decl.dataType.typeName });
+        }
+      }
+    }
+  }
+  return outputs;
+}
+
+/**
+ * Invoke a user-defined function block.
+ *
+ * @param instanceName - The FB instance name
+ * @param args - Named arguments from the FB call
+ * @param runtimeState - Runtime state containing the AST and FB instances
+ * @param store - Simulation store for accessing global variables
+ * @param fbContext - Function block context
+ */
+function invokeUserFunctionBlock(
+  instanceName: string,
+  args: STNamedArgument[],
+  runtimeState: RuntimeState,
+  store: SimulationStoreInterface,
+  fbContext: ReturnType<typeof createFunctionBlockContext>
+): void {
+  // Get instance state
+  const instanceState = runtimeState.userFBInstances[instanceName];
+  if (!instanceState) {
+    console.warn(`User FB instance '${instanceName}' not found`);
+    return;
+  }
+
+  // Find the function block definition
+  const fb = findFunctionBlock(runtimeState.ast, instanceState.fbTypeName);
+  if (!fb) {
+    console.warn(`User FB type '${instanceState.fbTypeName}' not found`);
+    return;
+  }
+
+  // Create a temporary evaluation context to evaluate input arguments
+  const tempContext = {
+    getVariable: (name: string) => {
+      if (name in store.booleans) return store.booleans[name];
+      if (name in store.integers) return store.integers[name];
+      if (name in store.reals) return store.reals[name];
+      if (name in store.times) return store.times[name];
+      return false;
+    },
+    getTimerField: (timerName: string, field: string) => {
+      const timer = store.getTimer(timerName);
+      if (!timer) return field === 'Q' ? false : 0;
+      switch (field.toUpperCase()) {
+        case 'Q': return timer.Q;
+        case 'ET': return timer.ET;
+        case 'IN': return timer.IN;
+        case 'PT': return timer.PT;
+        default: return 0;
+      }
+    },
+    getCounterField: (counterName: string, field: string) => {
+      const counter = store.getCounter(counterName);
+      if (!counter) return field === 'QU' || field === 'QD' ? false : 0;
+      switch (field.toUpperCase()) {
+        case 'CV': return counter.CV;
+        case 'QU': return counter.QU;
+        case 'QD': return counter.QD;
+        case 'PV': return counter.PV;
+        default: return 0;
+      }
+    },
+  };
+
+  // Bind input arguments to local input variables
+  const localInputs: Record<string, Value> = {};
+  const inputParams = getInputParameters(fb);
+  for (const arg of args) {
+    const param = inputParams.find(p => p.name.toUpperCase() === arg.name.toUpperCase());
+    if (param) {
+      localInputs[param.name] = evaluateExpression(arg.expression, tempContext);
+    }
+  }
+
+  // Build local type registry for the FB execution
+  const localTypeRegistry: TypeRegistry = {};
+  for (const param of inputParams) {
+    localTypeRegistry[param.name] = mapTypeName(param.typeName);
+  }
+  const localVars = getLocalVariables(fb);
+  for (const local of localVars) {
+    localTypeRegistry[local.name] = mapTypeName(local.typeName);
+  }
+  const outputVars = getOutputVariables(fb);
+  for (const out of outputVars) {
+    localTypeRegistry[out.name] = mapTypeName(out.typeName);
+  }
+
+  // Create FB execution context that reads/writes to instance state
+  const fbExecContext: ExecutionContext = {
+    // Variable setters (write to instance state)
+    setBool: (varName: string, value: boolean) => {
+      instanceState.booleans[varName] = value;
+    },
+    setInt: (varName: string, value: number) => {
+      instanceState.integers[varName] = Math.trunc(value);
+    },
+    setReal: (varName: string, value: number) => {
+      instanceState.reals[varName] = value;
+    },
+    setTime: (varName: string, value: number) => {
+      instanceState.times[varName] = Math.trunc(value);
+    },
+
+    // Variable getters (read from inputs first, then instance state, then global)
+    getBool: (varName: string) => {
+      if (varName in localInputs) return Boolean(localInputs[varName]);
+      if (varName in instanceState.booleans) return instanceState.booleans[varName];
+      return store.getBool(varName);
+    },
+    getInt: (varName: string) => {
+      if (varName in localInputs) return Math.trunc(Number(localInputs[varName]));
+      if (varName in instanceState.integers) return instanceState.integers[varName];
+      return store.getInt(varName);
+    },
+    getReal: (varName: string) => {
+      if (varName in localInputs) return Number(localInputs[varName]);
+      if (varName in instanceState.reals) return instanceState.reals[varName];
+      return store.getReal(varName);
+    },
+
+    // Type registry lookup (local first, then global)
+    getVariableType: (varName: string) => {
+      if (varName in localTypeRegistry) return localTypeRegistry[varName];
+      return runtimeState.typeRegistry[varName];
+    },
+
+    // Constants - FB locals are not constants
+    isConstant: (varName: string) => {
+      if (varName in localTypeRegistry) return false;
+      return runtimeState.constantRegistry.has(varName);
+    },
+
+    // Expression evaluation context
+    getVariable: (varName: string) => {
+      // Check local inputs first
+      if (varName in localInputs) return localInputs[varName];
+
+      // Check instance state
+      if (varName in instanceState.booleans) return instanceState.booleans[varName];
+      if (varName in instanceState.integers) return instanceState.integers[varName];
+      if (varName in instanceState.reals) return instanceState.reals[varName];
+      if (varName in instanceState.times) return instanceState.times[varName];
+
+      // Fall back to global store
+      if (varName in store.booleans) return store.booleans[varName];
+      if (varName in store.integers) return store.integers[varName];
+      if (varName in store.reals) return store.reals[varName];
+      if (varName in store.times) return store.times[varName];
+
+      return false;
+    },
+
+    getTimerField: (timerName: string, field: string) => {
+      const timer = store.getTimer(timerName);
+      if (!timer) return field === 'Q' ? false : 0;
+      switch (field.toUpperCase()) {
+        case 'Q': return timer.Q;
+        case 'ET': return timer.ET;
+        case 'IN': return timer.IN;
+        case 'PT': return timer.PT;
+        default: return 0;
+      }
+    },
+
+    getCounterField: (counterName: string, field: string) => {
+      const counter = store.getCounter(counterName);
+      if (!counter) return field === 'QU' || field === 'QD' ? false : 0;
+      switch (field.toUpperCase()) {
+        case 'CV': return counter.CV;
+        case 'QU': return counter.QU;
+        case 'QD': return counter.QD;
+        case 'PV': return counter.PV;
+        default: return 0;
+      }
+    },
+
+    getEdgeDetectorField: (edName: string, field: string) => {
+      const ed = store.getEdgeDetector(edName);
+      if (!ed) return field === 'Q' ? false : 0;
+      switch (field.toUpperCase()) {
+        case 'Q': return ed.Q;
+        case 'CLK': return ed.CLK;
+        case 'M': return ed.M;
+        default: return false;
+      }
+    },
+
+    getBistableField: (bsName: string, field: string) => {
+      const bs = store.getBistable(bsName);
+      if (!bs) return false;
+      switch (field.toUpperCase()) {
+        case 'Q1': return bs.Q1;
+        default: return false;
+      }
+    },
+
+    // Function block handling (nested FB calls within user FB)
+    handleFunctionBlockCall: (call, _ctx) => {
+      handleFunctionBlockCall(call, fbContext);
+    },
+
+    // User function invocation (functions can be called from within FB)
+    invokeUserFunction: (funcName: string, funcArgs: Value[]): Value => {
+      return invokeUserFunction(funcName, funcArgs, runtimeState, store, fbContext);
+    },
+  };
+
+  // Execute the function block statements
+  try {
+    executeStatements(fb.statements, fbExecContext);
+  } catch (e) {
+    if (e instanceof ReturnSignal) {
+      // RETURN statement - normal FB exit
+    } else {
+      throw e;
+    }
+  }
 }
 
 /**

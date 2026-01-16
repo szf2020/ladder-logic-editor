@@ -15,9 +15,9 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Operators | 16 | 17 | 94% |
 | Control Flow | 7 | 7 | 100% |
 | Standard FBs | 10 | 10+ | 100%* |
-| POUs | 2 | 3 | 67% |
+| POUs | 3 | 3 | 100% |
 
-\* Standard function blocks fully implemented; user-defined FBs partially supported (FUNCTION yes, FUNCTION_BLOCK no)
+\* Standard function blocks fully implemented; user-defined FBs fully supported (FUNCTION and FUNCTION_BLOCK)
 
 ---
 
@@ -64,8 +64,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Feature | Reference | Status | Tests | Notes |
 |---------|-----------|--------|-------|-------|
 | VAR / END_VAR | §3.1 | ✅ | 59 | Full support |
-| VAR_INPUT | §3.1 | ✅ | 22 | Full support (in FUNCTIONs) |
-| VAR_OUTPUT | §3.1 | ⚠️ | - | Parsed, limited execution |
+| VAR_INPUT | §3.1 | ✅ | 22 | Full support (in FUNCTIONs and FUNCTION_BLOCKs) |
+| VAR_OUTPUT | §3.1 | ✅ | 18 | Full support (in FUNCTION_BLOCKs) |
 | VAR_IN_OUT | §3.1 | ❌ | - | |
 | VAR_GLOBAL | §3.1 | ✅ | - | Works across programs |
 | VAR_EXTERNAL | §3.1 | ❌ | - | |
@@ -175,7 +175,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 |----------|-----------|--------|-------|-------|
 | PROGRAM | §6.3 | ✅ | - | Main execution unit |
 | FUNCTION | §6.1 | ✅ | 22 | User-defined with VAR_INPUT, VAR, RETURN |
-| FUNCTION_BLOCK | §6.2 | ❌ | - | User-defined not supported |
+| FUNCTION_BLOCK | §6.2 | ✅ | 18 | User-defined with VAR_INPUT, VAR_OUTPUT, VAR, state persistence |
 
 ---
 
@@ -227,7 +227,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | CONSTANT Variables | 20 | ✅ 100% |
 | ARRAY Types | 24 | ✅ 100% |
 | User Functions | 22 | ✅ 100% |
-| **Total** | **1462** | ✅ 100% |
+| User Function Blocks | 18 | ✅ 100% |
+| **Total** | **1480** | ✅ 100% |
 
 ---
 
@@ -235,13 +236,12 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 ### Next Priorities
 
-1. **User-defined FUNCTION_BLOCKs** - Enable stateful reusable blocks
-2. **Multi-dimensional ARRAYs** - Currently single-dimensional only
-3. **STRING support** - Character string operations
+1. **Multi-dimensional ARRAYs** - Currently single-dimensional only
+2. **STRING support** - Character string operations
+3. **STRUCT support** - User-defined structured types
 
 ### Future Consideration
 
-- User-defined FUNCTION_BLOCK
 - Multi-dimensional ARRAY support
 - STRING support
 - STRUCT support
@@ -253,6 +253,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 | Date | Change |
 |------|--------|
+| 2026-01-16 | Added user-defined FUNCTION_BLOCK support with VAR_INPUT, VAR_OUTPUT, VAR internal state, state persistence across scan cycles, multiple instances - 18 new tests, POUs now 100% |
 | 2026-01-16 | Added user-defined FUNCTION support with VAR_INPUT, VAR local variables, RETURN statement - 22 new tests, POUs now 67% |
 | 2026-01-16 | Added single-dimensional ARRAY type with indexed access (read/write) - 24 new tests, data types now 81% |
 | 2026-01-16 | Added TIME arithmetic tests (TIME+TIME, TIME*INT, TIME/INT) - 14 new tests |

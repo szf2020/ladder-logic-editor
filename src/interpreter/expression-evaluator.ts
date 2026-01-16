@@ -39,6 +39,10 @@ export interface EvaluationContext {
   getEdgeDetectorField?: (name: string, field: string) => Value;
   /** Get a bistable field (Q1) - optional for backwards compatibility */
   getBistableField?: (name: string, field: string) => Value;
+  /** Get a user-defined function block output field - optional for user FB support
+   *  Returns undefined if the instance doesn't exist (to allow fallthrough to standard FBs)
+   */
+  getUserFBField?: (instanceName: string, field: string) => Value | undefined;
   /** Get an array element by name and index - optional for array support */
   getArrayElement?: (name: string, index: number) => Value;
   /** Invoke a user-defined function - optional for user function support */
@@ -117,9 +121,21 @@ function evaluateVariable(variable: STVariable, context: EvaluationContext): Val
     return context.getVariable(accessPath[0]);
   }
 
-  // Member access: e.g., Timer1.Q or Counter1.CV
+  // Member access: e.g., Timer1.Q or Counter1.CV or UserFB1.Output
   if (accessPath.length === 2) {
     const [baseName, fieldName] = accessPath;
+
+    // Try user-defined function block output field FIRST
+    // (because Q, CV, etc. are common output names that overlap with standard FBs)
+    if (context.getUserFBField) {
+      const userFBValue = context.getUserFBField(baseName, fieldName);
+      // getUserFBField returns 0 for unknown instances, but we need to check
+      // if it's actually a user FB instance. The context should return undefined
+      // for non-user-FB instances so we can fall through to standard FBs.
+      if (userFBValue !== undefined) {
+        return userFBValue;
+      }
+    }
 
     // Check if it's a timer field
     if (TIMER_FIELDS.has(fieldName)) {
