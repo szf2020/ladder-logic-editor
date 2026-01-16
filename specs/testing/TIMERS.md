@@ -31,7 +31,7 @@ Q:   _________/‾‾‾‾‾‾‾‾‾‾\___
 
 #### Reset Behavior
 - [x] ET resets to 0 when IN goes FALSE
-- [x] Q resets to FALSE when IN goes FALSE (after one scan delay)
+- [x] Q resets to FALSE immediately when IN goes FALSE
 - [x] Rising edge on IN restarts timing from ET=0
 
 #### Edge Cases

@@ -109,14 +109,15 @@ END_VAR
 - [ ] Persists across function calls
 - [ ] Single instance
 
-### VAR_RETAIN
+### VAR RETAIN
 ```st
-VAR_RETAIN
+VAR RETAIN
   persistentValue : INT;
 END_VAR
 ```
+**Note:** RETAIN is a qualifier after VAR, not a combined keyword.
 - [ ] Survives power cycle (simulation: survives reset?)
-- [ ] Combined: VAR_RETAIN, VAR_GLOBAL_RETAIN
+- [ ] Combined qualifiers: `VAR RETAIN`, `VAR_GLOBAL RETAIN`, `VAR CONSTANT`
 
 ---
 

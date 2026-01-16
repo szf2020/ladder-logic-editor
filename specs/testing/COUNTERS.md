@@ -45,7 +45,7 @@ CV:  0   1   2   3   0   1  (reset to 0)
 - [x] PV = 0 means first count triggers QU immediately
 - [x] PV = 1 means first count triggers QU
 - [x] Negative PV (-5): QU is TRUE immediately since CV (0) >= PV (-5)
-- [x] CV increments beyond PV
+- [x] CV increments beyond PV (vendor extension - some implementations cap at PV)
 
 ---
 
@@ -152,7 +152,7 @@ fc.assert(fc.property(
 | PV = 1 | QU TRUE after one count | [x] |
 | Large PV (1000) | Works correctly | [x] |
 | Very large PV (32767) | Initializes correctly | [x] |
-| CV increments beyond PV | No overflow cap | [x] |
+| CV increments beyond PV | No overflow cap (vendor extension) | [x] |
 | CV underflow | Clamp at 0 | [x] |
 
 ---

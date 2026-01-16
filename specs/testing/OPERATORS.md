@@ -13,7 +13,7 @@
 | Priority | Operator | Description | Associativity |
 |----------|----------|-------------|---------------|
 | 1 | `( )` | Parentheses | - |
-| 2 | `**` | Exponentiation | Right-to-left |
+| 2 | `**` | Exponentiation | Left-to-right |
 | 3 | `-` (unary) | Negation | Right-to-left |
 | 4 | `NOT` | Boolean negation | Right-to-left |
 | 5 | `*`, `/`, `MOD` | Multiplication, Division, Modulo | Left-to-right |
@@ -173,9 +173,10 @@ Result := a > b AND c < d;
 - [x] Redundant parentheses: `((((10)))) = 10`
 - [x] Mixed nesting: `(1 + 2) * (3 + (4 * 5)) = 69`
 
-### Right-to-Left Associativity
-- [ ] `2 ** 3 ** 2 = 512` (right-associative: 2 ** 9) - Exponentiation not implemented
-- [x] `NOT NOT TRUE = TRUE`
+### Associativity Tests
+**Note:** IEC 61131-3 specifies left-to-right for `**` (unlike most languages which use right-to-left).
+- [ ] `2 ** 3 ** 2 = 64` (IEC left-to-right: (2 ** 3) ** 2 = 8 ** 2) - Exponentiation not implemented
+- [x] `NOT NOT TRUE = TRUE` (unary operators are right-to-left)
 - [x] `NOT NOT FALSE = FALSE`
 
 ---
