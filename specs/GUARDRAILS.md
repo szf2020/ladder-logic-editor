@@ -1,5 +1,11 @@
 # Implementation Guardrails
 
+> **INTERNAL DEVELOPMENT DOCUMENT**
+> This file is NOT part of the IEC 61131-3 specification. It is an internal engineering
+> reference that documents implementation decisions, failed approaches, and lessons learned
+> during development to prevent repeating mistakes. Do NOT reference this document from
+> specification files in `specs/testing/`.
+
 This document tracks approaches that have been tried and failed, to prevent repeating mistakes.
 
 ## Phase 1: Mobile Scroll Prevention (2026-01-14)
