@@ -19,7 +19,7 @@
 <p align="center">
   <a href="https://cdilga.github.io/ladder-logic-editor/"><b>⚡ Live Demo</b></a>
   &nbsp;•&nbsp;
-  <a href="https://cdilga.github.io/ladder-logic-editor/#/docs"><b>📚 Documentation</b></a>
+  <a href="https://cdilga.github.io/ladder-logic-editor/docs"><b>📚 Documentation</b></a>
   &nbsp;•&nbsp;
   <a href="#-quick-start">Quick Start</a>
   &nbsp;•&nbsp;
