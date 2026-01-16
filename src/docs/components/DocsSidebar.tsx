@@ -54,8 +54,9 @@ const NAV_STRUCTURE: NavItem[] = [
     title: 'Examples',
     path: '/docs/examples',
     children: [
-      { title: 'Traffic Light', path: '/docs/examples/traffic-light' },
-      { title: 'Pump Control', path: '/docs/examples/pump-control' },
+      { title: 'Dual Pump Controller', path: '/docs/examples/dual-pump' },
+      { title: '4-Way Intersection', path: '/docs/examples/traffic-light' },
+      { title: 'Simple Pump Control', path: '/docs/examples/pump-control' },
     ],
   },
   {

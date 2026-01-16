@@ -1063,27 +1063,26 @@ If EStop is TRUE, Motor is OFF regardless of Start.
     content: `
 Browse these examples to learn common PLC programming patterns. Each example includes complete code that you can load directly into the editor.
 
-## Beginner Examples
-
-### [Traffic Light Controller](/docs/examples/traffic-light)
-
-A classic example demonstrating state machines and timers. Controls a traffic light through red, yellow, and green phases.
-
-### [Pump Level Control](/docs/examples/pump-control)
-
-Controls a pump based on high and low level sensors. Includes safety interlocks and alarm handling.
-
 ## Advanced Examples
 
 ### [Dual Pump Controller](/docs/examples/dual-pump)
 
-A production-grade dual pump control system with lead/lag alternation, redundant sensor voting, and comprehensive safety features. Demonstrates real-world PLC programming patterns.
+A production-grade dual pump control system with lead/lag alternation, redundant 2oo3 sensor voting, dry run protection, and comprehensive safety features. Demonstrates real-world PLC programming patterns.
+
+### [4-Way Intersection](/docs/examples/traffic-light)
+
+A full traffic light controller for a 4-way intersection with North/South and East/West phase coordination, safety flash mode, and emergency stop handling.
+
+## Beginner Examples
+
+### [Simple Pump Control](/docs/examples/pump-control)
+
+Controls a single pump based on high and low level sensors. Includes basic safety interlocks and alarm handling.
 
 ## What You'll Learn
 
 - State machine patterns
 - Timer usage for sequencing
-- Counter applications
 - Safety interlocking
 - Alarm handling
 - Redundant sensor voting
@@ -1093,8 +1092,8 @@ A production-grade dual pump control system with lead/lag alternation, redundant
   },
 
   'examples/traffic-light': {
-    title: 'Traffic Light Controller',
-    description: 'A state machine example using timers.',
+    title: '4-Way Intersection Controller',
+    description: 'A full traffic light controller for a 4-way intersection with phase coordination.',
     content: `
 This example implements a 4-way intersection traffic light controller with safety features.
 
@@ -1274,8 +1273,8 @@ When stopped or in E-STOP, all lights flash yellow at 500ms intervals - a standa
   },
 
   'examples/pump-control': {
-    title: 'Pump Level Control',
-    description: 'Level control with safety interlocks.',
+    title: 'Simple Pump Control',
+    description: 'Basic level control with safety interlocks.',
     content: `
 This example controls a pump based on tank level sensors with safety features.
 
