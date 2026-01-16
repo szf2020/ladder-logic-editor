@@ -19,7 +19,7 @@
   height: calc(var(--mobile-tabbar-height) + var(--mobile-safe-bottom));
   padding-bottom: var(--mobile-safe-bottom);
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   background: var(--mobile-bg-surface);
   border-top: 1px solid var(--mobile-border);
   z-index: 100;
@@ -51,7 +51,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 33.333333%; /* 100% / 3 tabs */
+  width: 25%; /* 100% / 4 tabs */
   height: 2px;
   background: linear-gradient(
     90deg,

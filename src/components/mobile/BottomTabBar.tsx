@@ -36,6 +36,12 @@ const TABS: TabConfig[] = [
     icon: '▶',
     ariaLabel: 'Debug and Simulation View',
   },
+  {
+    id: 'help',
+    label: 'Help',
+    icon: '?',
+    ariaLabel: 'Help and Settings View',
+  },
 ];
 
 export function BottomTabBar() {

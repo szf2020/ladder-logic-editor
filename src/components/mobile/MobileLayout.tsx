@@ -2,7 +2,7 @@
  * Mobile Layout Component
  *
  * Single-panel mobile layout with bottom tab navigation.
- * Displays one view at a time: ladder, editor, debug, or properties.
+ * Displays one view at a time: ladder, editor, debug, or help.
  *
  * Phase 3: Mobile Layout
  */
@@ -14,8 +14,8 @@ import { VariableWatch } from '../variable-watch/VariableWatch';
 import { ProgramSelector } from '../program-selector';
 import { ErrorPanel } from '../error-panel';
 import { BottomTabBar } from './BottomTabBar';
-import { HelpNavButton } from './HelpNavButton';
 import { MobilePropertiesSheet } from './MobilePropertiesSheet';
+import { HelpView } from './HelpView';
 import { useMobileStore } from '../../store/mobile-store';
 import { useProjectStore, useSimulationStore } from '../../store';
 import { useKeyboardDetect } from '../../hooks/useKeyboardDetect';
@@ -295,8 +295,6 @@ export function MobileLayout() {
           <span className={`status-indicator ${getStatusClass()}`} />
           <span className="status-text">{getStatusText()}</span>
         </div>
-
-        <HelpNavButton />
       </div>
 
       {/* Dropdown Menu */}
@@ -402,6 +400,14 @@ export function MobileLayout() {
               <VariableWatch collapsed={false} onToggleCollapse={() => {}} />
             </div>
           </div>
+        </div>
+
+        {/* Help View */}
+        <div
+          className={`mobile-panel ${activeView === 'help' ? 'active' : ''}`}
+          data-view="help"
+        >
+          <HelpView />
         </div>
       </div>
 

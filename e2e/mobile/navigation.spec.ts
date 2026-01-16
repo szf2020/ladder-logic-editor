@@ -23,9 +23,9 @@ test.describe('Mobile Navigation', () => {
     // Should see bottom tab bar
     await expect(page.locator('.bottom-tab-bar')).toBeVisible();
 
-    // Should see 3 tabs (Ladder, Code, Debug)
+    // Should see 4 tabs (Ladder, Code, Debug, Help)
     const tabs = page.locator('.tab-button');
-    await expect(tabs).toHaveCount(3);
+    await expect(tabs).toHaveCount(4);
   });
 
   test('default view is ladder', async ({ page }) => {
@@ -69,6 +69,7 @@ test.describe('Mobile Navigation', () => {
     const views = [
       { name: 'Code', dataView: 'editor' },
       { name: 'Debug', dataView: 'debug' },
+      { name: 'Help', dataView: 'help' },
       { name: 'Ladder', dataView: 'ladder' },
     ];
 
@@ -91,7 +92,7 @@ test.describe('Mobile Navigation', () => {
 
   test('only one panel is active at a time', async ({ page }) => {
     // Click through tabs and verify only one panel is active
-    const tabs = ['Code', 'Debug', 'Ladder'];
+    const tabs = ['Code', 'Debug', 'Help', 'Ladder'];
 
     for (const tabName of tabs) {
       await page.locator('.tab-button').filter({ hasText: tabName }).click();
@@ -113,7 +114,7 @@ test.describe('Mobile Navigation', () => {
     await page.locator('.tab-button').filter({ hasText: 'Code' }).click();
     await page.waitForTimeout(300);
 
-    // Indicator should move (33.333% per tab)
+    // Indicator should move (25% per tab)
     const transform = await indicator.evaluate(el => window.getComputedStyle(el).transform);
     expect(transform).not.toBe('matrix(1, 0, 0, 1, 0, 0)'); // Should have moved
   });
@@ -200,28 +201,22 @@ test.describe('Mobile Navigation', () => {
     expect(styles).toBeDefined();
   });
 
-  test('help button opens and closes dropdown menu', async ({ page }) => {
-    const helpBtn = page.locator('.help-btn');
-    const helpMenu = page.locator('.help-menu');
+  test('help view shows help actions', async ({ page }) => {
+    // Navigate to help view
+    await page.locator('.tab-button').filter({ hasText: 'Help' }).click();
+    await page.waitForTimeout(250);
 
-    // Help button should be visible in toolbar
-    await expect(helpBtn).toBeVisible();
+    // Help view should be active
+    const helpPanel = page.locator('.mobile-panel[data-view="help"]');
+    await expect(helpPanel).toHaveClass(/active/);
 
-    // Menu should not be visible initially
-    await expect(helpMenu).not.toBeVisible();
+    // Should see help view content
+    await expect(page.locator('.help-view')).toBeVisible();
 
-    // Open help menu
-    await helpBtn.click();
-    await expect(helpMenu).toBeVisible();
-
-    // Should show menu items
-    await expect(page.locator('.help-menu-item').filter({ hasText: 'Replay Tutorial' })).toBeVisible();
-    await expect(page.locator('.help-menu-item').filter({ hasText: 'Documentation' })).toBeVisible();
-    await expect(page.locator('.help-menu-item').filter({ hasText: 'Report Bug' })).toBeVisible();
-
-    // Close menu by clicking backdrop
-    await page.locator('.help-menu-backdrop').click();
-    await expect(helpMenu).not.toBeVisible();
+    // Should show action cards
+    await expect(page.locator('.help-action-card').filter({ hasText: 'Replay Tutorial' })).toBeVisible();
+    await expect(page.locator('.help-action-card').filter({ hasText: 'Documentation' })).toBeVisible();
+    await expect(page.locator('.help-action-card').filter({ hasText: 'Report a Bug' })).toBeVisible();
   });
 
   test('properties sheet appears when node selected on ladder view', async ({ page }) => {

@@ -105,7 +105,7 @@ export const DESKTOP_ONBOARDING_STEPS: OnboardingStep[] = [
 ];
 
 // ============================================================================
-// Mobile Onboarding Steps (7 steps - adapted for mobile UI)
+// Mobile Onboarding Steps (6 steps - adapted for mobile UI)
 // ============================================================================
 
 export const MOBILE_ONBOARDING_STEPS: OnboardingStep[] = [
@@ -119,7 +119,7 @@ export const MOBILE_ONBOARDING_STEPS: OnboardingStep[] = [
     id: 'panel-switcher',
     title: 'Switch Panels',
     content:
-      'Use the tabs at the bottom to switch between Ladder, Code, and Debug views.',
+      'Use the tabs at the bottom to switch between Ladder, Code, Debug, and Help views.',
     position: 'near-element',
     targetElement: '.mobile-tab-bar',
     highlightElement: true,
@@ -131,15 +131,6 @@ export const MOBILE_ONBOARDING_STEPS: OnboardingStep[] = [
       'When you tap a node in the ladder view, a properties panel will slide up from the bottom. Tap it to expand and see full details.',
     position: 'bottom',
     tip: 'The panel wiggles once to show it\'s there!',
-  },
-  {
-    id: 'help-menu',
-    title: 'Help & Docs',
-    content:
-      'Tap the Help button in the toolbar to access the tutorial, documentation, or report a bug.',
-    position: 'near-element',
-    targetElement: '.help-btn',
-    highlightElement: true,
   },
   {
     id: 'code-panel',
