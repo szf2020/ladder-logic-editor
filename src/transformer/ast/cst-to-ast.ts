@@ -63,6 +63,9 @@ export function parseSTToAST(source: string): STAST {
         case 'ProgramDecl':
           programs.push(parseProgramDecl(cursor.node, source, 'PROGRAM'));
           break;
+        case 'FunctionDecl':
+          programs.push(parseFunctionDecl(cursor.node, source));
+          break;
         case 'FunctionBlockDecl':
           programs.push(parseProgramDecl(cursor.node, source, 'FUNCTION_BLOCK'));
           break;
@@ -187,6 +190,67 @@ function parseProgramDecl(
   }
 
   return { type: 'Program', name, programType, varBlocks, statements, loc };
+}
+
+function parseFunctionDecl(node: SyntaxNode, source: string): STProgram {
+  const loc = { start: node.from, end: node.to };
+  let name = 'Untitled';
+  let returnType = 'INT';
+  const varBlocks: STVarBlock[] = [];
+  const statements: STStatement[] = [];
+  let foundName = false;
+
+  // Walk children: FUNCTION Identifier ":" TypeName statement* END_FUNCTION
+  let child = node.firstChild;
+  while (child) {
+    switch (child.name) {
+      case 'Identifier':
+        if (!foundName) {
+          name = source.slice(child.from, child.to);
+          foundName = true;
+        }
+        break;
+      case 'TypeName':
+        returnType = parseTypeName(child, source);
+        break;
+      case 'VarBlock':
+        varBlocks.push(parseVarBlock(child, source));
+        break;
+      case 'Assignment':
+        statements.push(parseAssignment(child, source));
+        break;
+      case 'FunctionBlockCall':
+        statements.push(parseFunctionBlockCall(child, source));
+        break;
+      case 'IfStatement':
+        statements.push(parseIfStatement(child, source));
+        break;
+      case 'CaseStatement':
+        statements.push(parseCaseStatement(child, source));
+        break;
+      case 'ForStatement':
+        statements.push(parseForStatement(child, source));
+        break;
+      case 'WhileStatement':
+        statements.push(parseWhileStatement(child, source));
+        break;
+      case 'RepeatStatement':
+        statements.push(parseRepeatStatement(child, source));
+        break;
+      case 'ReturnStatement':
+        statements.push({ type: 'ReturnStatement', loc: { start: child.from, end: child.to } });
+        break;
+      case 'ExitStatement':
+        statements.push({ type: 'ExitStatement', loc: { start: child.from, end: child.to } });
+        break;
+      case 'ContinueStatement':
+        statements.push({ type: 'ContinueStatement', loc: { start: child.from, end: child.to } });
+        break;
+    }
+    child = child.nextSibling;
+  }
+
+  return { type: 'Program', name, programType: 'FUNCTION', returnType, varBlocks, statements, loc };
 }
 
 // ============================================================================

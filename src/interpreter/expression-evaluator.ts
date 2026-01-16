@@ -41,6 +41,8 @@ export interface EvaluationContext {
   getBistableField?: (name: string, field: string) => Value;
   /** Get an array element by name and index - optional for array support */
   getArrayElement?: (name: string, index: number) => Value;
+  /** Invoke a user-defined function - optional for user function support */
+  invokeUserFunction?: (name: string, args: Value[]) => Value;
 }
 
 // ============================================================================
@@ -294,6 +296,10 @@ function evaluateFunctionCall(expr: STFunctionCall, context: EvaluationContext):
       return Math.max(mn, Math.min(inVal, mx));
 
     default:
+      // Try user-defined function if available
+      if (context.invokeUserFunction) {
+        return context.invokeUserFunction(expr.name, args);
+      }
       // Unknown function - return 0 as fallback
       console.warn(`Unknown function: ${expr.name}`);
       return 0;

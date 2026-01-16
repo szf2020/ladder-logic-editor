@@ -5,11 +5,12 @@
  * Handles variable access, function block delegation, and edge detection state.
  */
 
-import type { STAST } from '../transformer/ast/st-ast-types';
-import type { ExecutionContext } from './statement-executor';
+import type { STAST, STProgram } from '../transformer/ast/st-ast-types';
+import { type ExecutionContext, executeStatements, ReturnSignal } from './statement-executor';
 import type { FunctionBlockStore } from './function-block-handler';
 import { handleFunctionBlockCall, createFunctionBlockContext } from './function-block-handler';
-import { buildTypeRegistry, buildConstantRegistry, type TypeRegistry, type ConstantRegistry } from './variable-initializer';
+import { buildTypeRegistry, buildConstantRegistry, type TypeRegistry, type ConstantRegistry, type DeclaredType } from './variable-initializer';
+import type { Value } from './expression-evaluator';
 
 // ============================================================================
 // Types
@@ -220,6 +221,11 @@ export function createExecutionContext(
     handleFunctionBlockCall: (call, _ctx) => {
       handleFunctionBlockCall(call, fbContext);
     },
+
+    // User-defined function invocation
+    invokeUserFunction: (name: string, args: Value[]): Value => {
+      return invokeUserFunction(name, args, runtimeState, store, fbContext);
+    },
   };
 }
 
@@ -236,4 +242,367 @@ export function createRuntimeState(ast: STAST): RuntimeState {
     typeRegistry: buildTypeRegistry(ast),
     constantRegistry: buildConstantRegistry(ast),
   };
+}
+
+// ============================================================================
+// User-Defined Function Invocation
+// ============================================================================
+
+/**
+ * Find a user-defined FUNCTION by name in the AST.
+ */
+function findFunction(ast: STAST, name: string): STProgram | undefined {
+  return ast.programs.find(
+    (prog) => prog.programType === 'FUNCTION' && prog.name === name
+  );
+}
+
+/**
+ * Get default value for a type.
+ */
+function getDefaultValue(typeName: string): Value {
+  const upper = typeName.toUpperCase();
+  switch (upper) {
+    case 'BOOL':
+      return false;
+    case 'REAL':
+    case 'LREAL':
+      return 0.0;
+    case 'INT':
+    case 'SINT':
+    case 'DINT':
+    case 'LINT':
+    case 'UINT':
+    case 'USINT':
+    case 'UDINT':
+    case 'ULINT':
+    case 'TIME':
+    case 'BYTE':
+    case 'WORD':
+    case 'DWORD':
+    case 'LWORD':
+      return 0;
+    default:
+      return 0;
+  }
+}
+
+/**
+ * Get the VAR_INPUT parameter declarations from a function.
+ */
+function getInputParameters(func: STProgram): Array<{ name: string; typeName: string }> {
+  const params: Array<{ name: string; typeName: string }> = [];
+  for (const varBlock of func.varBlocks) {
+    if (varBlock.scope === 'VAR_INPUT') {
+      for (const decl of varBlock.declarations) {
+        for (const varName of decl.names) {
+          params.push({ name: varName, typeName: decl.dataType.typeName });
+        }
+      }
+    }
+  }
+  return params;
+}
+
+/**
+ * Get the local VAR declarations from a function.
+ */
+function getLocalVariables(func: STProgram): Array<{ name: string; typeName: string }> {
+  const locals: Array<{ name: string; typeName: string }> = [];
+  for (const varBlock of func.varBlocks) {
+    if (varBlock.scope === 'VAR') {
+      for (const decl of varBlock.declarations) {
+        for (const varName of decl.names) {
+          locals.push({ name: varName, typeName: decl.dataType.typeName });
+        }
+      }
+    }
+  }
+  return locals;
+}
+
+/**
+ * Invoke a user-defined function.
+ *
+ * @param name - Function name
+ * @param args - Evaluated argument values (positional)
+ * @param runtimeState - Runtime state containing the AST
+ * @param store - Simulation store for accessing global variables
+ * @param fbContext - Function block context
+ * @returns The function's return value
+ */
+function invokeUserFunction(
+  name: string,
+  args: Value[],
+  runtimeState: RuntimeState,
+  store: SimulationStoreInterface,
+  fbContext: ReturnType<typeof createFunctionBlockContext>
+): Value {
+  // Find the function definition
+  const func = findFunction(runtimeState.ast, name);
+  if (!func) {
+    console.warn(`User function '${name}' not found`);
+    return 0;
+  }
+
+  // Get the return type default value
+  const returnType = func.returnType || 'INT';
+  let returnValue: Value = getDefaultValue(returnType);
+
+  // Create isolated local variable storage for this function call
+  const localBooleans: Record<string, boolean> = {};
+  const localIntegers: Record<string, number> = {};
+  const localReals: Record<string, number> = {};
+  const localTimes: Record<string, number> = {};
+
+  // Get input parameters and bind them to argument values
+  const inputParams = getInputParameters(func);
+  for (let i = 0; i < inputParams.length; i++) {
+    const param = inputParams[i];
+    const argValue = i < args.length ? args[i] : getDefaultValue(param.typeName);
+    const upper = param.typeName.toUpperCase();
+
+    switch (upper) {
+      case 'BOOL':
+        localBooleans[param.name] = typeof argValue === 'boolean' ? argValue : Boolean(argValue);
+        break;
+      case 'REAL':
+      case 'LREAL':
+        localReals[param.name] = typeof argValue === 'number' ? argValue : Number(argValue);
+        break;
+      case 'TIME':
+        localTimes[param.name] = typeof argValue === 'number' ? argValue : Number(argValue);
+        break;
+      default:
+        // INT and other integer types
+        localIntegers[param.name] = typeof argValue === 'number' ? Math.trunc(argValue) : Number(argValue);
+        break;
+    }
+  }
+
+  // Initialize local variables
+  const localVars = getLocalVariables(func);
+  for (const local of localVars) {
+    const upper = local.typeName.toUpperCase();
+    switch (upper) {
+      case 'BOOL':
+        localBooleans[local.name] = false;
+        break;
+      case 'REAL':
+      case 'LREAL':
+        localReals[local.name] = 0.0;
+        break;
+      case 'TIME':
+        localTimes[local.name] = 0;
+        break;
+      default:
+        localIntegers[local.name] = 0;
+        break;
+    }
+  }
+
+  // Initialize the function return variable (function name = return value)
+  const returnTypeUpper = returnType.toUpperCase();
+  switch (returnTypeUpper) {
+    case 'BOOL':
+      localBooleans[name] = false;
+      break;
+    case 'REAL':
+    case 'LREAL':
+      localReals[name] = 0.0;
+      break;
+    case 'TIME':
+      localTimes[name] = 0;
+      break;
+    default:
+      localIntegers[name] = 0;
+      break;
+  }
+
+  // Build type registry for local variables
+  const localTypeRegistry: TypeRegistry = {};
+  for (const param of inputParams) {
+    localTypeRegistry[param.name] = mapTypeName(param.typeName);
+  }
+  for (const local of localVars) {
+    localTypeRegistry[local.name] = mapTypeName(local.typeName);
+  }
+  localTypeRegistry[name] = mapTypeName(returnType);
+
+  // Create a function execution context
+  const funcContext: ExecutionContext = {
+    // Variable setters (write to local storage)
+    setBool: (varName: string, value: boolean) => {
+      localBooleans[varName] = value;
+    },
+    setInt: (varName: string, value: number) => {
+      localIntegers[varName] = Math.trunc(value);
+    },
+    setReal: (varName: string, value: number) => {
+      localReals[varName] = value;
+    },
+    setTime: (varName: string, value: number) => {
+      localTimes[varName] = Math.trunc(value);
+    },
+
+    // Variable getters (read from local storage first, then global)
+    getBool: (varName: string) => {
+      if (varName in localBooleans) return localBooleans[varName];
+      return store.getBool(varName);
+    },
+    getInt: (varName: string) => {
+      if (varName in localIntegers) return localIntegers[varName];
+      return store.getInt(varName);
+    },
+    getReal: (varName: string) => {
+      if (varName in localReals) return localReals[varName];
+      return store.getReal(varName);
+    },
+
+    // Type registry lookup (local first, then global)
+    getVariableType: (varName: string) => {
+      if (varName in localTypeRegistry) return localTypeRegistry[varName];
+      return runtimeState.typeRegistry[varName];
+    },
+
+    // Constants - function locals are not constants
+    isConstant: (varName: string) => {
+      if (varName in localTypeRegistry) return false;
+      return runtimeState.constantRegistry.has(varName);
+    },
+
+    // Expression evaluation context
+    getVariable: (varName: string) => {
+      // Check local storage first
+      if (varName in localBooleans) return localBooleans[varName];
+      if (varName in localIntegers) return localIntegers[varName];
+      if (varName in localReals) return localReals[varName];
+      if (varName in localTimes) return localTimes[varName];
+
+      // Fall back to global store
+      if (varName in store.booleans) return store.booleans[varName];
+      if (varName in store.integers) return store.integers[varName];
+      if (varName in store.reals) return store.reals[varName];
+      if (varName in store.times) return store.times[varName];
+
+      return false;
+    },
+
+    getTimerField: (timerName: string, field: string) => {
+      const timer = store.getTimer(timerName);
+      if (!timer) return field === 'Q' ? false : 0;
+      switch (field.toUpperCase()) {
+        case 'Q': return timer.Q;
+        case 'ET': return timer.ET;
+        case 'IN': return timer.IN;
+        case 'PT': return timer.PT;
+        default: return 0;
+      }
+    },
+
+    getCounterField: (counterName: string, field: string) => {
+      const counter = store.getCounter(counterName);
+      if (!counter) return field === 'QU' || field === 'QD' ? false : 0;
+      switch (field.toUpperCase()) {
+        case 'CV': return counter.CV;
+        case 'QU': return counter.QU;
+        case 'QD': return counter.QD;
+        case 'PV': return counter.PV;
+        case 'CU': return counter.CU;
+        case 'CD': return counter.CD;
+        default: return 0;
+      }
+    },
+
+    getEdgeDetectorField: (edName: string, field: string) => {
+      const ed = store.getEdgeDetector(edName);
+      if (!ed) return field === 'Q' ? false : 0;
+      switch (field.toUpperCase()) {
+        case 'Q': return ed.Q;
+        case 'CLK': return ed.CLK;
+        case 'M': return ed.M;
+        default: return false;
+      }
+    },
+
+    getBistableField: (bsName: string, field: string) => {
+      const bs = store.getBistable(bsName);
+      if (!bs) return false;
+      switch (field.toUpperCase()) {
+        case 'Q1': return bs.Q1;
+        default: return false;
+      }
+    },
+
+    // Function block handling
+    handleFunctionBlockCall: (call, _ctx) => {
+      handleFunctionBlockCall(call, fbContext);
+    },
+
+    // Recursive user function invocation
+    invokeUserFunction: (funcName: string, funcArgs: Value[]): Value => {
+      return invokeUserFunction(funcName, funcArgs, runtimeState, store, fbContext);
+    },
+  };
+
+  // Execute the function statements
+  try {
+    executeStatements(func.statements, funcContext);
+  } catch (e) {
+    if (e instanceof ReturnSignal) {
+      // RETURN statement - normal function exit
+    } else {
+      throw e;
+    }
+  }
+
+  // Get the return value from the function name variable
+  switch (returnTypeUpper) {
+    case 'BOOL':
+      returnValue = localBooleans[name] ?? false;
+      break;
+    case 'REAL':
+    case 'LREAL':
+      returnValue = localReals[name] ?? 0.0;
+      break;
+    case 'TIME':
+      returnValue = localTimes[name] ?? 0;
+      break;
+    default:
+      returnValue = localIntegers[name] ?? 0;
+      break;
+  }
+
+  return returnValue;
+}
+
+/**
+ * Map type name to DeclaredType.
+ */
+function mapTypeName(typeName: string): DeclaredType {
+  const upper = typeName.toUpperCase();
+  switch (upper) {
+    case 'BOOL':
+      return 'BOOL';
+    case 'INT':
+    case 'SINT':
+    case 'DINT':
+    case 'LINT':
+    case 'UINT':
+    case 'USINT':
+    case 'UDINT':
+    case 'ULINT':
+    case 'BYTE':
+    case 'WORD':
+    case 'DWORD':
+    case 'LWORD':
+      return 'INT';
+    case 'REAL':
+    case 'LREAL':
+      return 'REAL';
+    case 'TIME':
+      return 'TIME';
+    default:
+      return 'UNKNOWN';
+  }
 }

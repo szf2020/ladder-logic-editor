@@ -15,9 +15,9 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Operators | 16 | 17 | 94% |
 | Control Flow | 7 | 7 | 100% |
 | Standard FBs | 10 | 10+ | 100%* |
-| POUs | 1 | 3 | 33% |
+| POUs | 2 | 3 | 67% |
 
-\* Standard function blocks fully implemented; user-defined FBs not supported
+\* Standard function blocks fully implemented; user-defined FBs partially supported (FUNCTION yes, FUNCTION_BLOCK no)
 
 ---
 
@@ -64,7 +64,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Feature | Reference | Status | Tests | Notes |
 |---------|-----------|--------|-------|-------|
 | VAR / END_VAR | §3.1 | ✅ | 59 | Full support |
-| VAR_INPUT | §3.1 | ⚠️ | - | Parsed, limited execution |
+| VAR_INPUT | §3.1 | ✅ | 22 | Full support (in FUNCTIONs) |
 | VAR_OUTPUT | §3.1 | ⚠️ | - | Parsed, limited execution |
 | VAR_IN_OUT | §3.1 | ❌ | - | |
 | VAR_GLOBAL | §3.1 | ✅ | - | Works across programs |
@@ -131,7 +131,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | REPEAT/UNTIL | §5.3.3 | ✅ | 3 | |
 | EXIT | §5.3.4 | ✅ | 16 | |
 | CONTINUE | §5.3.5 | ✅ | 15 | Edition 3 feature |
-| RETURN | §5.3.6 | ⚠️ | - | Parsed, no-op (requires user functions) |
+| RETURN | §5.3.6 | ✅ | 22 | Exits function/program, works with user functions |
 
 ---
 
@@ -171,11 +171,11 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 ## Program Organization Units
 
-| POU Type | Reference | Status | Notes |
-|----------|-----------|--------|-------|
-| PROGRAM | §6.3 | ✅ | Main execution unit |
-| FUNCTION | §6.1 | ❌ | User-defined not supported |
-| FUNCTION_BLOCK | §6.2 | ❌ | User-defined not supported |
+| POU Type | Reference | Status | Tests | Notes |
+|----------|-----------|--------|-------|-------|
+| PROGRAM | §6.3 | ✅ | - | Main execution unit |
+| FUNCTION | §6.1 | ✅ | 22 | User-defined with VAR_INPUT, VAR, RETURN |
+| FUNCTION_BLOCK | §6.2 | ❌ | - | User-defined not supported |
 
 ---
 
@@ -226,7 +226,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Continue Statement | 15 | ✅ 100% |
 | CONSTANT Variables | 20 | ✅ 100% |
 | ARRAY Types | 24 | ✅ 100% |
-| **Total** | **1440** | ✅ 100% |
+| User Functions | 22 | ✅ 100% |
+| **Total** | **1462** | ✅ 100% |
 
 ---
 
@@ -234,17 +235,17 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 ### Next Priorities
 
-1. **RETURN statement** - Meaningful execution (requires user function support)
-2. **User-defined FUNCTIONs** - Enable reusable computation blocks
-3. **Multi-dimensional ARRAYs** - Currently single-dimensional only
+1. **User-defined FUNCTION_BLOCKs** - Enable stateful reusable blocks
+2. **Multi-dimensional ARRAYs** - Currently single-dimensional only
+3. **STRING support** - Character string operations
 
 ### Future Consideration
 
-- User-defined FUNCTION
 - User-defined FUNCTION_BLOCK
 - Multi-dimensional ARRAY support
 - STRING support
 - STRUCT support
+- DATE/TIME_OF_DAY/DATE_AND_TIME types
 
 ---
 
@@ -252,6 +253,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 | Date | Change |
 |------|--------|
+| 2026-01-16 | Added user-defined FUNCTION support with VAR_INPUT, VAR local variables, RETURN statement - 22 new tests, POUs now 67% |
 | 2026-01-16 | Added single-dimensional ARRAY type with indexed access (read/write) - 24 new tests, data types now 81% |
 | 2026-01-16 | Added TIME arithmetic tests (TIME+TIME, TIME*INT, TIME/INT) - 14 new tests |
 | 2026-01-16 | Verified VAR_GLOBAL works correctly - updated status to implemented |

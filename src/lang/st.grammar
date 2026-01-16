@@ -11,6 +11,7 @@
 
 statement {
   ProgramDecl |
+  FunctionDecl |
   FunctionBlockDecl |
   VarBlock |
   Assignment |
@@ -26,13 +27,19 @@ statement {
 }
 
 // ============================================================================
-// Program/Function Block Declarations
+// Program/Function/Function Block Declarations
 // ============================================================================
 
 ProgramDecl {
   kw<"PROGRAM"> Identifier
   statement*
   kw<"END_PROGRAM">
+}
+
+FunctionDecl {
+  kw<"FUNCTION"> Identifier ":" TypeName
+  statement*
+  kw<"END_FUNCTION">
 }
 
 FunctionBlockDecl {

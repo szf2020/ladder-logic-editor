@@ -239,12 +239,13 @@ export interface STContinueStatement extends ASTNode {
 // Program Structure
 // ============================================================================
 
-export type ProgramType = 'PROGRAM' | 'FUNCTION_BLOCK';
+export type ProgramType = 'PROGRAM' | 'FUNCTION' | 'FUNCTION_BLOCK';
 
 export interface STProgram extends ASTNode {
   type: 'Program';
   name: string;
   programType: ProgramType;
+  returnType?: string; // Only for FUNCTION - the return type (INT, BOOL, REAL, etc.)
   varBlocks: STVarBlock[];
   statements: STStatement[];
 }

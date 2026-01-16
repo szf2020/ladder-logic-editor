@@ -45,6 +45,17 @@ export class ContinueSignal extends Error {
   }
 }
 
+/**
+ * Signal thrown by RETURN statement to exit from a function.
+ * Caught by function invokers.
+ */
+export class ReturnSignal extends Error {
+  constructor() {
+    super('RETURN');
+    this.name = 'ReturnSignal';
+  }
+}
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -119,9 +130,8 @@ export function executeStatement(stmt: STStatement, context: ExecutionContext): 
       break;
 
     case 'ReturnStatement':
-      // Return statements exit the current program/function block
-      // For now, we just return (no-op at statement level)
-      break;
+      // Return statements exit the current program/function
+      throw new ReturnSignal();
 
     case 'ExitStatement':
       // EXIT statement breaks out of the innermost enclosing loop
