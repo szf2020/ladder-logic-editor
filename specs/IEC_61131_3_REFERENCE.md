@@ -62,65 +62,102 @@ For implementation status, see [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATU
 
 ## 2. Data Types
 
-### 2.1 Elementary Data Types
+### 2.1 Elementary Data Types (Table 10)
 
 #### 2.1.1 Boolean
-| Type | Size | Values | Reference |
-|------|------|--------|-----------|
-| BOOL | 1 bit | FALSE (0), TRUE (1) | IEC 61131-3 §6.3.1 |
+| Type | Size | Values | Default | Reference |
+|------|------|--------|---------|-----------|
+| BOOL | 1 bit | FALSE (0), TRUE (1) | FALSE | Table 10, §6.3.1 |
 
 #### 2.1.2 Integer Types
-| Type | Size | Range | Reference |
-|------|------|-------|-----------|
-| SINT | 8 bits | -128 to 127 | IEC 61131-3 §6.3.1 |
-| INT | 16 bits | -32,768 to 32,767 | IEC 61131-3 §6.3.1 |
-| DINT | 32 bits | -2,147,483,648 to 2,147,483,647 | IEC 61131-3 §6.3.1 |
-| LINT | 64 bits | -2^63 to 2^63-1 | IEC 61131-3 §6.3.1 |
-| USINT | 8 bits | 0 to 255 | IEC 61131-3 §6.3.1 |
-| UINT | 16 bits | 0 to 65,535 | IEC 61131-3 §6.3.1 |
-| UDINT | 32 bits | 0 to 4,294,967,295 | IEC 61131-3 §6.3.1 |
-| ULINT | 64 bits | 0 to 2^64-1 | IEC 61131-3 §6.3.1 |
+| Type | Size | Range | Default | Reference |
+|------|------|-------|---------|-----------|
+| SINT | 8 bits | -128 to 127 | 0 | Table 10, §6.3.1 |
+| INT | 16 bits | -32,768 to 32,767 | 0 | Table 10, §6.3.1 |
+| DINT | 32 bits | -2,147,483,648 to 2,147,483,647 | 0 | Table 10, §6.3.1 |
+| LINT | 64 bits | -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 | 0 | Table 10, §6.3.1 |
+| USINT | 8 bits | 0 to 255 | 0 | Table 10, §6.3.1 |
+| UINT | 16 bits | 0 to 65,535 | 0 | Table 10, §6.3.1 |
+| UDINT | 32 bits | 0 to 4,294,967,295 | 0 | Table 10, §6.3.1 |
+| ULINT | 64 bits | 0 to 18,446,744,073,709,551,615 | 0 | Table 10, §6.3.1 |
 
 #### 2.1.3 Real Types
-| Type | Size | Precision | Reference |
-|------|------|-----------|-----------|
-| REAL | 32 bits | IEEE 754 single | IEC 61131-3 §6.3.1 |
-| LREAL | 64 bits | IEEE 754 double | IEC 61131-3 §6.3.1 |
+| Type | Size | Range | Precision | Default | Reference |
+|------|------|-------|-----------|---------|-----------|
+| REAL | 32 bits | ~-3.4E+38 to ~3.4E+38 | ~7 digits (IEEE 754/IEC 60559 single) | 0.0 | Table 10, §6.3.1 |
+| LREAL | 64 bits | ~-1.8E+308 to ~1.8E+308 | ~15-16 digits (IEEE 754/IEC 60559 double) | 0.0 | Table 10, §6.3.1 |
 
-#### 2.1.4 Time Types
-| Type | Description | Literal Syntax | Reference |
-|------|-------------|----------------|-----------|
-| TIME | Duration | `T#1h2m3s4ms` or `TIME#...` | IEC 61131-3 §6.3.1 |
-| DATE | Calendar date | `D#2024-01-15` or `DATE#...` | IEC 61131-3 §6.3.1 |
-| TIME_OF_DAY / TOD | Time of day | `TOD#14:30:00` | IEC 61131-3 §6.3.1 |
-| DATE_AND_TIME / DT | Combined | `DT#2024-01-15-14:30:00` | IEC 61131-3 §6.3.1 |
+#### 2.1.4 Time Duration Types
+| Type | Size | Resolution | Literal Syntax | Default | Reference |
+|------|------|------------|----------------|---------|-----------|
+| TIME | 32 bits | milliseconds | `T#1h2m3s4ms` or `TIME#...` | T#0s | Table 10, §6.3.1 |
+| LTIME | 64 bits | nanoseconds | `LTIME#1h2m3s4ms5us6ns` | LTIME#0ns | Table 10 (Ed. 3+), §6.3.1 |
 
-#### 2.1.5 String Types
-| Type | Description | Reference |
-|------|-------------|-----------|
-| STRING | Single-byte character string | IEC 61131-3 §6.3.1 |
-| WSTRING | Double-byte (Unicode) string | IEC 61131-3 §6.3.1 |
+#### 2.1.5 Date and Time of Day Types
+| Type | Size | Resolution | Literal Syntax | Default | Reference |
+|------|------|------------|----------------|---------|-----------|
+| DATE | 32 bits | 1 day | `D#2024-01-15` or `DATE#...` | D#1970-01-01 | Table 10, §6.3.1 |
+| TIME_OF_DAY / TOD | 32 bits | milliseconds | `TOD#14:30:00.500` | TOD#00:00:00 | Table 10, §6.3.1 |
+| DATE_AND_TIME / DT | 32 bits | 1 second | `DT#2024-01-15-14:30:00` | DT#1970-01-01-00:00:00 | Table 10, §6.3.1 |
+| LDATE | 64 bits | nanoseconds | `LDATE#2024-01-15` | LDATE#1970-01-01 | Table 10 (Ed. 3+) |
+| LTIME_OF_DAY / LTOD | 64 bits | nanoseconds | `LTOD#14:30:00.123456789` | LTOD#00:00:00 | Table 10 (Ed. 3+) |
+| LDATE_AND_TIME / LDT | 64 bits | nanoseconds | `LDT#2024-01-15-14:30:00.123456789` | LDT#1970-01-01-00:00:00 | Table 10 (Ed. 3+) |
 
-Default length is implementation-defined. Explicit length: `STRING[80]`
+#### 2.1.6 Character Types
+| Type | Size | Encoding | Default | Reference |
+|------|------|----------|---------|-----------|
+| CHAR | 8 bits | ISO/IEC 10646 (single byte) | '' | Table 10, §6.3.1 |
+| WCHAR | 16 bits | UCS-2/UTF-16 | "" | Table 10, §6.3.1 |
 
-#### 2.1.6 Bit String Types
-| Type | Size | Reference |
-|------|------|-----------|
-| BYTE | 8 bits | IEC 61131-3 §6.3.1 |
-| WORD | 16 bits | IEC 61131-3 §6.3.1 |
-| DWORD | 32 bits | IEC 61131-3 §6.3.1 |
-| LWORD | 64 bits | IEC 61131-3 §6.3.1 |
+#### 2.1.7 String Types
+| Type | Encoding | Max Length | Default Length | Default | Reference |
+|------|----------|------------|----------------|---------|-----------|
+| STRING | 1 byte/char (UTF-8) | 65,535 | 254 | '' (empty) | Table 10, §6.3.1 |
+| WSTRING | 2 bytes/char (UTF-16) | 65,535 | 254 | "" (empty) | Table 10, §6.3.1 |
 
-### 2.2 Derived Data Types
+Explicit length declaration: `STRING[80]` declares an 80-character string.
 
-#### 2.2.1 Arrays
+#### 2.1.8 Bit String Types
+| Type | Size | Range (Hex) | Default | Reference |
+|------|------|-------------|---------|-----------|
+| BYTE | 8 bits | 16#00 to 16#FF | 0 | Table 10, §6.3.1 |
+| WORD | 16 bits | 16#0000 to 16#FFFF | 0 | Table 10, §6.3.1 |
+| DWORD | 32 bits | 16#00000000 to 16#FFFFFFFF | 0 | Table 10, §6.3.1 |
+| LWORD | 64 bits | 16#0000000000000000 to 16#FFFFFFFFFFFFFFFF | 0 | Table 10, §6.3.1 |
+
+**Note:** Bit strings represent bit patterns, not numeric values. Use unsigned integers for arithmetic.
+
+### 2.2 Generic Data Types (Table 11 / Figure 5)
+
+Generic types define hierarchical groups for function overloading:
+
+| Generic Type | Includes | Reference |
+|--------------|----------|-----------|
+| ANY | All types | Table 11 |
+| ANY_ELEMENTARY | All elementary types | Table 11 |
+| ANY_MAGNITUDE | ANY_NUM, TIME, LTIME | Table 11 |
+| ANY_NUM | ANY_INT, ANY_REAL | Table 11 |
+| ANY_INT | ANY_SIGNED, ANY_UNSIGNED | Table 11 |
+| ANY_SIGNED | SINT, INT, DINT, LINT | Table 11 |
+| ANY_UNSIGNED | USINT, UINT, UDINT, ULINT | Table 11 |
+| ANY_REAL | REAL, LREAL | Table 11 |
+| ANY_BIT | BOOL, BYTE, WORD, DWORD, LWORD | Table 11 |
+| ANY_STRING | STRING, WSTRING | Table 11 |
+| ANY_CHAR | CHAR, WCHAR | Table 11 |
+| ANY_DATE | DATE, TOD, DT, LDATE, LTOD, LDT | Table 11 |
+| ANY_DURATION | TIME, LTIME | Table 11 |
+
+### 2.3 Derived Data Types (§6.4)
+
+#### 2.3.1 Arrays (§6.4.4.1)
 ```
 TYPE myArray : ARRAY[1..10] OF INT; END_TYPE
 ```
 - Multi-dimensional: `ARRAY[1..10, 1..5] OF REAL`
-- Reference: IEC 61131-3 §6.4.4.1
+- With initialization: `ARRAY[0..9] OF INT := [10(0)]`
+- Reference: Table 11.4, §6.4.4.1
 
-#### 2.2.2 Structures
+#### 2.3.2 Structures (§6.4.4.2)
 ```
 TYPE myStruct :
   STRUCT
@@ -129,13 +166,58 @@ TYPE myStruct :
   END_STRUCT;
 END_TYPE
 ```
-- Reference: IEC 61131-3 §6.4.4.2
+- Access: `instance.field1 := 42;`
+- Reference: Table 11.6, §6.4.4.2
 
-#### 2.2.3 Enumerations
+#### 2.3.3 Enumerations (§6.4.4.3)
 ```
 TYPE TrafficLight : (Red, Yellow, Green); END_TYPE
+TYPE State : (Idle := 0, Running := 1, Error := 99); END_TYPE
 ```
-- Reference: IEC 61131-3 §6.4.4.3
+- With explicit values supported
+- Reference: Table 11.1, §6.4.4.3
+
+#### 2.3.4 Subrange Types (§6.4.4.4)
+```
+TYPE ValidPercent : INT(0..100); END_TYPE
+```
+- Constrains values to specified range
+- Reference: §6.4.4.4
+
+### 2.4 Literals (Tables 5-9)
+
+#### 2.4.1 Integer Literals (Table 5)
+| Format | Example | Notes |
+|--------|---------|-------|
+| Decimal | 42, -42 | Default type: DINT |
+| Hexadecimal | 16#FF | |
+| Binary | 2#1010 | |
+| Octal | 8#77 | Deprecated in Ed. 4 |
+| Typed | INT#42 | |
+| With underscores | 1_000_000 | Readability |
+
+#### 2.4.2 Real Literals (Table 5)
+| Format | Example | Notes |
+|--------|---------|-------|
+| Decimal | 3.14 | Default type: LREAL |
+| Scientific | 1.5E10, 2.0E-5 | |
+| Typed | REAL#3.14 | |
+
+#### 2.4.3 Time Literals (Table 8)
+Units: d (days), h (hours), m (minutes), s (seconds), ms (milliseconds), us (microseconds), ns (nanoseconds)
+- Simple: `T#100ms`, `T#1h`
+- Compound: `T#1h30m45s`
+- Fractional: `T#1.5h` (equals 1h30m)
+- Negative: `T#-250ms`
+
+#### 2.4.4 Date/Time Literals (Table 9)
+- DATE: `D#2024-01-15`
+- TOD: `TOD#14:30:00.500`
+- DT: `DT#2024-01-15-14:30:00`
+
+#### 2.4.5 String Literals
+- STRING: `'Hello'` with escapes: `$$`, `$'`, `$L`, `$R`, `$T`
+- WSTRING: `"Hello"`
 
 ---
 
@@ -585,6 +667,7 @@ Based on PLCopen certification levels:
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-01-16 | Enhanced data types section: added default values, 64-bit time types (LTIME, LDATE, LTOD, LDT), CHAR/WCHAR, generic types hierarchy, literal formats (Tables 5-9), subrange types | - |
 | 2026-01-16 | Initial creation from IEC 61131-3 standard | - |
 
 ---
