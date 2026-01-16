@@ -184,8 +184,12 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Category | Reference | Status | Notes |
 |----------|-----------|--------|-------|
 | Type conversion | §8.1 | ⚠️ | Implicit only |
-| Numeric (ABS, SQRT, etc.) | §8.2 | ❌ | |
-| Selection (SEL, MAX, MIN) | §8.3 | ❌ | |
+| ABS | §8.2 | ✅ | Absolute value (INT, REAL) |
+| SQRT | §8.2 | ✅ | Square root (REAL) |
+| MIN | §8.3 | ✅ | Minimum of two values |
+| MAX | §8.3 | ✅ | Maximum of two values |
+| Other Numeric | §8.2 | ❌ | SIN, COS, TAN, LN, LOG, EXP not implemented |
+| SEL | §8.3 | ❌ | Selection function |
 | String (LEN, LEFT, etc.) | §8.4 | ❌ | |
 
 ---
@@ -207,7 +211,8 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Bounds | 71 | ✅ 100% |
 | Integration | 105 | ✅ 100% |
 | Additional | 50 | ✅ 100% |
-| **Total** | **1094** | ✅ 100% |
+| Std Functions | 38 | ✅ 100% |
+| **Total** | **1132** | ✅ 100% |
 
 ---
 
@@ -215,9 +220,9 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 ### Next Priorities
 
-1. **Additional integer types** - SINT, DINT, UINT, UDINT
+1. **Additional integer types** - SINT, DINT, UINT, UDINT (infrastructure exists, needs range validation)
 2. **RETURN statement** - For completeness
-3. **Standard functions** - ABS, SQRT, MIN, MAX (partially implemented)
+3. **Additional numeric functions** - SIN, COS, TAN, LN, LOG, EXP
 4. **CONTINUE statement** - Edition 3 feature
 
 ### Future Consideration
@@ -234,5 +239,6 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 | Date | Change |
 |------|--------|
+| 2026-01-16 | Added standard function tests (ABS, SQRT, MIN, MAX) with 38 tests |
 | 2026-01-16 | Added exponentiation operator (**) with 19 tests |
 | 2026-01-16 | Initial creation, extracted from COMPLIANCE_MATRIX.md |
