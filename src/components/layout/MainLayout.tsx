@@ -12,6 +12,7 @@ import { STEditor } from '../st-editor/STEditor';
 import { VariableWatch } from '../variable-watch/VariableWatch';
 import { PropertyDrawer } from '../property-drawer';
 import { ProgramSelector } from '../program-selector';
+import { OpenMenu } from '../open-menu';
 import { ErrorPanel } from '../error-panel';
 import { TutorialLightbulb } from '../onboarding';
 import { HelpMenu } from '../help-menu';
@@ -19,7 +20,6 @@ import { useProjectStore, useSimulationStore } from '../../store';
 import {
   saveToLocalStorage,
   downloadSTFile,
-  openSTFile,
   scheduleAutoSave,
 } from '../../services/file-service';
 import {
@@ -155,7 +155,6 @@ export function MainLayout() {
   const project = useProjectStore((state) => state.project);
   const isDirty = useProjectStore((state) => state.isDirty);
   const newProject = useProjectStore((state) => state.newProject);
-  const loadFromSTCode = useProjectStore((state) => state.loadFromSTCode);
   const saveProject = useProjectStore((state) => state.saveProject);
 
   // Get currentProgramId for auto-save
@@ -178,27 +177,6 @@ export function MainLayout() {
     }
     newProject('New Project');
   }, [isDirty, newProject]);
-
-  const handleOpen = useCallback(async () => {
-    if (isDirty) {
-      const confirmed = window.confirm(
-        'You have unsaved changes. Are you sure you want to open a different file?'
-      );
-      if (!confirmed) return;
-    }
-
-    try {
-      // Open ST file directly - ST is the source of truth
-      const { programName, stCode, fileName } = await openSTFile();
-      loadFromSTCode(programName, stCode, fileName);
-    } catch (error) {
-      // User cancelled or error opening file
-      if ((error as Error).message !== 'File selection cancelled') {
-        console.error('Error opening ST file:', error);
-        alert(`Failed to open ST file: ${(error as Error).message}`);
-      }
-    }
-  }, [isDirty, loadFromSTCode]);
 
   const handleSave = useCallback(() => {
     const projectToSave = saveProject();
@@ -290,10 +268,7 @@ export function MainLayout() {
             <span className="toolbar-icon">📄</span>
             <span className="toolbar-label">New</span>
           </button>
-          <button className="toolbar-btn" title="Open Project" onClick={handleOpen}>
-            <span className="toolbar-icon">📂</span>
-            <span className="toolbar-label">Open</span>
-          </button>
+          <OpenMenu isDirty={isDirty} />
           <button
             className={`toolbar-btn ${isDirty ? 'dirty' : ''}`}
             title={isDirty ? 'Save Project (unsaved changes)' : 'Save Project'}
