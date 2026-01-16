@@ -11,7 +11,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | Category | Implemented | Total | Coverage |
 |----------|-------------|-------|----------|
 | Data Types | 19 | 21 | 90% |
-| Variables | 6 | 10 | 60% |
+| Variables | 7 | 10 | 70% |
 | Operators | 16 | 17 | 94% |
 | Control Flow | 7 | 7 | 100% |
 | Standard FBs | 10 | 10+ | 100%* |
@@ -70,7 +70,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | VAR_IN_OUT | §3.1 | ✅ | 19 | Pass-by-reference in function blocks |
 | VAR_GLOBAL | §3.1 | ✅ | - | Works across programs |
 | VAR_EXTERNAL | §3.1 | ❌ | - | |
-| VAR_TEMP | §3.1 | ❌ | - | |
+| VAR_TEMP | §3.1 | ✅ | 11 | Reset to default/initial values on each FB call |
 | RETAIN | §3.2 | ⚠️ | - | Parsed, no persistence |
 | CONSTANT | §3.2 | ✅ | 20 | Read-only enforcement |
 | AT addressing | §3.2 | ❌ | - | |
@@ -240,8 +240,9 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 | User Function Blocks | 18 | ✅ 100% |
 | STRING Types | 35 | ✅ 100% |
 | VAR_IN_OUT | 19 | ✅ 100% |
+| VAR_TEMP | 11 | ✅ 100% |
 | Type Conversion | 50 | ✅ 100% |
-| **Total** | **1602** | ✅ 100% |
+| **Total** | **1613** | ✅ 100% |
 
 ---
 
@@ -250,8 +251,9 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 ### Next Priorities
 
 1. **STRUCT support** - User-defined structured types
-2. **VAR_EXTERNAL** - External variable references
+2. **Enumeration types** - User-defined enumerated types
 3. **DATE/TIME_OF_DAY/DATE_AND_TIME types** - Date/time data types
+4. **VAR_EXTERNAL** - External variable references
 
 ### Future Consideration
 
@@ -265,6 +267,7 @@ Tracks our implementation progress against the [IEC 61131-3 Reference](./IEC_611
 
 | Date | Change |
 |------|--------|
+| 2026-01-16 | Added VAR_TEMP support in function blocks - temporary variables that reset to initial/default values on each FB call, per IEC 61131-3 Section 2.4 - 11 new tests, variables now 70% |
 | 2026-01-16 | Added multi-dimensional ARRAY support (2D, 3D) with ARRAY[m..n, p..q] syntax, arr[i, j] and arr[i][j] access - 18 new tests |
 | 2026-01-16 | Added explicit type conversion functions (*_TO_*) - BOOL_TO_INT, INT_TO_REAL, REAL_TO_INT, STRING_TO_INT, etc., plus TRUNC function - 50 new tests |
 | 2026-01-16 | Added VAR_IN_OUT (pass-by-reference) support in function blocks - 19 new tests, variables now 60% |

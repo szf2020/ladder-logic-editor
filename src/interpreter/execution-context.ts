@@ -826,6 +826,66 @@ function getInOutParameters(fb: STProgram): Array<{ name: string; typeName: stri
 }
 
 /**
+ * Get VAR_TEMP declarations from a function block.
+ * VAR_TEMP variables are reset to their initial/default values on each FB call.
+ */
+function getTempVariables(fb: STProgram): Array<{ name: string; typeName: string; initialValue?: Value }> {
+  const temps: Array<{ name: string; typeName: string; initialValue?: Value }> = [];
+  for (const varBlock of fb.varBlocks) {
+    if (varBlock.scope === 'VAR_TEMP') {
+      for (const decl of varBlock.declarations) {
+        const initVal = extractInitialValue(decl.initialValue, decl.dataType.typeName);
+        for (const varName of decl.names) {
+          temps.push({ name: varName, typeName: decl.dataType.typeName, initialValue: initVal });
+        }
+      }
+    }
+  }
+  return temps;
+}
+
+/**
+ * Extract initial value from an expression, returning the default for the type if not provided.
+ */
+function extractInitialValue(expr: STExpression | undefined, typeName: string): Value {
+  const upper = typeName.toUpperCase();
+
+  if (!expr) {
+    // Return default value for type
+    switch (upper) {
+      case 'BOOL': return false;
+      case 'REAL':
+      case 'LREAL': return 0.0;
+      case 'STRING':
+      case 'WSTRING': return '';
+      default: return 0;
+    }
+  }
+
+  if (expr.type === 'Literal') {
+    return expr.value;
+  }
+
+  // Handle unary minus
+  if (expr.type === 'UnaryExpr' && expr.operator === '-' && expr.operand.type === 'Literal') {
+    const val = expr.operand.value;
+    if (typeof val === 'number') return -val;
+  }
+
+  // Default value for type
+  switch (upper) {
+    case 'BOOL': return false;
+    case 'REAL':
+    case 'LREAL': return 0.0;
+    case 'STRING':
+    case 'WSTRING': return '';
+    default: return 0;
+  }
+}
+
+import type { STExpression } from '../transformer/ast/st-ast-types';
+
+/**
  * Invoke a user-defined function block.
  *
  * @param instanceName - The FB instance name
@@ -853,6 +913,34 @@ function invokeUserFunctionBlock(
   if (!fb) {
     console.warn(`User FB type '${instanceState.fbTypeName}' not found`);
     return;
+  }
+
+  // Reset VAR_TEMP variables to their initial/default values
+  // VAR_TEMP variables are NOT retained between FB calls (per IEC 61131-3)
+  const tempVars = getTempVariables(fb);
+  for (const tempVar of tempVars) {
+    const upper = tempVar.typeName.toUpperCase();
+    const initValue = tempVar.initialValue;
+    switch (upper) {
+      case 'BOOL':
+        instanceState.booleans[tempVar.name] = typeof initValue === 'boolean' ? initValue : false;
+        break;
+      case 'REAL':
+      case 'LREAL':
+        instanceState.reals[tempVar.name] = typeof initValue === 'number' ? initValue : 0.0;
+        break;
+      case 'TIME':
+        instanceState.times[tempVar.name] = typeof initValue === 'number' ? Math.trunc(initValue) : 0;
+        break;
+      case 'STRING':
+      case 'WSTRING':
+        instanceState.strings[tempVar.name] = typeof initValue === 'string' ? initValue : '';
+        break;
+      default:
+        // INT and other integer types
+        instanceState.integers[tempVar.name] = typeof initValue === 'number' ? Math.trunc(initValue) : 0;
+        break;
+    }
   }
 
   // Create a temporary evaluation context to evaluate input arguments
@@ -924,6 +1012,10 @@ function invokeUserFunctionBlock(
   const localVars = getLocalVariables(fb);
   for (const local of localVars) {
     localTypeRegistry[local.name] = mapTypeName(local.typeName);
+  }
+  // Add VAR_TEMP variables to type registry
+  for (const tempVar of tempVars) {
+    localTypeRegistry[tempVar.name] = mapTypeName(tempVar.typeName);
   }
   const outputVars = getOutputVariables(fb);
   for (const out of outputVars) {
