@@ -80,7 +80,6 @@ export function MobileLayout() {
   const startSimulation = useSimulationStore((state) => state.start);
   const pauseSimulation = useSimulationStore((state) => state.pause);
   const stopSimulation = useSimulationStore((state) => state.stop);
-  const resetSimulation = useSimulationStore((state) => state.reset);
   const stepSimulation = useSimulationStore((state) => state.step);
   const updateTimer = useSimulationStore((state) => state.updateTimer);
   const timers = useSimulationStore((state) => state.timers);
@@ -174,8 +173,7 @@ export function MobileLayout() {
 
   const handleStop = useCallback(() => {
     stopSimulation();
-    resetSimulation();
-  }, [stopSimulation, resetSimulation]);
+  }, [stopSimulation]);
 
   // Auto-save when files change
   useEffect(() => {

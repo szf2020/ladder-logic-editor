@@ -732,8 +732,11 @@
 
 .mobile-variable-watch {
   flex: 1;
-  overflow: hidden;
+  overflow: auto;
   background: var(--mobile-bg-base);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 /* ============================================================================
