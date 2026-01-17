@@ -1,14 +1,15 @@
 /**
  * Structured Text Editor Styles
+ * Uses Tailwind CSS theme variables
  */
 
 .st-editor {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #1e1e1e;
-  color: #d4d4d4;
-  border-radius: 4px;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -17,18 +18,18 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: #252526;
-  border-bottom: 1px solid #3c3c3c;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
   font-size: 12px;
 }
 
 .st-editor-title {
   font-weight: 600;
-  color: #cccccc;
+  color: var(--color-foreground);
 }
 
 .st-editor-program-name {
-  color: #808080;
+  color: var(--color-muted);
   font-style: italic;
 }
 
@@ -45,20 +46,20 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--color-muted);
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: background-color 150ms, color 150ms;
 }
 
 .st-editor-help-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
+  background-color: var(--color-accent-muted);
+  color: var(--color-foreground);
 }
 
 .st-editor-help-btn--active {
-  background-color: rgba(0, 122, 204, 0.2);
-  color: #007acc;
+  background-color: var(--color-accent-muted);
+  color: var(--color-accent);
 }
 
 .st-editor-body {
@@ -78,87 +79,87 @@
 
 /* CodeMirror Theme Overrides */
 .st-editor .cm-gutters {
-  background: #1e1e1e;
-  border-right: 1px solid #3c3c3c;
-  color: #858585;
+  background: var(--color-background);
+  border-right: 1px solid var(--color-border);
+  color: var(--color-muted);
 }
 
 .st-editor .cm-activeLineGutter {
-  background: #2a2d2e;
+  background: var(--color-elevated);
 }
 
 .st-editor .cm-activeLine {
-  background: #2a2d2e;
+  background: var(--color-elevated);
 }
 
 .st-editor .cm-cursor {
-  border-left-color: #aeafad;
+  border-left-color: var(--color-foreground);
 }
 
 .st-editor .cm-selectionBackground {
-  background: #264f78 !important;
+  background: color-mix(in srgb, var(--color-accent) 25%, transparent) !important;
 }
 
 /* Syntax Highlighting */
 .st-editor .tok-keyword {
-  color: #569cd6;
+  color: var(--color-syntax-keyword);
   font-weight: bold;
 }
 
 .st-editor .tok-controlKeyword {
-  color: #c586c0;
+  color: var(--color-syntax-control);
 }
 
 .st-editor .tok-definitionKeyword {
-  color: #569cd6;
+  color: var(--color-syntax-keyword);
 }
 
 .st-editor .tok-typeName {
-  color: #4ec9b0;
+  color: var(--color-syntax-type);
 }
 
 .st-editor .tok-variableName {
-  color: #9cdcfe;
+  color: var(--color-info);
 }
 
 .st-editor .tok-number {
-  color: #b5cea8;
+  color: var(--color-success);
 }
 
 .st-editor .tok-string {
-  color: #ce9178;
+  color: var(--color-syntax-string);
 }
 
 .st-editor .tok-bool {
-  color: #569cd6;
+  color: var(--color-syntax-keyword);
 }
 
 .st-editor .tok-literal {
-  color: #dcdcaa;
+  color: var(--color-syntax-literal);
 }
 
 .st-editor .tok-comment {
-  color: #6a9955;
+  color: var(--color-syntax-comment);
   font-style: italic;
 }
 
 .st-editor .tok-operator {
-  color: #d4d4d4;
+  color: var(--color-foreground);
 }
 
 .st-editor .tok-logicOperator {
-  color: #569cd6;
+  color: var(--color-syntax-keyword);
 }
 
 .st-editor .tok-compareOperator {
-  color: #d4d4d4;
+  color: var(--color-foreground);
 }
 
 /* Autocomplete */
 .st-editor .cm-tooltip-autocomplete {
-  background: #252526;
-  border: 1px solid #454545;
-  border-radius: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
 }
 
 .st-editor .cm-tooltip-autocomplete ul li {
@@ -166,37 +167,37 @@
 }
 
 .st-editor .cm-tooltip-autocomplete ul li[aria-selected] {
-  background: #094771;
+  background: var(--color-accent-muted);
 }
 
 .st-editor .cm-completionLabel {
-  color: #d4d4d4;
+  color: var(--color-foreground);
 }
 
 .st-editor .cm-completionDetail {
-  color: #808080;
+  color: var(--color-muted);
   font-style: italic;
   margin-left: 8px;
 }
 
 .st-editor .cm-completionIcon-keyword::after {
   content: 'K';
-  color: #c586c0;
+  color: var(--color-syntax-control);
 }
 
 .st-editor .cm-completionIcon-type::after {
   content: 'T';
-  color: #4ec9b0;
+  color: var(--color-syntax-type);
 }
 
 .st-editor .cm-completionIcon-snippet::after {
   content: 'S';
-  color: #dcdcaa;
+  color: var(--color-syntax-literal);
 }
 
 .st-editor .cm-completionIcon-constant::after {
   content: 'C';
-  color: #569cd6;
+  color: var(--color-syntax-keyword);
 }
 
 /* Autocomplete Info Panel (extended documentation) */
@@ -205,14 +206,14 @@
   max-width: 400px;
   max-height: 300px;
   overflow: auto;
-  background: #2d2d2d;
-  border-left: 1px solid #454545;
+  background: var(--color-elevated);
+  border-left: 1px solid var(--color-border);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .st-editor .cm-completion-info {
-  color: #cccccc;
+  color: var(--color-foreground);
 }
 
 /* ============================================================================
@@ -220,44 +221,44 @@
    ============================================================================ */
 
 .st-hover-tooltip {
-  background: #252526;
-  border: 1px solid #454545;
-  border-radius: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
   padding: 12px;
   max-width: 450px;
   max-height: 350px;
   overflow: auto;
   font-size: 13px;
   line-height: 1.5;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--color-background) 80%, transparent);
 }
 
 .st-hover-tooltip .doc-signature {
-  font-family: 'Fira Code', 'Monaco', 'Menlo', monospace;
-  background: #1e1e1e;
+  font-family: var(--font-mono);
+  background: var(--color-background);
   padding: 6px 10px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   margin-bottom: 10px;
   font-size: 12px;
 }
 
 .st-hover-tooltip .doc-signature code {
-  color: #4ec9b0;
+  color: var(--color-syntax-type);
 }
 
 .st-hover-tooltip .doc-description {
-  color: #d4d4d4;
+  color: var(--color-foreground);
   margin-bottom: 10px;
 }
 
 .st-hover-tooltip .doc-section {
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid #3c3c3c;
+  border-top: 1px solid var(--color-border);
 }
 
 .st-hover-tooltip .doc-section strong {
-  color: #cccccc;
+  color: var(--color-foreground);
   display: block;
   margin-bottom: 6px;
 }
@@ -270,30 +271,30 @@
 
 .st-hover-tooltip .doc-section li {
   margin: 4px 0;
-  color: #b4b4b4;
+  color: var(--color-muted);
 }
 
 .st-hover-tooltip .doc-section li code {
-  color: #9cdcfe;
-  font-family: 'Fira Code', 'Monaco', 'Menlo', monospace;
+  color: var(--color-info);
+  font-family: var(--font-mono);
   font-size: 11px;
 }
 
 .st-hover-tooltip .doc-section pre {
-  background: #1e1e1e;
+  background: var(--color-background);
   padding: 8px 10px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   margin: 8px 0 0 0;
   font-size: 11px;
-  font-family: 'Fira Code', 'Monaco', 'Menlo', monospace;
+  font-family: var(--font-mono);
   overflow-x: auto;
-  color: #d4d4d4;
+  color: var(--color-foreground);
 }
 
 .st-hover-tooltip .doc-see-also {
   margin-top: 10px;
   padding-top: 8px;
-  border-top: 1px solid #3c3c3c;
-  color: #808080;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted);
   font-size: 11px;
 }

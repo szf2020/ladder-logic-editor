@@ -1,7 +1,6 @@
 /**
  * Quick Reference Panel Styles
- *
- * VS Code theme consistent sidebar panel for browsing ST documentation.
+ * Uses Tailwind CSS theme variables
  */
 
 .quick-reference {
@@ -9,8 +8,8 @@
   flex-direction: column;
   width: 300px;
   height: 100%;
-  background: #252526;
-  border-left: 1px solid #404040;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
   overflow: hidden;
 }
 
@@ -23,8 +22,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  background: #1e1e1e;
-  border-bottom: 1px solid #404040;
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
@@ -32,7 +31,7 @@
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: #d4d4d4;
+  color: var(--color-foreground);
 }
 
 .quick-reference__close {
@@ -44,15 +43,15 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: #808080;
+  color: var(--color-muted);
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: background-color 150ms, color 150ms;
 }
 
 .quick-reference__close:hover {
-  background-color: #3d3d3d;
-  color: #d4d4d4;
+  background-color: var(--color-toolbar);
+  color: var(--color-foreground);
 }
 
 /* ============================================================================
@@ -81,11 +80,11 @@
 .quick-reference__content:has(.quick-reference__detail) .quick-reference__categories {
   flex: 0 0 auto;
   max-height: 45%;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .quick-reference__category {
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .quick-reference__category:last-child {
@@ -100,7 +99,7 @@
   padding: 10px 12px;
   border: none;
   background: transparent;
-  color: #d4d4d4;
+  color: var(--color-foreground);
   font-size: 12px;
   font-weight: 500;
   text-align: left;
@@ -109,7 +108,7 @@
 }
 
 .quick-reference__category-header:hover {
-  background-color: #2d2d2d;
+  background-color: var(--color-elevated);
 }
 
 .quick-reference__chevron {
@@ -143,7 +142,7 @@
   padding: 6px 12px 6px 32px;
   border: none;
   background: transparent;
-  color: #808080;
+  color: var(--color-muted);
   font-size: 12px;
   text-align: left;
   cursor: pointer;
@@ -151,23 +150,23 @@
 }
 
 .quick-reference__item:hover {
-  background-color: #2d2d2d;
-  color: #d4d4d4;
+  background-color: var(--color-elevated);
+  color: var(--color-foreground);
 }
 
 .quick-reference__item--selected {
-  background-color: rgba(0, 122, 204, 0.15);
-  color: #d4d4d4;
+  background-color: var(--color-accent-muted);
+  color: var(--color-foreground);
 }
 
 .quick-reference__item code {
-  color: #4ec9b0;
-  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  color: var(--color-syntax-type);
+  font-family: var(--font-mono);
   font-size: 11px;
 }
 
 .quick-reference__item-sig {
-  color: #606060;
+  color: var(--color-muted-foreground);
   font-size: 10px;
   margin-left: 8px;
   overflow: hidden;
@@ -183,37 +182,37 @@
   flex: 1;
   padding: 12px;
   overflow-y: auto;
-  background: #1e1e1e;
+  background: var(--color-background);
   min-height: 0;
 }
 
 .quick-reference__detail-header {
   margin-bottom: 12px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .quick-reference__detail-name {
   display: block;
   font-size: 15px;
   font-weight: 600;
-  color: #4ec9b0;
-  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  color: var(--color-syntax-type);
+  font-family: var(--font-mono);
   margin-bottom: 6px;
 }
 
 .quick-reference__detail-sig {
   display: block;
   font-size: 11px;
-  color: #808080;
-  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
 }
 
 .quick-reference__detail-desc {
   margin: 0 0 12px 0;
   font-size: 12px;
   line-height: 1.5;
-  color: #d4d4d4;
+  color: var(--color-foreground);
 }
 
 .quick-reference__detail-section {
@@ -224,7 +223,7 @@
   margin: 0 0 8px 0;
   font-size: 11px;
   font-weight: 600;
-  color: #808080;
+  color: var(--color-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -242,27 +241,27 @@
 }
 
 .quick-reference__detail-section li code {
-  color: #9cdcfe;
-  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  color: var(--color-info);
+  font-family: var(--font-mono);
 }
 
 .quick-reference__detail-section .param-type {
-  color: #4ec9b0;
+  color: var(--color-syntax-type);
 }
 
 .quick-reference__detail-section .param-desc {
-  color: #808080;
+  color: var(--color-muted);
 }
 
 .quick-reference__example {
   margin: 8px 0 0 0;
   padding: 10px;
-  background: #252526;
-  border: 1px solid #404040;
-  border-radius: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   font-size: 11px;
-  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
-  color: #d4d4d4;
+  font-family: var(--font-mono);
+  color: var(--color-foreground);
   overflow-x: auto;
   white-space: pre;
   line-height: 1.4;
@@ -271,9 +270,9 @@
 .quick-reference__see-also {
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px solid #404040;
+  border-top: 1px solid var(--color-border);
   font-size: 11px;
-  color: #606060;
+  color: var(--color-muted-foreground);
 }
 
 /* ============================================================================
@@ -292,11 +291,11 @@
 
 .quick-reference__categories::-webkit-scrollbar-thumb,
 .quick-reference__detail::-webkit-scrollbar-thumb {
-  background: #424242;
-  border-radius: 4px;
+  background: var(--color-toolbar);
+  border-radius: var(--radius-sm);
 }
 
 .quick-reference__categories::-webkit-scrollbar-thumb:hover,
 .quick-reference__detail::-webkit-scrollbar-thumb:hover {
-  background: #4f4f4f;
+  background: var(--color-border);
 }

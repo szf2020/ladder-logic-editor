@@ -1,5 +1,6 @@
 /**
  * Property Drawer Styles
+ * Uses Tailwind CSS theme variables
  *
  * Industrial/technical aesthetic inspired by control panels and circuit diagrams.
  * Slides in from the right edge with smooth animations.
@@ -11,14 +12,14 @@
 
 .property-drawer {
   --drawer-width: 260px;
-  --drawer-bg: #1a1d24;
-  --drawer-border: #2a3140;
-  --drawer-accent: #4da6ff;
-  --drawer-accent-dim: rgba(77, 166, 255, 0.15);
-  --drawer-text: #c8cdd5;
-  --drawer-text-dim: #6b7280;
-  --drawer-surface: #232830;
-  --drawer-glow: rgba(77, 166, 255, 0.08);
+  --drawer-bg: var(--color-background);
+  --drawer-border: var(--color-border);
+  --drawer-accent: var(--color-accent);
+  --drawer-accent-dim: var(--color-accent-muted);
+  --drawer-text: var(--color-foreground);
+  --drawer-text-dim: var(--color-muted-foreground);
+  --drawer-surface: var(--color-surface);
+  --drawer-glow: color-mix(in srgb, var(--color-accent) 8%, transparent);
 
   /* Transition timing */
   --drawer-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -41,7 +42,7 @@
 .property-drawer-backdrop.visible {
   pointer-events: auto;
   opacity: 1;
-  background: rgba(0, 0, 0, 0.15);
+  background: color-mix(in srgb, var(--color-background) 15%, transparent);
 }
 
 /* =============================================================================
@@ -62,7 +63,7 @@
   background: var(--drawer-bg);
   border-left: 1px solid var(--drawer-border);
   box-shadow:
-    -4px 0 20px rgba(0, 0, 0, 0.25),
+    -4px 0 20px color-mix(in srgb, var(--color-background) 75%, transparent),
     -1px 0 0 var(--drawer-border);
 
   transform: translateX(100%);
@@ -120,7 +121,7 @@
   width: 24px;
   height: 24px;
   background: var(--drawer-accent-dim);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: var(--drawer-accent);
 }
 
@@ -131,7 +132,7 @@
   color: var(--drawer-text);
   text-transform: uppercase;
   letter-spacing: 0.75px;
-  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
 }
 
 .drawer-close {
@@ -143,20 +144,20 @@
   padding: 0;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: var(--drawer-text-dim);
   cursor: pointer;
   transition: all 150ms ease;
 }
 
 .drawer-close:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-elevated);
   border-color: var(--drawer-border);
   color: var(--drawer-text);
 }
 
 .drawer-close:active {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-toolbar);
 }
 
 /* =============================================================================
@@ -211,14 +212,14 @@
   padding: 8px 14px;
   background: var(--drawer-surface);
   border: 1px solid var(--drawer-border);
-  border-radius: 6px;
+  border-radius: var(--radius);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 2px 4px rgba(0, 0, 0, 0.1);
+    inset 0 1px 0 color-mix(in srgb, white 3%, transparent),
+    0 2px 4px color-mix(in srgb, var(--color-background) 60%, transparent);
 }
 
 .type-badge-icon {
-  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 700;
   color: var(--drawer-accent);
@@ -245,12 +246,12 @@
   padding: 10px 12px;
   margin: 0 -12px;
   gap: 12px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: background-color 100ms ease;
 }
 
 .property-row:hover {
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--color-elevated);
 }
 
 .property-row.dimmed {
@@ -279,7 +280,7 @@
 }
 
 .property-value.mono {
-  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: -0.25px;
 }

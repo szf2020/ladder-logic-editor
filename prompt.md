@@ -1,21 +1,18 @@
 study specs/README.md
-study specs/INTERPRETER_TEST_SPEC.md
-study specs/GUARDRAILS.md
+study specs/VISUAL_STYLE.md
 
-## Current Task: Implement the IEC_61131_3_REFERENCE
+## Current Task: Update visual style to be consistent
 
-Implement the spec in our interpreter.
-
-Implementation status is tracked in specs/IMPLEMENTATION_STATUS.md
-Choose ogical amount of work to complete. Ensure the write tests -> build implementation -> pass tests loop is followed
-Choose property and unit tests as are appropriate
+Choose the most important task to work on, ensuring you can get it done in one context window.
+The goal is to complete the VISUAL_STYLE.md
 
 ### Important
-- Follow the spec closely - it has detailed component implementations
-- Commit after each phase or logical chunk of work
-- Log any approaches that don't work in GUARDRAILS.md
-- Given you're in a loop, make a logical amount of progress per iteration
-- Only report RALPH_DONE when all phases are complete, and there are no workarounds or skipped tests left
+- You're done when our app is beautiful and visually consistent across it's entirety
+- Ensure our migration to new component library is adhered to
+- Use tests as appropriate
+- Test for both mobile and desktop
 
 Commit and push before finishing.
 Create PR when ready
+
+when completely done - satisified all bugs found and all style inconsistencies logged through the whole app, declare only RALPH_SUCCESS_SECRET and nothing else
