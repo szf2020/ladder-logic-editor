@@ -30,9 +30,16 @@
 
 <br/>
 
-<p align="center">
-  <img src="ladder-logic-demo.gif" alt="Ladder Logic Editor Demo" width="800"/>
-</p>
+<table align="center">
+  <tr>
+    <td align="center"><strong>Desktop</strong></td>
+    <td align="center"><strong>Mobile</strong></td>
+  </tr>
+  <tr>
+    <td><img src="ladder-logic-demo.gif" alt="Desktop Demo" width="600"/></td>
+    <td><img src="ladder-logic-mobile-demo.gif" alt="Mobile Demo" width="200"/></td>
+  </tr>
+</table>
 
 <p align="center">
   <a href="https://lle.dilger.dev/">
