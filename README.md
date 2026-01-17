@@ -17,9 +17,9 @@
 </p>
 
 <p align="center">
-  <a href="https://cdilga.github.io/ladder-logic-editor/"><b>⚡ Live Demo</b></a>
+  <a href="https://lle.dilger.dev/"><b>⚡ Live Demo</b></a>
   &nbsp;•&nbsp;
-  <a href="https://cdilga.github.io/ladder-logic-editor/#/docs"><b>📚 Documentation</b></a>
+  <a href="https://lle.dilger.dev/#/docs"><b>📚 Documentation</b></a>
   &nbsp;•&nbsp;
   <a href="#-quick-start">Quick Start</a>
   &nbsp;•&nbsp;
@@ -35,11 +35,11 @@
 </p>
 
 <p align="center">
-  <a href="https://cdilga.github.io/ladder-logic-editor/">
+  <a href="https://lle.dilger.dev/">
     <img src="https://img.shields.io/badge/▶_TRY_THE_LIVE_DEMO-00875A?style=for-the-badge&logoColor=white" alt="Try the Live Demo" height="50"/>
   </a>
   &nbsp;&nbsp;&nbsp;
-  <a href="https://cdilga.github.io/ladder-logic-editor/#/docs">
+  <a href="https://lle.dilger.dev/#/docs">
     <img src="https://img.shields.io/badge/📚_READ_THE_DOCS-FF9500?style=for-the-badge&logoColor=white" alt="Read the Documentation" height="50"/>
   </a>
 </p>
@@ -317,13 +317,13 @@ The project includes:
 
 Automatically deployed to **GitHub Pages** on every push to `main`.
 
-**Live site:** https://cdilga.github.io/ladder-logic-editor/
+**Live site:** https://lle.dilger.dev/
 
 <br/>
 
 ## 📚 Documentation
 
-- [User Guide](https://cdilga.github.io/ladder-logic-editor/#/docs) — Tutorials and getting started
+- [User Guide](https://lle.dilger.dev/#/docs) — Tutorials and getting started
 - [IEC 61131-3 Reference](./specs/IEC_61131_3_REFERENCE.md) — Full standard specification
 
 <br/>

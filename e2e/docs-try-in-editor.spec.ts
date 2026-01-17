@@ -47,7 +47,7 @@ test.describe('Try in Editor - Desktop', () => {
     await tryButton.click();
 
     // Should navigate to the main editor
-    await expect(page).toHaveURL(/\/ladder-logic-editor\/#\/$/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/#\/$/, { timeout: 5000 });
 
     // Wait for desktop layout
     await page.waitForSelector('.main-layout', { timeout: 5000 });
@@ -108,7 +108,7 @@ test.describe('Try in Editor - Mobile', () => {
     await tryButton.click();
 
     // Should navigate to the main editor
-    await expect(page).toHaveURL(/\/ladder-logic-editor\/#\/$/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/#\/$/, { timeout: 5000 });
 
     // Wait for mobile layout
     await page.waitForSelector('.mobile-layout', { timeout: 5000 });
@@ -158,7 +158,7 @@ test.describe('Try in Editor - Mobile', () => {
     await codeExample.locator('.code-example__btn--try').click();
 
     // Should navigate to main editor
-    await expect(page).toHaveURL(/\/ladder-logic-editor\/#\/$/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/#\/$/, { timeout: 5000 });
 
     // Wait for mobile layout
     await page.waitForSelector('.mobile-layout', { timeout: 5000 });
@@ -201,7 +201,7 @@ test.describe('Try in Editor - Mobile', () => {
     await codeExample.locator('.code-example__btn--try').click();
 
     // Should navigate to main editor
-    await expect(page).toHaveURL(/\/ladder-logic-editor\/#\/$/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/#\/$/, { timeout: 5000 });
 
     // Wait for mobile layout
     await page.waitForSelector('.mobile-layout', { timeout: 5000 });

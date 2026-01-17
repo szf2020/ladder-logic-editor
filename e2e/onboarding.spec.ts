@@ -203,7 +203,7 @@ test.describe('Onboarding Tutorial', () => {
 
     // Open a new page in the same context (localStorage persists within context)
     const newPage = await context.newPage();
-    await newPage.goto('http://localhost:5173/ladder-logic-editor/');
+    await newPage.goto('http://localhost:5173/');
     await newPage.waitForTimeout(2000);
 
     // Tutorial should NOT show on new page (localStorage persisted)

@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://cdilga.github.io/ladder-logic-editor/",
+  "homepage": "https://lle.dilger.dev/",
   "scripts": {
     "dev": "vite",
     "build": "npm run build:parser && tsc -b && vite build",

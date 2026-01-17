@@ -4,9 +4,9 @@
 
 GitHub Pages deployment is automatic on push to `main` via GitHub Actions.
 
-- **Live site:** https://cdilga.github.io/ladder-logic-editor/
+- **Live site:** https://lle.dilger.dev/
 - **Workflow:** `.github/workflows/deploy.yml`
-- **Base URL:** Configured in `vite.config.ts` as `/ladder-logic-editor/`
+- **Base URL:** Configured in `vite.config.ts` as `/`
 
 No build artifacts are committed - GitHub Actions builds and deploys directly.
 
