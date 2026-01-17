@@ -1,7 +1,6 @@
 /**
  * Documentation Sidebar Styles
- *
- * VS Code theme consistent styling
+ * Uses Tailwind CSS theme variables
  */
 
 /* ============================================================================
@@ -12,8 +11,8 @@
   grid-area: sidebar;
   display: flex;
   flex-direction: column;
-  background: #252526;
-  border-right: 1px solid #404040;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
   overflow: hidden;
   min-height: 0; /* Enable scrolling in grid context */
 }
@@ -27,7 +26,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .docs-sidebar__logo {
@@ -36,8 +35,8 @@
   gap: 10px;
   font-size: 13px;
   font-weight: 600;
-  font-family: 'IBM Plex Mono', 'SF Mono', 'Consolas', monospace;
-  color: #FF9500;
+  font-family: var(--font-mono);
+  color: var(--color-warning);
   text-decoration: none;
   letter-spacing: -0.01em;
   transition: opacity 200ms;
@@ -56,14 +55,14 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: #808080;
-  border-radius: 4px;
+  color: var(--color-muted);
+  border-radius: var(--radius-sm);
   cursor: pointer;
 }
 
 .docs-sidebar__close:hover {
-  background: #3d3d3d;
-  color: #d4d4d4;
+  background: var(--color-toolbar);
+  color: var(--color-foreground);
 }
 
 /* ============================================================================
@@ -72,7 +71,7 @@
 
 .docs-sidebar__search {
   padding: 12px 14px;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .docs-sidebar__search .docs-search {
@@ -104,20 +103,20 @@
   display: block;
   padding: 8px 16px;
   font-size: 13px;
-  color: #808080;
+  color: var(--color-muted);
   text-decoration: none;
   transition: background-color 150ms, color 150ms;
 }
 
 .docs-nav__link:hover {
-  color: #d4d4d4;
-  background: #2d2d2d;
+  color: var(--color-foreground);
+  background: var(--color-elevated);
 }
 
 .docs-nav__link--active {
-  color: #007acc;
-  background: rgba(0, 122, 204, 0.1);
-  border-right: 2px solid #007acc;
+  color: var(--color-accent);
+  background: var(--color-accent-muted);
+  border-right: 2px solid var(--color-accent);
 }
 
 /* ============================================================================
@@ -138,14 +137,14 @@
   background: transparent;
   font-size: 13px;
   font-weight: 500;
-  color: #d4d4d4;
+  color: var(--color-foreground);
   text-align: left;
   cursor: pointer;
   transition: background-color 150ms;
 }
 
 .docs-nav__section-btn:hover {
-  background: #2d2d2d;
+  background: var(--color-elevated);
 }
 
 .docs-nav__chevron {
@@ -177,7 +176,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 14px 16px;
-  border-top: 1px solid #404040;
+  border-top: 1px solid var(--color-border);
 }
 
 .docs-sidebar__back-link {
@@ -185,7 +184,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #007acc;
+  color: var(--color-accent);
   text-decoration: none;
 }
 
@@ -198,12 +197,12 @@
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #808080;
+  color: var(--color-muted);
   text-decoration: none;
 }
 
 .docs-sidebar__iec-link:hover {
-  color: #d4d4d4;
+  color: var(--color-foreground);
   text-decoration: underline;
 }
 

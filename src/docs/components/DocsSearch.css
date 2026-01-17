@@ -1,7 +1,6 @@
 /**
  * Documentation Search Styles
- *
- * VS Code theme consistent styling
+ * Uses Tailwind CSS theme variables
  */
 
 .docs-search {
@@ -19,29 +18,29 @@
 .docs-search__icon {
   position: absolute;
   left: 10px;
-  color: #606060;
+  color: var(--color-muted-foreground);
   pointer-events: none;
 }
 
 .docs-search__input {
   width: 100%;
   padding: 8px 32px;
-  border: 1px solid #404040;
-  border-radius: 4px;
-  background: #1e1e1e;
-  color: #d4d4d4;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  color: var(--color-foreground);
   font-size: 13px;
   transition: border-color 150ms, background-color 150ms;
 }
 
 .docs-search__input::placeholder {
-  color: #606060;
+  color: var(--color-muted-foreground);
 }
 
 .docs-search__input:focus {
   outline: none;
-  border-color: #007acc;
-  background: #252526;
+  border-color: var(--color-accent);
+  background: var(--color-surface);
 }
 
 .docs-search__clear {
@@ -55,14 +54,14 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: #606060;
+  color: var(--color-muted-foreground);
   border-radius: 3px;
   cursor: pointer;
 }
 
 .docs-search__clear:hover {
-  background: #3d3d3d;
-  color: #d4d4d4;
+  background: var(--color-toolbar);
+  color: var(--color-foreground);
 }
 
 /* Results Dropdown */
@@ -73,9 +72,9 @@
   right: 0;
   max-height: 400px;
   overflow-y: auto;
-  background: #252526;
-  border: 1px solid #404040;
-  border-radius: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   z-index: 100;
 }
@@ -84,7 +83,7 @@
   display: block;
   padding: 10px 14px;
   text-decoration: none;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--color-border);
   transition: background-color 150ms;
 }
 
@@ -94,19 +93,19 @@
 
 .docs-search__result:hover,
 .docs-search__result--selected {
-  background: rgba(0, 122, 204, 0.1);
+  background: var(--color-accent-muted);
 }
 
 .docs-search__result-title {
   font-size: 13px;
   font-weight: 500;
-  color: #d4d4d4;
+  color: var(--color-foreground);
   margin-bottom: 4px;
 }
 
 .docs-search__result-match {
   font-size: 11px;
-  color: #808080;
+  color: var(--color-muted);
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -116,6 +115,6 @@
 .docs-search__no-results {
   padding: 14px;
   text-align: center;
-  color: #606060;
+  color: var(--color-muted-foreground);
   font-size: 13px;
 }

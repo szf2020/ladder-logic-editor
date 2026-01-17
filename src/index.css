@@ -91,7 +91,11 @@
   --bg-base: var(--color-background);
   --bg-surface: var(--color-surface);
   --bg-elevated: var(--color-elevated);
+  --bg-secondary: var(--color-surface);
+  --bg-hover: var(--color-elevated);
+  --bg-active: var(--color-toolbar);
   --border: var(--color-border);
+  --border-color: var(--color-border);
   --border-accent: var(--color-border-accent);
 
   --accent-primary: var(--color-accent);
@@ -102,4 +106,17 @@
   --text-primary: var(--color-foreground);
   --text-secondary: var(--color-muted);
   --text-muted: var(--color-muted-foreground);
+
+  /* Mobile-specific variables (used by HelpNavButton, HelpView, MobileNavMenu, MobilePropertiesSheet) */
+  --mobile-bg-base: var(--color-background);
+  --mobile-bg-surface: var(--color-surface);
+  --mobile-bg-elevated: var(--color-elevated);
+  --mobile-border: var(--color-border);
+  --mobile-border-accent: var(--color-border-accent);
+  --mobile-accent-primary: var(--color-accent);
+  --mobile-text-primary: var(--color-foreground);
+  --mobile-text-secondary: var(--color-muted);
+  --mobile-text-tertiary: var(--color-muted-foreground);
+  --mobile-transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --mobile-transition-base: 180ms cubic-bezier(0.4, 0, 0.2, 1);
 }

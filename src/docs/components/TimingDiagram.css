@@ -1,14 +1,13 @@
 /**
  * Timing Diagram Styles
- *
- * VS Code theme consistent styling
+ * Uses Tailwind CSS theme variables
  */
 
 .timing-diagram {
   margin: 18px 0;
-  background: #252526;
-  border: 1px solid #404040;
-  border-radius: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -16,9 +15,9 @@
   padding: 10px 14px;
   font-size: 13px;
   font-weight: 500;
-  color: #d4d4d4;
-  background: #2d2d2d;
-  border-bottom: 1px solid #404040;
+  color: var(--color-foreground);
+  background: var(--color-elevated);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .timing-diagram__svg {
@@ -30,9 +29,9 @@
 }
 
 .timing-diagram__label {
-  fill: #d4d4d4;
+  fill: var(--color-foreground);
   font-size: 11px;
-  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
 }
 
 .timing-diagram__signal {
@@ -41,32 +40,32 @@
 }
 
 .timing-diagram__baseline {
-  stroke: #404040;
+  stroke: var(--color-border);
   stroke-width: 1;
   stroke-dasharray: 2, 4;
 }
 
 .timing-diagram__gridline {
-  stroke: #404040;
+  stroke: var(--color-border);
   stroke-width: 1;
   opacity: 0.5;
 }
 
 .timing-diagram__highlight-rect {
-  fill: rgba(0, 122, 204, 0.1);
-  stroke: rgba(0, 122, 204, 0.3);
+  fill: var(--color-accent-muted);
+  stroke: color-mix(in srgb, var(--color-accent) 30%, transparent);
   stroke-width: 1;
   stroke-dasharray: 4, 2;
 }
 
 .timing-diagram__highlight-label {
-  fill: #007acc;
+  fill: var(--color-accent);
   font-size: 10px;
   font-weight: 500;
 }
 
 .timing-diagram__time-label {
-  fill: #606060;
+  fill: var(--color-muted-foreground);
   font-size: 9px;
 }
 
