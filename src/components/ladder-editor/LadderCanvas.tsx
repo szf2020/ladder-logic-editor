@@ -5,7 +5,7 @@
  * Renders the visual representation of the ladder logic.
  */
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -45,6 +45,23 @@ export function LadderCanvas({
   const isMobile = useIsMobile();
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState(initialEdges);
+
+  // Get theme colors from CSS custom properties
+  const themeColors = useMemo(() => {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      contact: style.getPropertyValue('--color-minimap-contact').trim() || '#569cd6',
+      coil: style.getPropertyValue('--color-minimap-coil').trim() || '#4ec9b0',
+      timer: style.getPropertyValue('--color-minimap-timer').trim() || '#dcdcaa',
+      counter: style.getPropertyValue('--color-minimap-counter').trim() || '#b388ff',
+      comparator: style.getPropertyValue('--color-minimap-comparator').trim() || '#ce9178',
+      powerLeft: style.getPropertyValue('--color-minimap-power-left').trim() || '#e74c3c',
+      powerRight: style.getPropertyValue('--color-minimap-power-right').trim() || '#3498db',
+      default: style.getPropertyValue('--color-minimap-default').trim() || '#808080',
+      edge: style.getPropertyValue('--color-canvas-edge').trim() || '#d4d4d4',
+      grid: style.getPropertyValue('--color-canvas-grid').trim() || '#404040',
+    };
+  }, []);
 
   // Update nodes when initialNodes prop changes
   useEffect(() => {
@@ -114,21 +131,21 @@ export function LadderCanvas({
   const nodeColor = useCallback((node: Node) => {
     switch (node.type) {
       case 'contact':
-        return '#569cd6';
+        return themeColors.contact;
       case 'coil':
-        return '#4ec9b0';
+        return themeColors.coil;
       case 'timer':
-        return '#dcdcaa';
+        return themeColors.timer;
       case 'counter':
-        return '#b388ff';
+        return themeColors.counter;
       case 'comparator':
-        return '#ce9178';
+        return themeColors.comparator;
       case 'powerRail':
-        return node.data?.railType === 'left' ? '#e74c3c' : '#3498db';
+        return node.data?.railType === 'left' ? themeColors.powerLeft : themeColors.powerRight;
       default:
-        return '#808080';
+        return themeColors.default;
     }
-  }, []);
+  }, [themeColors]);
 
   return (
     <div className={`ladder-canvas ${className}`}>
@@ -151,7 +168,7 @@ export function LadderCanvas({
           snapGrid={[15, 15]}
           defaultEdgeOptions={{
             type: 'smoothstep',
-            style: { stroke: '#d4d4d4', strokeWidth: 2 },
+            style: { stroke: themeColors.edge, strokeWidth: 2 },
           }}
           // Enhanced mobile touch support
           panOnDrag={true}
@@ -167,7 +184,7 @@ export function LadderCanvas({
             variant={BackgroundVariant.Dots}
             gap={15}
             size={1}
-            color="#404040"
+            color={themeColors.grid}
           />
           {!isMobile && <Controls />}
           {!isMobile && (

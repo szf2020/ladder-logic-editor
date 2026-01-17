@@ -33,6 +33,18 @@ const LABEL_WIDTH = 60;
 const TIME_UNIT_WIDTH = 40;
 const MARGIN = { top: 20, right: 20, bottom: 30, left: 10 };
 
+// Theme colors - read from CSS custom properties with fallbacks
+const getThemeColors = () => {
+  if (typeof document === 'undefined') {
+    return { input: '#89b4fa', output: '#a6e3a1' };
+  }
+  const style = getComputedStyle(document.documentElement);
+  return {
+    input: style.getPropertyValue('--color-timing-input').trim() || '#89b4fa',
+    output: style.getPropertyValue('--color-timing-output').trim() || '#a6e3a1',
+  };
+};
+
 // ============================================================================
 // Component
 // ============================================================================
@@ -43,6 +55,7 @@ export function TimingDiagram({
   timeLabels,
   highlightRegion,
 }: TimingDiagramProps) {
+  const themeColors = getThemeColors();
   const numTimeUnits = signals[0]?.values.length || 0;
   const width = MARGIN.left + LABEL_WIDTH + numTimeUnits * TIME_UNIT_WIDTH + MARGIN.right;
   const height = MARGIN.top + signals.length * (SIGNAL_HEIGHT + SIGNAL_SPACING) + MARGIN.bottom;
@@ -90,7 +103,7 @@ export function TimingDiagram({
         <path
           d={path}
           fill="none"
-          stroke={signal.color || '#89b4fa'}
+          stroke={signal.color || themeColors.input}
           strokeWidth="2"
           className="timing-diagram__signal"
         />
@@ -189,12 +202,13 @@ export function TimingDiagram({
 // ============================================================================
 
 export function TONTimingDiagram() {
+  const colors = getThemeColors();
   return (
     <TimingDiagram
       title="TON (On-Delay Timer) Timing"
       signals={[
-        { name: 'IN', values: [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], color: '#89b4fa' },
-        { name: 'Q', values: [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0], color: '#a6e3a1' },
+        { name: 'IN', values: [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], color: colors.input },
+        { name: 'Q', values: [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0], color: colors.output },
       ]}
       timeLabels={['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']}
       highlightRegion={{ start: 2, end: 6, label: 'PT = 4s' }}
@@ -203,12 +217,13 @@ export function TONTimingDiagram() {
 }
 
 export function TOFTimingDiagram() {
+  const colors = getThemeColors();
   return (
     <TimingDiagram
       title="TOF (Off-Delay Timer) Timing"
       signals={[
-        { name: 'IN', values: [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0], color: '#89b4fa' },
-        { name: 'Q', values: [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], color: '#a6e3a1' },
+        { name: 'IN', values: [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0], color: colors.input },
+        { name: 'Q', values: [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], color: colors.output },
       ]}
       timeLabels={['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']}
       highlightRegion={{ start: 5, end: 9, label: 'PT = 4s' }}
@@ -217,12 +232,13 @@ export function TOFTimingDiagram() {
 }
 
 export function TPTimingDiagram() {
+  const colors = getThemeColors();
   return (
     <TimingDiagram
       title="TP (Pulse Timer) Timing"
       signals={[
-        { name: 'IN', values: [0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0], color: '#89b4fa' },
-        { name: 'Q', values: [0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1], color: '#a6e3a1' },
+        { name: 'IN', values: [0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0], color: colors.input },
+        { name: 'Q', values: [0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1], color: colors.output },
       ]}
       timeLabels={['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']}
       highlightRegion={{ start: 1, end: 5, label: 'PT = 4s' }}
